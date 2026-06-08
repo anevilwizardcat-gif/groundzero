@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MYTHBOUND — Battle</title>
+<script src="mythbound_shared.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:2px solid #fff;background:#000;flex-shrink:0;}
+.logo{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;}
+.nav-links{display:flex;gap:5px;}
+.nb{background:#000;border:2px solid #444;color:#444;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.nb:hover,.nb.on{border-color:#fff;color:#fff;}
+.nb.wip{border-color:#222;color:#333;cursor:default;}
+.nb.myth{border-color:#555;color:#555;}
+body{background:#000;color:#fff;font-family:'VT323',monospace;font-size:18px;}
+.root{display:flex;flex-direction:column;width:100%;max-width:900px;margin:0 auto;flex:1;}
+.wave-bar{font-family:'Press Start 2P',monospace;font-size:8px;color:#ffdd6b;letter-spacing:1px;text-align:center;padding:6px 0 4px;border-bottom:1px solid #1a1a2a;}
+
+.field{background:#060810;border-bottom:2px solid #fff;position:relative;display:flex;justify-content:center;align-items:center;padding:18px 24px;gap:48px;overflow:hidden;flex:1 1 0;min-height:280px;}
+.f-side{display:flex;gap:18px;align-items:center;}
+.vs-lbl{font-family:'Press Start 2P',monospace;font-size:6px;color:#1e1e30;letter-spacing:3px;flex-shrink:0;}
+
+.comb{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;}
+.spr{font-size:54px;line-height:1;transition:filter .3s;}
+.spr.rdy{filter:drop-shadow(0 0 8px #ffdd6b);}
+.spr.aegis{filter:drop-shadow(0 0 14px #cc44ff);}
+.spr.dead{opacity:.15;filter:grayscale(1);}
+.sname{font-family:'Press Start 2P',monospace;font-size:5px;color:#555;letter-spacing:.5px;}
+.sname.you{color:#ffdd6b;}
+.sbuffs{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;max-width:150px;}
+.sbuff{font-family:'Press Start 2P',monospace;font-size:4px;padding:1px 3px;border-radius:0;}
+.sbuff.surge{background:#221400;color:#ffdd6b;border:1px solid #ffdd6b;}
+.sbuff.brace{background:#001020;color:#6bb5ff;border:1px solid #6bb5ff;}
+.sbuff.venom{background:#001800;color:#44ff66;border:1px solid #44ff66;}
+.sbuff.ablaze{background:#200800;color:#ff7722;border:1px solid #ff7722;}
+.sbuff.taunted{background:#1a0000;color:#ff4455;border:1px solid #ff4455;}
+.sbuff.momentum{background:#180e00;color:#ffaa44;border:1px solid #ffaa44;}
+
+.ehp-row{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.ehp-bar{width:48px;height:5px;background:#1a1a1a;border-radius:0;overflow:hidden;}
+.ehp-fill{height:100%;transition:width .25s;border-radius:0;}
+.ebless{font-family:'Press Start 2P',monospace;font-size:4px;color:#cc44ff;}
+.ehp-txt{font-size:13px;color:#aaa;}
+
+/* UNDERTALE TEXTBOX — rendered INSIDE the field, absolutely positioned per enemy */
+.utbox{
+  position:absolute;
+  background:#000;
+  border:2px solid #fff;
+  padding:6px 10px;
+  font-family:'Press Start 2P',monospace;
+  font-size:6px;
+  white-space:nowrap;
+  color:#fff;
+  pointer-events:none;
+  z-index:60;
+  line-height:1.8;
+  letter-spacing:.5px;
+  display:none;
+}
+.utbox::after{
+  content:'';
+  position:absolute;
+  top:100%;left:50%;
+  transform:translateX(-50%);
+  border:6px solid transparent;
+  border-top-color:#fff;
+}
+
+.dfloat{position:absolute;font-family:'Press Start 2P',monospace;pointer-events:none;animation:fltup 1.1s ease-out forwards;z-index:50;}
+.dfloat.de{color:#ff4455;font-size:12px;}
+.dfloat.dp{color:#fff;font-size:10px;}
+.dfloat.heal{color:#6bff9b;font-size:11px;}
+@keyframes fltup{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-50px);}}
+
+#log{height:68px;overflow-y:auto;padding:5px 14px;border-bottom:2px solid #fff;background:#000;display:flex;flex-direction:column;gap:1px;}
+.le{font-size:16px;line-height:1.4;}
+.le.d{color:#ff6666;}.le.h{color:#6bff9b;}.le.b{color:#cc77ff;}.le.s{color:#888;}.le.big{color:#ffdd6b;font-family:'Press Start 2P',monospace;font-size:8px;padding:3px 0;}
+
+.hud{display:flex;flex-direction:row;background:#000;border-top:2px solid #fff;flex:1 1 0;min-height:240px;}
+
+.act-col{width:124px;flex-shrink:0;border-right:2px solid #fff;display:flex;flex-direction:column;}
+.act-hdr{font-family:'Press Start 2P',monospace;font-size:6px;padding:7px 10px;border-bottom:1px solid #222;color:#444;letter-spacing:.5px;flex-shrink:0;}
+.act-hdr.on{color:#ffdd6b;}
+.act-btn{display:flex;align-items:center;gap:6px;padding:9px 11px;background:#000;border:none;border-bottom:1px solid #111;font-family:'Press Start 2P',monospace;font-size:6px;color:#fff;cursor:pointer;width:100%;letter-spacing:.4px;transition:background .1s;}
+.act-btn:hover:not([disabled]){background:#111;}
+.act-btn:disabled{color:#2a2a2a;cursor:not-allowed;}
+.act-btn .arr{color:#ffdd6b;font-size:9px;opacity:0;line-height:1;}
+.act-btn:not([disabled]):hover .arr{opacity:1;}
+.act-btn.abil{color:#ffdd6b;}
+.act-btn.aeg{color:#cc44ff;}
+.act-btn.aeg.rdy{animation:aep .7s infinite;}
+@keyframes aep{0%,100%{color:#cc44ff;}50%{color:#fff;}}
+
+.mid{flex:1;min-width:0;display:flex;flex-direction:column;border-right:1px solid #222;position:relative;overflow:hidden;}
+.party-stack{display:flex;flex-direction:column;height:100%;}
+.pm{display:flex;flex-direction:column;flex:1;border-bottom:1px solid #111;padding:5px 10px;min-height:0;}
+.pm:last-child{border-bottom:none;}
+.pm.yt{background:#0c0900;}
+.pm.dead{opacity:.3;}
+.pm-top{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.pm-em{font-size:19px;line-height:1;}
+.pm-nm{font-family:'Press Start 2P',monospace;font-size:6px;letter-spacing:.3px;white-space:nowrap;}
+.pm-nm.you{color:#ffdd6b;}
+.pm-role{font-size:12px;color:#3a3a3a;margin-left:2px;}
+.pm-hp{font-size:17px;color:#ccc;margin-left:auto;flex-shrink:0;white-space:nowrap;}
+.pm-bars{display:flex;flex-direction:column;gap:4px;}
+.brow{display:flex;align-items:center;gap:5px;}
+.blbl{font-family:'Press Start 2P',monospace;font-size:6px;color:#555;width:24px;flex-shrink:0;}
+.bbg{width:150px;flex-shrink:0;height:15px;background:#000;border:2px solid #2a2a2a;border-radius:0;overflow:hidden;}
+.bf{height:100%;border-radius:0;transition:width .2s;}
+.bf.atb{background:#ffdd6b;transition:none;}
+.bf.mp{background:#3a8dff;}
+@keyframes lbdim{0%{background-position:0% 50%;}100%{background-position:200% 50%;}}
+@keyframes lbsat{0%{background-position:0% 50%;}100%{background-position:200% 50%;}}
+@keyframes lbglow{
+  0%  {box-shadow:0 0 6px 1px rgba(255,0,68,.85);  border-color:#ff5577;}
+  20% {box-shadow:0 0 7px 1px rgba(255,170,0,.85); border-color:#ffbb44;}
+  40% {box-shadow:0 0 7px 1px rgba(120,255,0,.85); border-color:#aaff55;}
+  60% {box-shadow:0 0 7px 1px rgba(0,200,255,.85); border-color:#44ccff;}
+  80% {box-shadow:0 0 7px 1px rgba(170,0,255,.85); border-color:#cc66ff;}
+  100%{box-shadow:0 0 6px 1px rgba(255,0,68,.85);  border-color:#ff5577;}
+}
+/* uncharged: desaturated, very slow drift */
+.bf.lb-dim{background:linear-gradient(90deg,#c8a0b4,#a8a8cc,#a0c0b8,#a8c8a0,#c0b8a0,#c8a0b4);background-size:200% 100%;animation:lbdim 6s linear infinite;filter:saturate(.65);}
+/* charged: vivid RGB, fast wave */
+.bf.lb-full{background:linear-gradient(90deg,#ff0044,#ff8800,#ffff00,#00ff88,#00aaff,#cc00ff,#ff0044);background-size:200% 100%;animation:lbsat 0.7s linear infinite;}
+.bbg.lb-glow{animation:lbglow 1.4s linear infinite;}
+
+.sub-panel{display:none;flex-direction:column;height:100%;overflow:hidden;}
+.sub-panel.show{display:flex;}
+.sub-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#ffdd6b;padding:7px 12px;border-bottom:1px solid #222;flex-shrink:0;letter-spacing:.5px;}
+.sub-list{flex:1;overflow-y:auto;}
+.si{padding:8px 13px;border-bottom:1px solid #111;cursor:pointer;font-size:16px;display:flex;align-items:center;gap:8px;transition:background .1s;}
+.si:hover{background:#111;}
+.si .si-nm{font-family:'Press Start 2P',monospace;font-size:5px;letter-spacing:.3px;}
+.si .si-sb{font-size:13px;color:#555;margin-top:1px;}
+.si .si-co{font-size:13px;color:#ffdd6b;flex-shrink:0;margin-left:auto;}
+.si.myth{border-left:2px solid #ffdd6b;}
+.si.dis{opacity:.28;cursor:not-allowed;}
+.si.dis:hover{background:transparent;}
+.si.canc{color:#444;font-family:'Press Start 2P',monospace;font-size:5px;padding:8px 13px;cursor:pointer;}
+.si.canc:hover{color:#888;background:#0a0a0a;}
+.bag-grid{display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;}
+.bs{padding:9px;border-right:1px solid #111;border-bottom:1px solid #111;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:background .1s;}
+.bs:nth-child(even){border-right:none;}.bs:nth-child(n+5){border-bottom:none;}
+.bs:hover:not(.emp){background:#111;}.bs.emp{opacity:.2;cursor:default;}
+.bs .be{font-size:22px;}.bs .bn{font-family:'Press Start 2P',monospace;font-size:4px;color:#ccc;text-align:center;}
+.bs .bd{font-size:12px;color:#444;text-align:center;line-height:1.2;}.bs .bq{font-size:13px;color:#333;}
+
+.chat-col{width:180px;flex-shrink:0;display:flex;flex-direction:column;}
+.chat-hdr{font-family:'Press Start 2P',monospace;font-size:6px;color:#ffdd6b;padding:7px 10px;border-bottom:1px solid #222;flex-shrink:0;}
+.chat-msgs{flex:1;overflow-y:auto;padding:5px 9px;display:flex;flex-direction:column;gap:3px;min-height:80px;}
+.cmsg{font-size:13px;line-height:1.4;}
+.cmsg.you{color:#ffdd6b;}.cmsg.ally{color:#bbb;}.cmsg.sys{color:#333;}
+.chat-inp-row{display:flex;border-top:1px solid #222;flex-shrink:0;}
+.chat-inp{flex:1;background:#000;border:none;color:#fff;font-family:'VT323',monospace;font-size:15px;padding:5px 7px;outline:none;}
+.chat-send{background:#000;border:none;border-left:1px solid #222;color:#444;font-family:'Press Start 2P',monospace;font-size:5px;padding:0 7px;cursor:pointer;}
+.chat-send:hover{color:#fff;}
+.dsel-overlay{position:fixed;inset:0;z-index:50;background:rgba(5,4,10,0.96);display:flex;align-items:center;justify-content:center;padding:24px;}
+.dsel-box{max-width:640px;width:100%;max-height:88vh;display:flex;flex-direction:column;}
+.dsel-hdr{font-family:'Press Start 2P',monospace;font-size:14px;color:#cc44ff;text-align:center;margin-bottom:10px;letter-spacing:1px;}
+.dsel-sub{font-size:13px;color:#888;text-align:center;margin-bottom:18px;line-height:1.5;}
+.dsel-list{overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px;}
+.dsel-card{border:2px solid #2a2340;background:#0c0a14;padding:14px 16px;cursor:pointer;transition:border-color .1s,background .1s;}
+.dsel-card:hover{border-color:#cc44ff;background:#120e1e;}
+.dsel-top{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+.dsel-name{font-family:'Press Start 2P',monospace;font-size:12px;color:#fff;line-height:1.4;}
+.dsel-kind{font-size:12px;border:1px solid;padding:3px 7px;white-space:nowrap;}
+.dsel-meta{font-size:13px;color:#9a87c0;margin:8px 0 5px;}
+.dsel-desc{font-size:13px;color:#777;line-height:1.5;}
+.dsel-empty{font-size:14px;color:#666;text-align:center;padding:34px;line-height:1.7;}
+.dsel-return{position:fixed;bottom:16px;right:16px;z-index:40;font-family:'Press Start 2P',monospace;font-size:12px;color:#cc44ff;background:#0c0a14;border:2px solid #cc44ff;padding:11px 15px;cursor:pointer;}
+.dsel-return:hover{background:#1a1228;}
+.dsel-rolebar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:#9a87c0;margin-bottom:14px;}
+.dsel-role{font-family:'Press Start 2P',monospace;font-size:12px;color:#888;background:#0c0a14;border:2px solid #2a2340;padding:8px 11px;cursor:pointer;}
+.dsel-role:hover{border-color:#6a5acd;color:#fff;}
+.dsel-role.on{border-color:#cc44ff;color:#cc44ff;background:#160f22;}
+/* readability bump — HUD/log a bit larger */
+#log{font-size:13px !important;line-height:1.55 !important;}
+.act-hdr{font-size:9px !important;padding:9px 11px !important;}
+.act-btn{font-size:9px !important;padding:11px 12px !important;}
+.si-nm{font-size:13px !important;}
+.si-sb{font-size:12px !important;}
+.si-co{font-size:12px !important;}
+.pm-nm{font-size:12px !important;}
+.sname{font-size:11px !important;}
+.sbuff{font-size:10px !important;padding:2px 5px !important;border-radius:0 !important;letter-spacing:.3px !important;}
+.sbuffs{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;margin-top:2px;}
+.ehp-txt{font-size:16px !important;color:#cdd !important;font-weight:bold;}
+.ehp-bar{width:64px !important;height:8px !important;}
+.result-overlay{position:fixed;inset:0;z-index:60;background:rgba(4,3,9,0.94);display:none;align-items:center;justify-content:center;padding:24px;}
+.result-box{max-width:440px;width:100%;background:#0c0a14;border:3px solid #cc44ff;padding:24px 22px;text-align:center;}
+.result-box.win{border-color:#ffd23f;box-shadow:0 0 40px rgba(255,210,63,.18);}
+.result-box.lose{border-color:#b33;box-shadow:0 0 40px rgba(187,51,51,.18);}
+.result-title{font-family:'Press Start 2P',monospace;font-size:22px;letter-spacing:2px;margin-bottom:8px;}
+.result-box.win .result-title{color:#ffd23f;}
+.result-box.lose .result-title{color:#ff6a6a;}
+.result-sub{font-size:14px;color:#9a87c0;margin-bottom:18px;}
+.res-rewards{text-align:left;border-top:1px solid #2a2340;border-bottom:1px solid #2a2340;padding:12px 4px;margin-bottom:18px;}
+.res-row{display:flex;justify-content:space-between;font-size:15px;color:#dcd3f0;padding:4px 0;}
+.res-row span:last-child{color:#ffd23f;font-weight:bold;}
+.res-loot-h{font-family:'Press Start 2P',monospace;font-size:9px;color:#cc44ff;margin:10px 0 4px;}
+.result-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+/* Chrono Drake Aegis — circular color-invert time-stop sweep */
+#timestop-fx{position:fixed;inset:0;z-index:80;pointer-events:none;display:none;}
+#timestop-fx.play{display:block;animation:tstop 1.4s ease-out forwards;}
+@keyframes tstop{
+  0%   {background:radial-gradient(circle at 50% 50%, rgba(255,255,255,0) 0%, rgba(255,255,255,0) 100%);backdrop-filter:invert(0);-webkit-backdrop-filter:invert(0);}
+  8%   {backdrop-filter:invert(1) hue-rotate(180deg);-webkit-backdrop-filter:invert(1) hue-rotate(180deg);}
+  10%  {background:radial-gradient(circle at 50% 50%, rgba(120,220,255,0.55) 0%, rgba(120,220,255,0.0) 12%);}
+  55%  {background:radial-gradient(circle at 50% 50%, rgba(120,220,255,0.0) 60%, rgba(120,220,255,0.45) 78%, rgba(120,220,255,0.0) 95%);backdrop-filter:invert(1) hue-rotate(180deg);-webkit-backdrop-filter:invert(1) hue-rotate(180deg);}
+  85%  {backdrop-filter:invert(0.25) hue-rotate(60deg);-webkit-backdrop-filter:invert(0.25) hue-rotate(60deg);}
+  100% {background:radial-gradient(circle at 50% 50%, rgba(120,220,255,0) 100%, rgba(120,220,255,0) 100%);backdrop-filter:invert(0);-webkit-backdrop-filter:invert(0);}
+}
+#timestop-fx.aegis-play{display:block;animation:aegisflash .9s ease-out forwards;}
+@keyframes aegisflash{
+  0%   {background:radial-gradient(circle at var(--ax,50%) var(--ay,60%), var(--aegis-col,#ffd23f) 0%, transparent 0%);opacity:.0;}
+  22%  {background:radial-gradient(circle at var(--ax,50%) var(--ay,60%), var(--aegis-col,#ffd23f) 0%, transparent 12%);opacity:.8;}
+  100% {background:radial-gradient(circle at var(--ax,50%) var(--ay,60%), var(--aegis-col,#ffd23f) 0%, transparent 32%);opacity:0;}
+}
+.debug-panel{position:fixed;left:14px;bottom:14px;z-index:55;background:rgba(10,8,18,0.92);border:2px solid #3a8d63;border-radius:4px;padding:8px;display:flex;flex-direction:column;gap:6px;}
+.debug-panel .dbg-h{font-family:'Press Start 2P',monospace;font-size:8px;color:#7fd3a0;text-align:center;margin-bottom:2px;letter-spacing:1px;}
+.debug-panel button{font-family:'Press Start 2P',monospace;font-size:9px;color:#cfe;background:#11202a;border:1px solid #2f6e4e;padding:7px 9px;cursor:pointer;text-align:left;}
+.debug-panel button:hover{background:#16313f;border-color:#4fb079;}
+</style></head>
+<body style="display:flex;flex-direction:column;height:100vh;overflow:hidden;">
+<nav>
+  <div class="logo">MYTHBOUND</div>
+  <div class="nav-links" id="main-nav"></div>
+</nav>
+<div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
+
+<!-- DUNGEON SELECT (DB-driven; reads the dungeons tab live) -->
+<div id="dungeon-select" class="dsel-overlay">
+  <div class="dsel-box">
+    <div class="dsel-hdr">CHOOSE YOUR DUNGEON</div>
+    <div class="dsel-sub">Pick an encounter to enter. Dungeons you add in the admin Data Editor &rarr; BATTLE DATABASE &rarr; DUNGEONS show up here automatically.</div>
+    <div class="dsel-rolebar">YOUR ROLE <span id="dsel-roles"></span></div>
+    <div class="dsel-list" id="dsel-list"></div>
+  </div>
+</div>
+<button id="return-btn" class="dsel-return" onclick="returnToSelect()" style="display:none;">&#9658; RETURN TO DUNGEONS</button>
+
+<!-- DEBUG (testing helpers) -->
+<div id="debug-panel" class="debug-panel" style="display:none;">
+  <div class="dbg-h">DEBUG</div>
+  <button onclick="dbgFillLb()">⚡ Fill Aegis</button>
+  <button onclick="dbgFullHpMp()">❤ Full HP / MP</button>
+  <button onclick="dbgResetAegis()">↻ Recharge Aegis</button>
+  <button onclick="dbgKillWave()">💀 Clear Wave</button>
+</div>
+
+<!-- RESULT (victory / game over) -->
+<div id="result-overlay" class="result-overlay">
+  <div class="result-box win" id="result-box">
+    <div class="result-title" id="result-title">VICTORY</div>
+    <div class="result-sub" id="result-sub"></div>
+    <div id="result-rewards"></div>
+    <div class="result-actions" id="result-actions"></div>
+  </div>
+</div>
+
+<div class="root">
+  <div class="wave-bar" id="wave-bar">CHOOSE A DUNGEON</div>
+  <div class="field" id="field">
+    <div class="f-side" id="p-side"></div>
+    <div class="vs-lbl">VS</div>
+    <div class="f-side" id="e-side"></div>
+  </div>
+  <div id="log"></div>
+  <div class="hud">
+    <div class="act-col">
+      <div class="act-hdr" id="act-hdr">WAITING...</div>
+      <button class="act-btn" id="btn-atk" onclick="pAct('attack')"><span class="arr">▶</span>ATTACK</button>
+      <button class="act-btn abil" id="btn-abi" onclick="pAct('ability')"><span class="arr">▶</span>ABILITY</button>
+      <button class="act-btn" id="btn-def" onclick="pAct('defend')"><span class="arr">▶</span>DEFEND</button>
+      <button class="act-btn" id="btn-itm" onclick="pAct('items')"><span class="arr">▶</span>ITEMS</button>
+      <button class="act-btn" id="btn-row" onclick="pAct('row')"><span class="arr">▶</span>ROW</button>
+      <button class="act-btn aeg" id="btn-aeg" onclick="pAct('aegis')"><span class="arr">▶</span>✦ AEGIS</button>
+    </div>
+    <div class="mid">
+      <div class="party-stack" id="party-stack"></div>
+      <div class="sub-panel" id="sub-target">
+        <div class="sub-hdr" id="sub-target-hdr">SELECT TARGET</div>
+        <div class="sub-list" id="sub-target-list"></div>
+      </div>
+      <div class="sub-panel" id="sub-abil">
+        <div class="sub-hdr">RAVEN — ABILITY</div>
+        <div class="sub-list" id="sub-abil-list"></div>
+      </div>
+      <div class="sub-panel" id="sub-bag">
+        <div class="sub-hdr">RAVEN'S BAG</div>
+        <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+          <div class="bag-grid" id="bag-grid"></div>
+          <div class="si canc" onclick="showHUD()">CANCEL</div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-col">
+      <div class="chat-hdr">PARTY CHAT</div>
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-inp-row">
+        <input class="chat-inp" id="chat-in" placeholder="say something..." maxlength="55">
+        <button class="chat-send" onclick="sendChat()">SAY</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── AUDIO: one dedicated AudioContext, booping only while typewriter runs ──
+let _audioCtx = null;
+function getACtx() {
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  return _audioCtx;
+}
+
+let _boopTimer = null;   // setInterval handle
+let _booping   = false;
+
+function startBooping() {
+  if (_booping) return;
+  _booping = true;
+  const ctx = getACtx();
+  if (!ctx) return;
+  _boopTimer = setInterval(() => {
+    try {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'square';
+      o.frequency.value = 660 + Math.random() * 200;
+      g.gain.setValueAtTime(0.04, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+      o.start(); o.stop(ctx.currentTime + 0.05);
+    } catch(e) {}
+  }, 55);
+}
+
+function stopBooping() {
+  _booping = false;
+  if (_boopTimer !== null) { clearInterval(_boopTimer); _boopTimer = null; }
+}
+
+// ── BUBBLE SYSTEM ──
+// One bubble per enemy, positioned absolutely inside .field
+// Global cooldown map: per-enemy, 15-20s after bubble finishes
+const BUBBLE_COOLDOWN_MS = 15000 + Math.random() * 5000; // 15–20s, refreshed per use
+const bubbleLastFinished = {};   // eid -> timestamp when last bubble fully finished
+let   bubbleActive = {};         // eid -> true if currently typing
+
+const ELINES = {
+  sprite: [
+    "ouch! i needed that!",
+    "MY WEBS!!",
+    "that was my best leg!",
+    "eight legs, zero coping skills",
+    "ow ow ow ow ow ow ow ow",
+    "you'll regret that!",
+    "i was having such a great day."
+  ],
+  fungus: [
+    "ouch! my cordyceps!",
+    "my spores!! my beautiful spores!",
+    "do you know how long these caps took?",
+    "i am MOSTLY harmless",
+    "you monster. i am a mushroom.",
+    "spore and let spore!!",
+    "mold remembers."
+  ],
+  rootling: [
+    "ouch! i needed that toe!",
+    "my leaves were so young...",
+    "*rustles in absolute distress*",
+    "i just want to photosynthesize",
+    "touch grass they said. it will be fun they said.",
+    "that hurt and i felt it in my ROOT SYSTEM",
+    "i am NOT a houseplant!!"
+  ],
+};
+const bUsed = { sprite: new Set(), fungus: new Set(), rootling: new Set() };
+
+function getLine(id, lines) {
+  const L = (lines && lines.length) ? lines : (ELINES[id] || ['...']);
+  const avail = L.filter((_, i) => !bUsed[id]?.has(i));
+  const pool = avail.length ? avail : L;
+  if (!avail.length && bUsed[id]) bUsed[id].clear();
+  const idx = L.indexOf(pool[Math.floor(Math.random() * pool.length)]);
+  bUsed[id]?.add(idx);
+  return L[idx];
+}
+
+function canShowBubble(eid) {
+  if (bubbleActive[eid]) return false;
+  const last = bubbleLastFinished[eid] || 0;
+  return (Date.now() - last) >= BUBBLE_COOLDOWN_MS;
+}
+
+// Position a .utbox element above a given enemy combatant inside .field
+function positionBubble(boxEl, eid) {
+  const field = document.getElementById('field');
+  const eSide = document.getElementById('e-side');
+  const comb  = eSide.querySelector(`[data-eid="${eid}"]`);
+  if (!comb || !field) return false;
+  const fr = field.getBoundingClientRect();
+  const cr = comb.getBoundingClientRect();
+  // Center of combatant in field-relative coords
+  const cx = cr.left - fr.left + cr.width / 2;
+  const cy = cr.top  - fr.top;
+  boxEl.style.left = (cx - boxEl.offsetWidth / 2) + 'px';
+  boxEl.style.top  = Math.max(4, cy - 70) + 'px';
+  // Clamp to field width
+  const leftPx = parseFloat(boxEl.style.left);
+  const maxLeft = fr.width - boxEl.offsetWidth - 4;
+  boxEl.style.left = Math.max(4, Math.min(leftPx, maxLeft)) + 'px';
+  return true;
+}
+
+function showBubble(eid, txt) {
+  if (!canShowBubble(eid)) return;
+  bubbleActive[eid] = true;
+
+  const field = document.getElementById('field');
+  // Remove any existing box for this enemy
+  const old = document.getElementById('utbox-' + eid);
+  if (old) old.remove();
+
+  const box = document.createElement('div');
+  box.className = 'utbox';
+  box.id = 'utbox-' + eid;
+  box.style.display = 'block';
+  box.textContent = '';
+  field.appendChild(box);
+
+  // Wait one frame so offsetWidth is available for clamping
+  requestAnimationFrame(() => {
+    box.textContent = txt; // temporarily set text to measure width
+    const measured = box.offsetWidth;
+    box.textContent = '';
+    box.style.minWidth = measured + 'px';
+    positionBubble(box, eid);
+
+    // Now typewrite
+    startBooping();
+    let i = 0;
+    function nextChar() {
+      if (i < txt.length) {
+        box.textContent += txt[i++];
+        setTimeout(nextChar, 52);
+      } else {
+        // Done typing — stop boop, schedule removal
+        stopBooping();
+        setTimeout(() => {
+          box.remove();
+          bubbleActive[eid] = false;
+          bubbleLastFinished[eid] = Date.now();
+        }, 2600);
+      }
+    }
+    nextChar();
+  });
+}
+
+// ── GAME STATE ──
+const BAG_ITEMS = [
+  {id:'potion', em:'🧪', name:'POTION',   desc:'Heal 40 HP',      qty:3, effect:'heal',  val:40},
+  {id:'ether',  em:'💧', name:'ETHER',    desc:'Restore 30 MP',   qty:2, effect:'mp',    val:30},
+  {id:'antid',  em:'💊', name:'ANTIDOTE', desc:'Cure Venom',      qty:2, effect:'cure',  status:'Venom'},
+  {id:'elixir', em:'⚗️', name:'ELIXIR',   desc:'Full HP+MP',      qty:1, effect:'elixir'},
+  {id:'bomb',   em:'💣', name:'BOMB',     desc:'60 dmg, 1 enemy', qty:2, effect:'bomb',  val:60},
+];
+
+// ── PARTY ASSEMBLY (solo for now; server-ready seam kept) ─────
+// A battle combatant is built from a descriptor. The party is SOLO right now —
+// the local player only. Real grouped party members will later be supplied by
+// MB.getDungeonParty() (players who grouped via the hub). No mock allies, so the
+// battle stays uncluttered while we get player input + the loop fully working.
+function makeCombatant(d, i){
+  return {
+    id:d.id, name:d.name, em:d.em, role:d.role||null, myth:d.myth||null,
+    hp:d.hp, mhp:d.mhp||d.hp, mp:d.mp, mmp:d.mmp||d.mp,
+    atk:d.atk, def:d.def, spd:d.spd,
+    arc:d.arc||0, wil:d.wil||0, stm:d.stm||0, agi:d.agi||d.spd||0,  // real scaling stats
+    resist:d.resist||{}, grantedSkills:d.grantedSkills||[],
+    atb:i*8, lb:0, status:[], statusDur:{}, row:d.row||'front', alive:true,
+    aegisActive:false, aegisUsed:false,
+    bag:d.bag||[],
+    isLocal:!!d.isLocal,            // true = controlled by THIS client (the player)
+    remoteId:d.remoteId||null,      // later: server player id for synced actions
+  };
+}
+
+// Derive the player's REAL battle stats from base + equipped gear + bound myth.
+//   HP = Stamina   MP = Arcana*8   ATB speed = Agility
+// Also accumulates elemental RESISTS (myth + gear "resist" traits) and SKILLS
+// granted by gear "grantSkill" traits.
+function computePlayerBattleStats(){
+  const model = (MB.DATA && MB.DATA._statModel) || {};
+  const base = model.base ? {...model.base} : {stm:80,agi:14,def:6,wil:8,atk:12,arc:5};
+  const s = {...base};
+  const resist = {};
+  const grantedSkills = [];
+  ['stm','agi','def','wil','atk','arc'].forEach(k=>{ if(typeof MB.PLAYER[k]==='number') s[k]=MB.PLAYER[k]; });
+  const addTraits = (traits)=>{ (traits||[]).forEach(t=>{
+    if(t.type==='resist' && t.element) resist[t.element]=(resist[t.element]||0)+(t.value||0);
+    if(t.type==='grantSkill' && t.skill) grantedSkills.push(t.skill);
+  }); };
+  // equipped gear (hydrated items carry .stats/.traits directly)
+  const eq = MB.PLAYER.equipped || {};
+  Object.values(eq).forEach(ent=>{
+    if(!ent) return;
+    const def = (typeof ent==='object') ? ent : (MB.ITEMS ? MB.ITEMS[ent] : null);
+    if(!def) return;
+    if(def.stats) Object.entries(def.stats).forEach(([k,v])=>{ s[k]=(s[k]||0)+v; });
+    addTraits(def.traits);
+  });
+  // bound myth: stat mods + resists
+  if (MB.PLAYER.myth && MB.DATA && MB.DATA.myths){
+    const m = MB.DATA.myths.find(x=>x.id===MB.PLAYER.myth || x.name===MB.PLAYER.myth);
+    if (m){
+      if(m.statMods) Object.entries(m.statMods).forEach(([k,v])=>{ s[k]=(s[k]||0)+v; });
+      if(m.resist)   Object.entries(m.resist).forEach(([k,v])=>{ resist[k]=(resist[k]||0)+v; });
+    }
+  }
+  s.mhp = s.stm;
+  s.mmp = Math.round(s.arc * 8);
+  s.spdEff = s.agi;
+  s.resist = resist;
+  s.grantedSkills = grantedSkills;
+  return s;
+}
+function buildMeDesc(){
+  const s = computePlayerBattleStats();
+  return {
+    id:MB.PLAYER.id, name:MB.PLAYER.name, em:MB.PLAYER.em, role:MB.PLAYER.role, myth:MB.PLAYER.myth,
+    hp:s.mhp, mhp:s.mhp, mp:s.mmp, mmp:s.mmp,
+    atk:s.atk, def:s.def, spd:s.spdEff,
+    arc:s.arc, wil:s.wil, stm:s.stm, agi:s.agi,
+    resist:s.resist, grantedSkills:s.grantedSkills,
+    row:MB.PLAYER.row||'front',
+    bag:(typeof MB.getBag==='function'?MB.getBag():[]).filter(it=>it&&it.battle&&it.qty>0).map(it=>({id:it.id,name:it.name||it.id,em:it.emoji||it.em||'❔',qty:it.qty,battle:it.battle})),
+    isLocal:true,
+  };
+}
+// SERVER HOOK (stubbed): later returns the real grouped party (array of ally
+// descriptors). Null/[] = solo, which is the only mode for now.
+MB.getDungeonParty = MB.getDungeonParty || function(){ return null; };
+function assembleParty(){
+  const server = (typeof MB.getDungeonParty === 'function') ? MB.getDungeonParty() : null;
+  const allies = (Array.isArray(server) && server.length) ? server : [];   // solo: no mock allies
+  return [buildMeDesc()].concat(allies).slice(0,5).map((d,i)=>makeCombatant(d,i));
+}
+function ME(){ return G.party.find(p=>p.isLocal) || G.party[0]; }
+
+const G = {
+  party: assembleParty(),
+  enemies: [],            // populated from the chosen dungeon's wave (DB-driven)
+  dungeon: null, waveIdx: 0,
+  yourTurn:false, over:false, victory:false, role:'dps',
+  aiThr:0, eThr:0, statT:0, pendCb:null, _loopRunning:false,
+};
+G.party.forEach((c, i) => c.atb = i * 8);
+let lastT = null;
+
+// ── HELPERS ──
+function hpCol(r) { return r>.5?'#6bff9b':r>.25?'#ffdd6b':'#ff4455'; }
+const SMAP = {
+  'Surge':    {cls:'surge',   l:'SRG'},
+  'Brace':    {cls:'brace',   l:'BRC'},
+  'Venom':    {cls:'venom',   l:'VEN'},
+  'Ablaze':   {cls:'ablaze',  l:'ABZ'},
+  'Taunted':  {cls:'taunted', l:'TNT'},
+  'Momentum': {cls:'momentum',l:'MOM'},
+};
+
+function log(txt, t='s') {
+  const el = document.createElement('div');
+  el.className = 'le ' + t;
+  el.textContent = txt;
+  const L = document.getElementById('log');
+  L.appendChild(el); L.scrollTop = L.scrollHeight;
+  while (L.children.length > 60) L.removeChild(L.firstChild);
+}
+function chatMsg(who, txt, type='ally') {
+  const el = document.createElement('div');
+  el.className = 'cmsg ' + type;
+  el.textContent = type==='sys' ? txt : who + ': ' + txt;
+  const C = document.getElementById('chat-msgs');
+  C.appendChild(el); C.scrollTop = C.scrollHeight;
+  while (C.children.length > 35) C.removeChild(C.firstChild);
+}
+function sendChat() {
+  const i = document.getElementById('chat-in');
+  if (!i.value.trim()) return;
+  chatMsg('RAVEN', i.value, 'you'); i.value = '';
+}
+setTimeout(() => {
+  const ci = document.getElementById('chat-in');
+  if (ci) ci.addEventListener('keypress', e => { if (e.key==='Enter') sendChat(); });
+}, 200);
+
+// ── FLOAT DAMAGE ──
+function floatDmg(side, idx, txt, type) {
+  const container = document.getElementById(side==='e' ? 'e-side' : 'p-side');
+  const combs = container.querySelectorAll('.comb');
+  if (!combs[idx]) return;
+  const cr = combs[idx].getBoundingClientRect();
+  const fr = document.getElementById('field').getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'dfloat ' + type;
+  el.textContent = txt;
+  el.style.left = (cr.left - fr.left + cr.width/2 - 16) + 'px';
+  el.style.top  = (cr.top  - fr.top  + 6) + 'px';
+  document.getElementById('field').appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
+// ── DRAW ──
+function chipFor(id){
+  const st=(MB.DATA&&MB.DATA.statuses||{})[id];
+  if(st){
+    const lbl=(st.em?st.em+' ':'')+(st.name||id);
+    const cls=(st.kind==='buff')?'surge':'venom';
+    return `<span class="sbuff ${cls}">${lbl}</span>`;
+  }
+  const legacy={Surge:['⚡ Surge','surge'],Brace:['🛡️ Brace','brace'],Venom:['🟢 Venom','venom'],Ablaze:['🔥 Ablaze','ablaze'],Taunted:['💢 Taunted','taunted'],Momentum:['➡️ Momentum','momentum']};
+  const L=legacy[id];
+  return `<span class="sbuff ${L?L[1]:'venom'}">${L?L[0]:id}</span>`;
+}
+function drawField() {
+  document.getElementById('p-side').innerHTML = G.party.map(c => `
+    <div class="comb" data-pid="${c.id}">
+      <div class="spr ${!c.alive?'dead':c.aegisActive?'aegis':G.yourTurn&&c.isLocal?'rdy':''}">${c.em}</div>
+      <div class="sname ${c.isLocal?'you':''}">${c.name}</div>
+      <div class="sbuffs">${c.status.map(chipFor).join('')}</div>
+    </div>`).join('');
+
+  document.getElementById('e-side').innerHTML = G.enemies.map(e => `
+    <div class="comb" data-eid="${e.id}" style="flex-direction:column-reverse;gap:5px;">
+      <div class="ehp-row">
+        ${e.boss ? '<div class="ebless" style="color:#ff5fd2;border-color:#ff5fd2">BOSS</div>' : ''}
+        <div class="ehp-bar"><div class="ehp-fill" style="width:${Math.max(0,e.hp/e.mhp*100)}%;background:${hpCol(e.hp/e.mhp)}"></div></div>
+        <div class="ehp-txt">${e.alive ? e.hp+'/'+e.mhp : '☠'}</div>
+      </div>
+      <div class="spr ${!e.alive?'dead':''}">${e.em}</div>
+      <div class="sname">${e.name}</div>
+      <div class="sbuffs">${(e.status||[]).map(chipFor).join('')}</div>
+    </div>`).join('');
+}
+
+function drawHUD() {
+  const rv = ME();
+  const aegisRdy = rv && rv.lb>=100 && !rv.aegisActive && !rv.aegisUsed;
+  const on = G.yourTurn && !G.over;
+
+  // Wave bar reflects the chosen dungeon + current wave
+  const wb = document.getElementById('wave-bar');
+  if (wb) {
+    if (G.dungeon) {
+      const wn = (G.dungeon.waves||[])[G.waveIdx];
+      wb.textContent = '\u2694 ' + G.dungeon.name + ' \u2014 Wave ' + (G.waveIdx+1) + ' / ' + (G.dungeon.waves||[]).length + (wn && wn.name ? ' \u00b7 ' + wn.name : '');
+    } else { wb.textContent = 'CHOOSE A DUNGEON'; }
+  }
+  // RETURN button appears when the run is over (cleared or defeated)
+  const rb = document.getElementById('return-btn');
+  if (rb) rb.style.display = G.over ? '' : 'none';
+  const dbg = document.getElementById('debug-panel');
+  if (dbg) dbg.style.display = (G.dungeon && !G.over) ? 'flex' : 'none';
+
+  const hdr = document.getElementById('act-hdr');
+  hdr.textContent = G.over ? (G.victory?'VICTORY!':'DEFEAT...') : on ? (ME().name + ' — ACT') : 'WAITING...';
+  hdr.className = 'act-hdr' + (on?' on':'');
+
+  ['btn-atk','btn-abi','btn-def','btn-itm','btn-row'].forEach(id => document.getElementById(id).disabled = !on);
+  const aeg = document.getElementById('btn-aeg');
+  aeg.disabled = !(on && aegisRdy);
+  aeg.className = 'act-btn aeg' + (aegisRdy&&on?' rdy':'') + (rv&&rv.aegisActive?' on':'');
+  aeg.innerHTML = '<span class="arr">▶</span>✦ ' + (rv&&rv.aegisActive ? 'AEGIS ACTIVE' : 'AEGIS');
+
+  renderPartyStack();
+}
+
+// Build the party bar DOM ONCE (so CSS animations + width transitions persist),
+// then only update values each frame. Rebuilding innerHTML every frame was
+// resetting the LB rainbow/glow animation and killing the fill transition.
+function renderPartyStack(){
+  const stack = document.getElementById('party-stack'); if(!stack) return;
+  const key = G.party.map(c=>c.id).join('|');
+  if (stack._key !== key){
+    stack.innerHTML = G.party.map((c,i)=>`
+      <div class="pm" id="pm-${i}">
+        <div class="pm-top">
+          <div class="pm-em">${c.em}</div>
+          <div style="flex:1;min-width:0;">
+            <span class="pm-nm ${c.isLocal?'you':''}">${c.name}</span><span class="pm-role"> ${c.role}</span>
+          </div>
+          <div class="pm-hp" id="pmhp-${i}"></div>
+        </div>
+        <div class="pm-bars">
+          <div class="brow"><div class="blbl">HP</div><div class="bbg"><div class="bf" id="bfhp-${i}"></div></div></div>
+          <div class="brow"><div class="blbl">MP</div><div class="bbg"><div class="bf mp" id="bfmp-${i}"></div></div></div>
+          <div class="brow"><div class="blbl">ATB</div><div class="bbg"><div class="bf atb" id="bfatb-${i}"></div></div></div>
+          <div class="brow"><div class="blbl">LB</div><div class="bbg" id="lbbox-${i}"><div class="bf" id="bflb-${i}"></div></div></div>
+        </div>
+      </div>`).join('');
+    stack._key = key;
+  }
+  G.party.forEach((c,i)=>{
+    const pm=document.getElementById('pm-'+i); if(!pm) return;
+    pm.className = 'pm '+(!c.alive?'dead':(G.yourTurn&&c.isLocal?'yt':''));
+    const hpTxt=document.getElementById('pmhp-'+i); if(hpTxt) hpTxt.textContent = c.alive ? (c.hp+'/'+c.mhp) : 'KO';
+    const hpf=document.getElementById('bfhp-'+i); if(hpf){ hpf.style.width=Math.max(0,c.hp/c.mhp*100)+'%'; hpf.style.background=hpCol(c.hp/c.mhp); }
+    const mpf=document.getElementById('bfmp-'+i); if(mpf) mpf.style.width=Math.max(0,(c.mp/(c.mmp||1))*100)+'%';
+    const atbf=document.getElementById('bfatb-'+i); if(atbf) atbf.style.width=Math.max(0,Math.min(100,c.atb))+'%';
+    const full=c.lb>=100 || c.aegisActive;
+    const lbf=document.getElementById('bflb-'+i);
+    if(lbf){ lbf.style.width=Math.max(0,Math.min(100,c.lb))+'%'; const want='bf '+(full?'lb-full':'lb-dim'); if(lbf.className!==want) lbf.className=want; }
+    const lbbox=document.getElementById('lbbox-'+i);
+    if(lbbox){ const wb='bbg'+(full?' lb-glow':''); if(lbbox.className!==wb) lbbox.className=wb; }
+  });
+}
+
+// ── HUD SWITCHING ──
+function showHUD() {
+  document.getElementById('party-stack').style.display = 'flex';
+  ['sub-target','sub-abil','sub-bag'].forEach(id => document.getElementById(id).classList.remove('show'));
+  G.pendCb = null;
+}
+function showSub(id) {
+  document.getElementById('party-stack').style.display = 'none';
+  ['sub-target','sub-abil','sub-bag'].forEach(s => document.getElementById(s).classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+}
+
+// ── PLAYER ACTIONS ──
+function pAct(action) {
+  if (!G.yourTurn || G.over) return;
+  const rv = ME();
+  if (!rv || !rv.alive) return;
+  if (action==='attack') {
+    openTgtPick('ATTACK', eid => {
+      const t = G.enemies.find(e => e.id===eid && e.alive); if (!t) return;
+      const d = basicAttack(rv, t, 'e');
+      log(rv.name+' attacks '+t.name+' for '+d+'!', 'd'); endTurn();
+    });
+  } else if (action==='ability') { openAbilPick(rv); }
+  else if (action==='defend') {
+    if (!rv.status.includes('Brace')) rv.status.push('Brace');
+    log(rv.name+' braces! Next hit -50%.', 's'); endTurn();
+  } else if (action==='items') { openBag(rv); }
+  else if (action==='row') {
+    rv.row = rv.row==='front'?'back':'front';
+    log(rv.name+' moved to '+rv.row+' row.', 's'); endTurn();
+  } else if (action==='aegis') {
+    if (rv.lb<100 || rv.aegisActive || rv.aegisUsed) return;
+    const ag = getAegisSkill();
+    // Aegis is a TIMED form: the LB gauge drains over the myth's aegisDuration
+    // seconds (set in the data editor; default 12s). lb stays at 100 and is driven
+    // down by the tick loop; when it empties the form ends and the gauge recharges.
+    const _m = (MB.DATA.myths||[]).find(x=>x.id===playerMythId());
+    rv.aegisUsed=true; rv.aegisActive=true; rv._aegisArmor=true; rv._aegisCast=false;
+    rv._aegisStart = performance.now();
+    rv._aegisDurMs = Math.max(1, (_m && +_m.aegisDuration) || 12) * 1000;
+    rv.lb = 100;   // full gauge == full timer
+    if (!ag) {   // no myth bound: legacy power-surge form (no 3rd ability, just the buff)
+      rv._aegis=true; log(rv.name+' — AEGIS! Power surges (+120% damage)!','big');
+      endTurn(); return;   // form persists & drains; turn is consumed
+    }
+    // Transform only — the 3rd ability now appears in the ABILITY menu.
+    playAegisFX();
+    log(rv.name+' invokes AEGIS — the '+(MB.PLAYER.myth||'myth')+' armor manifests! Third ability unlocked.', 'big');
+    showHUD();   // refresh so ABILITY reveals the ultimate; turn is NOT consumed
+  }
+}
+function endTurn() {
+  const rv=ME(); tickCombatantStatuses(rv); showHUD(); rv.atb=0; G.yourTurn=false;
+  if (G.timeStop) {
+    G.timeStop.turnsLeft--;
+    if (G.timeStop.turnsLeft<=0) { G.timeStop=null; log('Time resumes its flow.','b'); }  // Aegis form keeps draining
+  }
+}
+
+// End the Aegis form: clear armor/buff and drop the gauge to 0 so it recharges.
+function endAegisForm(rv){
+  if(!rv || !rv.aegisActive) return;
+  rv.aegisActive=false; rv._aegisArmor=false; rv._aegis=false; rv._aegisCast=false;
+  rv.aegisUsed=false;            // gauge can charge toward another Aegis
+  rv._aegisStart=0; rv._aegisDurMs=0; rv.lb=0;
+  if (G.timeStop) G.timeStop=null;
+  log('AEGIS fades — '+rv.name+' returns to normal form.','s');
+  showHUD();
+}
+
+function openTgtPick(label, cb) {
+  G.pendCb = cb;
+  const alive = G.enemies.filter(e => e.alive);
+  document.getElementById('sub-target-hdr').textContent = label+': SELECT TARGET';
+  document.getElementById('sub-target-list').innerHTML =
+    alive.map((e,i) => `<div class="si" onclick="pickTgt('${e.id}')">
+      <span>${e.em}</span>
+      <div><div class="si-nm">${String.fromCharCode(65+i)}. ${e.name}</div>
+      <div class="si-sb">${e.hp}/${e.mhp} HP${e.status.includes("Warden's Bless")?' · <span style="color:#cc44ff">BLESSED</span>':''}</div></div>
+    </div>`).join('') +
+    `<div class="si canc" onclick="showHUD()">CANCEL</div>`;
+  showSub('sub-target');
+}
+function pickTgt(eid) { const cb=G.pendCb; showHUD(); if(cb) cb(eid); }
+
+// Resolve the player's bound myth to a canonical DB id (matches by id or name,
+// case-insensitive). Returns null if their myth isn't a current database myth.
+function playerMythId(){
+  const list = (MB.DATA && MB.DATA.myths) || [];
+  const cands = [MB.PLAYER.mythId, MB.PLAYER.myth].filter(Boolean).map(String);
+  for(const c of cands){
+    const m = list.find(x => x.id===c || x.id.toLowerCase()===c.toLowerCase() || (x.name && x.name.toLowerCase()===c.toLowerCase()));
+    if(m) return m.id;
+  }
+  return null;
+}
+function getPlayerSkills(){
+  const D = MB.DATA||{}; const role = G.role||'dps'; const myth = playerMythId(); const rv = ME();
+  const out=[]; const seen=new Set();
+  const add = id => { if(id && !seen.has(id) && D.skills && D.skills[id]){ seen.add(id); out.push(Object.assign({id}, D.skills[id])); } };
+  // 1) role base skills (available to anyone in this role)
+  const rdef = (D.combatRoles||{})[role];
+  ((rdef&&rdef.baseSkills)||[]).forEach(add);
+  // 2) the myth's two signature skills for THIS role (Aegis excluded)
+  if (myth && D.skills){
+    Object.keys(D.skills).forEach(id=>{ const s=D.skills[id]; if(s && s.mythReq===myth && s.role===role && !s.aegis) add(id); });
+  }
+  // 3) the Aegis ultimate (3rd ability) — only revealed while transformed
+  if (rv && rv.aegisActive && !rv._aegisCast){ const ag=getAegisSkill(); if(ag) add(ag.id); }
+  // 4) gear-granted skills (traits)
+  (rv && rv.grantedSkills||[]).forEach(add);
+  return out;
+}
+// The bound myth's Aegis ability (the 3rd ability, revealed by the Aegis transformation).
+function getAegisSkill(){
+  const D=MB.DATA||{}; const myth=playerMythId(); if(!myth||!D.myths) return null;
+  const m = D.myths.find(x=>x.id===myth);
+  if(m && m.aegis && D.skills[m.aegis]) return Object.assign({id:m.aegis}, D.skills[m.aegis]);
+  return null;
+}
+function openAbilPick(rv) {
+  const skills = getPlayerSkills();
+  const elc = (MB.DATA&&MB.DATA.elements)||{};
+  const silenced = hasS(rv,'silence');
+  document.getElementById('sub-abil-list').innerHTML =
+    (skills.length ? skills.map(sk => {
+      const isSpell = sk.type==='spell';
+      const ok = rv.mp >= (sk.mpCost||0) && !(silenced && isSpell);
+      const el = elc[sk.element]; const elTag = el ? (el.em+' '+el.name) : (sk.element||'');
+      const effTag = sk.effect==='heal'?'HEAL':sk.effect==='buff'?'BUFF':sk.effect==='debuff'?'DEBUFF':'DMG';
+      const tag = (silenced && isSpell) ? 'SILENCED' : (effTag+' · '+elTag+(sk.status?(' · '+statusName(sk.status)+' '+Math.round((sk.statusChance||0)*100)+'%'):''));
+      return `<div class="si ${!ok?'dis':''}" onclick="${ok?`pickAbil('${sk.id}')`:''}">
+        <span style="font-size:15px">${sk.em||(isSpell?'✨':'▶')}</span>
+        <div style="flex:1"><div class="si-nm">${sk.name||sk.id}</div>
+          <div class="si-sb">${tag}</div></div>
+        <div class="si-co">${sk.mpCost||0}MP</div>
+      </div>`;
+    }).join('') : '<div class="si dis"><div class="si-nm">No skills for this role.</div></div>')
+    + `<div class="si canc" onclick="showHUD()">CANCEL</div>`;
+  showSub('sub-abil');
+}
+function pickAbil(id) {
+  showHUD();
+  const rv = ME();
+  const sk = (MB.DATA.skills||{})[id]; if (!sk) return;
+  const cost = sk.mpCost||0; if (rv.mp < cost) { log('Not enough MP.','b'); return; }
+  // The Aegis 3rd ability runs its special effect (time-stop / rebirth / nova).
+  if (sk.aegis) {
+    rv.mp -= cost;
+    const kind = triggerAegis(rv, Object.assign({id}, sk));
+    rv._aegisCast = true;   // ultimate spent for this form; the form keeps draining
+    if (kind !== 'timestop') endTurn();   // consume the turn; form persists until the gauge empties
+    else showHUD();         // time stop grants free turns; refresh so the spent ultimate leaves the menu
+    return;
+  }
+  const target = sk.target || 'one-enemy';
+  // Targeted-enemy skills open the picker; everything else resolves immediately.
+  if (target==='one-enemy') {
+    openTgtPick((sk.name||id).toUpperCase(), eid=>{
+      const t = G.enemies.find(e=>e.id===eid && e.alive); if(!t) return;
+      rv.mp -= cost;
+      castSkill(rv, Object.assign({id}, sk), 'p', t);
+      endTurn();
+    });
+  } else {
+    rv.mp -= cost;
+    castSkill(rv, Object.assign({id}, sk), 'p', null);
+    endTurn();
+  }
+}
+
+function battleDesc(b){
+  if(!b) return '';
+  if(b.use==='heal')   return '+'+b.power+' '+String(b.resource||'hp').toUpperCase();
+  if(b.use==='damage') return b.power+' '+(b.element||'')+' dmg';
+  if(b.use==='cure')   return 'Cures '+((b.cures||[]).join('/')||'status');
+  if(b.use==='buff')   return b.status||'buff';
+  return '';
+}
+function openBag(rv) {
+  const bag = (rv.bag||[]).filter(it=>it&&it.qty>0);
+  G._bagView = bag;
+  const slots = [...bag, ...Array(Math.max(0,5-bag.length)).fill(null)].slice(0,5);
+  document.getElementById('bag-grid').innerHTML = slots.map((item,i) =>
+    item
+    ? `<div class="bs" onclick="useBag(${i})"><div class="be">${item.em}</div><div class="bn">${item.name}</div><div class="bd">${battleDesc(item.battle)}</div><div class="bq">×${item.qty}</div></div>`
+    : `<div class="bs emp"><div class="be" style="font-size:18px;color:#222">—</div><div class="bn" style="color:#222">EMPTY</div></div>`
+  ).join('');
+  showSub('sub-bag');
+}
+function useBag(i) {
+  const rv = ME();
+  const item = (G._bagView||[])[i]; if(!item||item.qty<=0) return;
+  const b = item.battle; if(!b) return;
+  const consume = ()=>{ item.qty--; if(typeof MB.removeFromInventory==='function') MB.removeFromInventory(item.id,1); };
+  const pidx = G.party.indexOf(rv);
+  if (b.use==='damage') {
+    showHUD(); openTgtPick(item.name.toUpperCase(), eid=>{
+      const t=G.enemies.find(e=>e.id===eid&&e.alive); if(!t) return;
+      const d=dealDamage(rv,t,b.power||0,b.element||'physical',!!(b.element&&b.element!=='physical'),'e');
+      log(rv.name+' uses '+item.name+'! '+t.name+' -'+d+'!','d');
+      consume(); endTurn();
+    });
+    return;
+  }
+  if (b.use==='heal') {
+    if (b.resource==='mp') { rv.mp=Math.min(rv.mmp,rv.mp+(b.power||0)); log(rv.name+': '+item.name+' +'+b.power+' MP','b'); }
+    else if (b.resource==='both') { rv.hp=Math.min(rv.mhp,rv.hp+(b.power||0)); rv.mp=Math.min(rv.mmp,rv.mp+(b.power||0)); floatDmg('p',pidx,'+'+b.power,'heal'); log(rv.name+': '+item.name+'! HP & MP restored','h'); }
+    else { rv.hp=Math.min(rv.mhp,rv.hp+(b.power||0)); floatDmg('p',pidx,'+'+b.power,'heal'); log(rv.name+': '+item.name+' +'+b.power+' HP','h'); }
+  } else if (b.use==='cure') {
+    const cures=b.cures||[]; rv.status=rv.status.filter(s=>!cures.includes(s)); log(rv.name+': '+item.name+'! Cured.','h');
+  } else if (b.use==='buff') {
+    if(b.status) applyStatus(rv,b.status,'p'); log(rv.name+': '+item.name+'! '+b.status,'b');
+  }
+  consume(); showHUD(); endTurn();
+}
+
+// ── COMBAT ──
+function calcDmg(atk, def, mult=1) {
+  const b = atk.status.includes('Momentum') ? 1.3 : 1;
+  return Math.max(1, Math.floor(atk.atk * mult * b) - def.def + Math.floor(Math.random()*5) - 2);
+}
+function dmgE(attacker, target, dmg) {
+  const idx = G.enemies.indexOf(target);
+  target.hp = Math.max(0, target.hp - dmg);
+  attacker.lb = Math.min(100, attacker.lb + 8);
+  floatDmg('e', idx, dmg+'', 'de');
+  if (target.hp<=0) { target.hp=0; target.alive=false; log(target.name+' defeated!','big'); }
+  checkEnd();
+}
+function dmgP(attacker, target, dmg) {
+  const idx = G.party.indexOf(target);
+  if (target.status.includes('Brace')) { dmg=Math.floor(dmg*.5); target.status=target.status.filter(s=>s!=='Brace'); }
+  target.hp = Math.max(0, target.hp - dmg);
+  target.lb = Math.min(100, target.lb + 10);
+  floatDmg('p', idx, '-'+dmg, 'dp');
+  if (target.hp<=0) { target.hp=0; target.alive=false; log(target.name+' knocked out!','big'); }
+  checkEnd();
+}
+
+// ── DB-DRIVEN COMBAT CORE (RPG-Maker style formulas) ──────────
+function hasS(c,id){ return c.status && c.status.includes(id); }
+function isStunned(c){ return hasS(c,'root')||hasS(c,'stop')||hasS(c,'sleep'); }
+// effective attack stat (FF buffs scale the stat before the formula)
+function eStat(c, stat){
+  let v=c[stat]||0;
+  if(stat==='atk'){ if(hasS(c,'atk_up'))v*=1.25; if(hasS(c,'berserk'))v*=1.5; if(hasS(c,'Momentum'))v*=1.3; if(c._aegis)v*=2.2; }
+  return v;
+}
+function effSpd(c){ let s=c.spd||0; if(hasS(c,'haste'))s*=1.5; if(hasS(c,'slow'))s*=0.6; if(hasS(c,'chill'))s*=0.7; if(hasS(c,'Surge'))s*=1.6; return s; }
+function resistMult(t, element){ if(!element||element==='physical')return 1; const r=(t.resist&&t.resist[element])||0; return Math.max(0.05, 1-r/100); }
+// ── FORMULA EVALUATION (RPG-Maker style) ──────────────────────
+// Skill formulas are JS expression strings: a = caster, b = target.
+//   e.g. "a.atk * 2.2 - b.def * 1.5 + 6"   (physical)
+//        "a.arc * 3 - b.wil * 1.5 + 8"     (magic)
+//        "a.arc * 1.8 + 18"                (heal, no b term)
+// Compiled once and cached; a bad formula fails safe to 0 (never crashes combat).
+const _fxCache = {};
+function compileFormula(expr){
+  if(_fxCache[expr]) return _fxCache[expr];
+  let fn;
+  try { fn = new Function('a','b','v','Math', 'return ('+expr+');'); }
+  catch(e){ console.warn('[Mythbound] bad skill formula:', expr, '-', e.message); fn = function(){ return 0; }; }
+  _fxCache[expr] = fn;
+  return fn;
+}
+// Build the stat object exposed to a formula. For the caster, attack buffs
+// (atk_up / Berserk / Momentum / Aegis) are folded into the stats so a.atk
+// reflects them — matching RPG Maker, where a.atk already includes states.
+function fxStats(c, isCaster){
+  const s = {
+    atk: isCaster?eStat(c,'atk'):(c.atk||0),
+    arc: isCaster?eStat(c,'arc'):(c.arc||0),
+    def: c.def||0, wil: c.wil||0, agi: c.agi||0, stm: c.stm||0,
+    hp:  c.hp||0,  mp:  c.mp||0,  mhp: c.mhp||0, mmp: c.mmp||0,
+    level: c.level || (MB.PLAYER&&MB.PLAYER.level) || 1,
+  };
+  // RPG-Maker aliases so familiar param names work verbatim
+  s.mat=s.arc; s.mdf=s.wil; s.spd=s.agi; s.maxhp=s.mhp; s.maxmp=s.mmp; s.luk=s.agi; s.atkStat=s.atk;
+  return s;
+}
+function formulaDamage(src, tgt, formula){
+  // backward-compat: old object form {base,a:{stat,coef},b:{stat,coef}}
+  if(formula && typeof formula==='object'){
+    const a=formula.a||{stat:'atk',coef:0};
+    let d=(formula.base||0)+eStat(src,a.stat)*(a.coef||0);
+    if(formula.b) d-=(tgt[formula.b.stat]||0)*(formula.b.coef||0);
+    return d;
+  }
+  if(typeof formula!=='string' || !formula.trim()) return 0;
+  let v=0;
+  try { v = compileFormula(formula)(fxStats(src,true), fxStats(tgt,false), (G.vars||{}), Math); }
+  catch(e){ v=0; }
+  return (typeof v==='number' && isFinite(v)) ? v : 0;
+}
+// Apply a pre-mitigation damage value: element resist, Protect/Shell/Blind, variance, death.
+function dealDamage(src, tgt, raw, element, isMagic, sideTag){
+  if(src && !isMagic && hasS(src,'blind')) raw*=0.5;          // Blind: physical accuracy
+  raw *= resistMult(tgt, element);                            // elemental resist
+  if(!isMagic && hasS(tgt,'protect')) raw*=0.5;               // Protect: physical -50%
+  if(isMagic && hasS(tgt,'shell'))   raw*=0.5;                // Shell: magic -50%
+  if(hasS(tgt,'def_up'))   raw*=0.75;
+  if(hasS(tgt,'def_down')) raw*=1.25;
+  if(hasS(tgt,'Brace')){ raw*=0.5; tgt.status=tgt.status.filter(s=>s!=='Brace'); }
+  raw *= (0.9 + Math.random()*0.2);                           // +/-10% variance
+  const dmg = Math.max(1, Math.round(raw));
+  if(hasS(tgt,'sleep')){ tgt.status=tgt.status.filter(s=>s!=='sleep'); if(tgt.statusDur)delete tgt.statusDur.sleep; log(tgt.name+' woke up!','b'); }
+  const arr = sideTag==='e'?G.enemies:G.party;
+  tgt.hp = Math.max(0, tgt.hp - dmg);
+  floatDmg(sideTag, arr.indexOf(tgt), (sideTag==='e'?'':'-')+dmg, sideTag==='e'?'de':'dp');
+  if(sideTag==='e' && src) src.lb=Math.min(100,(src.lb||0)+8);
+  if(sideTag==='p') tgt.lb=Math.min(100,(tgt.lb||0)+10);
+  if(tgt.hp<=0){ tgt.hp=0; tgt.alive=false; log(tgt.name+(sideTag==='e'?' defeated!':' knocked out!'),'big'); if(sideTag==='e') onEnemyDeath(tgt, isMagic); }
+  checkEnd();
+  return dmg;
+}
+// Basic physical attack uses a default RPG-Maker formula (atk*2 - def*1.5).
+const BASIC_PHYS = 'a.atk * 2 - b.def * 1.5';   // default basic-attack formula
+function basicAttack(src, tgt, sideTag){
+  const raw = formulaDamage(src, tgt, BASIC_PHYS);
+  const d = dealDamage(src, tgt, raw, 'physical', false, sideTag);
+  if(src && src.isLocal) awardXP('combat', Math.max(2, Math.round(d*0.25)));
+  return d;
+}
+function applyHeal(tgt, amount, sideTag, resource){
+  const arr = sideTag==='e'?G.enemies:G.party;
+  if(resource==='mp'){ tgt.mp=Math.min(tgt.mmp,(tgt.mp||0)+amount); }
+  else { tgt.hp=Math.min(tgt.mhp,tgt.hp+amount); floatDmg(sideTag, arr.indexOf(tgt), '+'+amount, 'heal'); }
+}
+function applyStatus(tgt, statusId){
+  if(!statusId) return;
+  const st=(MB.DATA.statuses||{})[statusId];
+  if(!tgt.status.includes(statusId)) tgt.status.push(statusId);
+  tgt.statusDur = tgt.statusDur||{};
+  tgt.statusDur[statusId] = st ? (st.duration||3) : 3;
+}
+// XP/doubloons earned this run (granted on victory, shown on the results screen)
+function awardXP(kind, n){ if(!G.run||!n||n<=0)return; G.run[kind==='magic'?'magicXp':'combatXp'] += n; }
+// Cast any DB skill. srcSide 'p'=player party, 'e'=enemy side. chosenTarget for single-target.
+function castSkill(src, sk, srcSide, chosenTarget){
+  const foes   = srcSide==='p'?G.enemies:G.party;
+  const allies = srcSide==='p'?G.party:G.enemies;
+  const foeTag = srcSide==='p'?'e':'p';
+  const allyTag= srcSide==='p'?'p':'e';
+  const isMagic= sk.type==='spell';
+  const eff    = sk.effect||'damage';
+  const tgtType= sk.target||'one-enemy';
+  const nm     = sk.name||sk.id||'Skill';
+  let dealt=0;
+
+  const dmgOne = t=>{ if(!t||!t.alive)return;
+    const raw = formulaDamage(src, t, sk.formula);
+    const d = dealDamage(src, t, raw, sk.element, isMagic, foeTag); dealt += d;
+    log(src.name+': '+nm+'! '+t.name+' -'+d+'!','d');
+    if(t.alive && sk.status && Math.random()<(sk.statusChance||0)){ applyStatus(t,sk.status); log(t.name+' afflicted: '+statusName(sk.status),'d'); }
+    if(sk.drain){ const back=Math.round(d*0.5); if(sk.resource==='mp'){src.mp=Math.min(src.mmp,(src.mp||0)+back);} else {src.hp=Math.min(src.mhp,src.hp+back); floatDmg(allyTag,allies.indexOf(src),'+'+back,'heal');} }
+  };
+  const healOne   = t=>{ if(!t||!t.alive)return; const amt=Math.max(1,Math.round(formulaDamage(src,t,sk.formula))); applyHeal(t,amt,allyTag,sk.resource==='mp'?'mp':'hp'); log(src.name+': '+nm+'! '+t.name+' +'+amt+(sk.resource==='mp'?' MP':' HP'),'h'); if(sk.cure){ (t.status||[]).slice().forEach(s=>{ const st=(MB.DATA.statuses||{})[s]; if(st&&st.kind==='debuff'){ t.status=t.status.filter(x=>x!==s); if(t.statusDur)delete t.statusDur[s]; } }); } };
+  const buffOne   = t=>{ if(!t||!t.alive)return; if(sk.status){ applyStatus(t,sk.status); log(src.name+': '+nm+' → '+t.name+' ('+statusName(sk.status)+')','b'); } };
+  const debuffOne = t=>{ if(!t||!t.alive)return; if(sk.status){ applyStatus(t,sk.status); log(src.name+': '+nm+' → '+t.name+' ('+statusName(sk.status)+')','d'); } };
+  const lowestAlly= ()=> allies.filter(a=>a.alive).sort((a,b)=>(a.hp/a.mhp)-(b.hp/b.mhp))[0];
+  const randFoe   = ()=>{ const al=foes.filter(f=>f.alive); return al[Math.floor(Math.random()*al.length)]; };
+
+  if(eff==='heal'){
+    if(tgtType==='all-allies') allies.filter(a=>a.alive).forEach(healOne);
+    else if(tgtType==='self')  healOne(src);
+    else healOne(chosenTarget||lowestAlly());
+  } else if(eff==='buff'){
+    if(tgtType==='all-allies') allies.filter(a=>a.alive).forEach(buffOne);
+    else buffOne(tgtType==='self'?src:(chosenTarget||src));
+  } else if(eff==='debuff'){
+    if(tgtType==='all-enemies') foes.filter(f=>f.alive).forEach(debuffOne);
+    else debuffOne(chosenTarget||randFoe());
+  } else { // damage
+    if(tgtType==='all-enemies') foes.filter(f=>f.alive).forEach(dmgOne);
+    else dmgOne(chosenTarget||randFoe());
+  }
+  if(src && src.isLocal){ awardXP(isMagic?'magic':'combat', eff==='damage'?Math.max(3,Math.round(dealt*0.25)):5); }
+}
+function statusName(id){ const st=(MB.DATA&&MB.DATA.statuses||{})[id]; return st&&st.name?st.name:id; }
+function tickCombatantStatuses(c){
+  if(!c||!c.alive) return;
+  const side = G.party.includes(c)?'p':'e';
+  const arr  = side==='p'?G.party:G.enemies;
+  const D = MB.DATA||{};
+  (c.status||[]).slice().forEach(id=>{
+    const st=(D.statuses||{})[id]; if(!st) return;
+    if(st.effect==='dot'){ const dmg=st.magnitude||0; c.hp=Math.max(0,c.hp-dmg); floatDmg(side,arr.indexOf(c),(side==='e'?'':'-')+dmg,side==='e'?'de':'dp'); log(c.name+' -'+dmg+' '+(st.name||id),'d'); }
+    else if(st.effect==='regen'){ const h=st.magnitude||0; c.hp=Math.min(c.mhp,c.hp+h); floatDmg(side,arr.indexOf(c),'+'+h,'heal'); }
+    c.statusDur=c.statusDur||{};
+    c.statusDur[id]=(c.statusDur[id]!=null?c.statusDur[id]:(st.duration||3))-1;
+    if(c.statusDur[id]<=0){ c.status=c.status.filter(x=>x!==id); delete c.statusDur[id]; }
+  });
+  if(c.hp<=0){ c.hp=0; c.alive=false; log(c.name+(side==='e'?' defeated!':' fell!'),'big'); if(side==='e') onEnemyDeath(c,false); }
+  checkEnd();
+}
+// Enemy death → bank rewards for the run (granted on victory).
+function onEnemyDeath(e, byMagic){
+  const D=MB.DATA||{}; const def=(D.combatEnemies||{})[e.defId]||{};
+  if(!G.run) return;
+  G.run.doubloons += (def.gold||0);
+  G.run[byMagic?'magicXp':'combatXp'] += (def.xp||0);
+  (def.drops||[]).forEach(dr=>{
+    if(Math.random() <= (dr.chance!=null?dr.chance:1)){
+      const q = Array.isArray(dr.qty) ? (dr.qty[0]+Math.floor(Math.random()*(dr.qty[1]-dr.qty[0]+1))) : (dr.qty||1);
+      G.run.drops[dr.item] = (G.run.drops[dr.item]||0) + q;
+      const it=(MB.ITEMS||{})[dr.item];
+      log('Loot: '+((it&&it.name)||dr.item)+' ×'+q,'h');
+    }
+  });
+}
+// Grant the banked run rewards to the real, server-backed save (victory only).
+function grantRunRewards(){
+  if(!G.run) return;
+  Object.entries(G.run.drops||{}).forEach(([id,q])=>{ if(typeof MB.addToInventory==='function') MB.addToInventory(id,q); });
+  if(typeof MB.addXP==='function'){ MB.addXP('combat', G.run.combatXp); MB.addXP('magic', G.run.magicXp); }
+  if(typeof MB.addCoins==='function') MB.addCoins(G.run.doubloons);
+  if(typeof MB.savePlayer==='function') MB.savePlayer();
+}
+// ── AEGIS: the myth's signature 3rd ability ───────────────────
+function triggerAegis(rv, ag){
+  log(rv.name+' invokes AEGIS — '+(ag.name||'Aegis')+'!', 'big');
+  rv._aegisArmor = true;
+  if (ag.aegisKind==='timestop'){
+    playTimeStopFX();
+    G.timeStop = { turnsLeft: 2 };
+    log('TIME HAS STOPPED — '+rv.name+' moves freely for 2 turns.', 'big');
+    return 'timestop';
+  }
+  if (ag.aegisKind==='rebirth'){
+    rv.hp = rv.mhp;
+    (rv.status||[]).slice().forEach(s=>{ const st=(MB.DATA.statuses||{})[s]; if(st&&st.kind==='debuff'){ rv.status=rv.status.filter(x=>x!==s); if(rv.statusDur)delete rv.statusDur[s]; } });
+    floatDmg('p', G.party.indexOf(rv), 'REBIRTH', 'heal');
+    log(rv.name+' is reborn at full HP!', 'h');
+  }
+  if (ag.formula && /enem/.test(ag.target||'')) castSkill(rv, ag, 'p');   // nova / fire burst
+  if (ag.extraStatus) G.enemies.filter(e=>e.alive).forEach(e=>applyStatus(e, ag.extraStatus));
+  return ag.aegisKind || 'nova';
+}
+function playTimeStopFX(){
+  let fx=document.getElementById('timestop-fx');
+  if(!fx){ fx=document.createElement('div'); fx.id='timestop-fx'; document.body.appendChild(fx); }
+  fx.className=''; void fx.offsetWidth;        // restart animation
+  fx.className='play';
+  setTimeout(()=>{ fx.className=''; }, 1400);
+}
+function playAegisFX(){
+  let fx=document.getElementById('timestop-fx');
+  if(!fx){ fx=document.createElement('div'); fx.id='timestop-fx'; document.body.appendChild(fx); }
+  const m=(MB.DATA&&MB.DATA.myths||[]).find(x=>x.id===playerMythId());
+  fx.style.setProperty('--aegis-col', (m&&m.color)||'#ffd23f');
+  // center the burst on the activating player's sprite
+  let cx='50%', cy='60%';
+  const rv=ME();
+  const el = rv && (document.querySelector('#p-side .comb[data-pid="'+rv.id+'"] .spr') || document.querySelector('#p-side .comb .spr'));
+  if(el){ const r=el.getBoundingClientRect(); cx=Math.round(r.left+r.width/2)+'px'; cy=Math.round(r.top+r.height/2)+'px'; }
+  fx.style.setProperty('--ax', cx); fx.style.setProperty('--ay', cy);
+  fx.className=''; void fx.offsetWidth;
+  fx.className='aegis-play';
+  setTimeout(()=>{ fx.className=''; }, 900);
+}
+
+// ── AI ──
+function aiAct(member) {
+  const ae = G.enemies.filter(e=>e.alive); if(!ae.length) return;
+  const ap = G.party.filter(p=>p.alive);
+  if (member.role==='Mender') {
+    const hurt = ap.filter(p=>p.hp<p.mhp*.6).sort((a,b)=>a.hp-b.hp);
+    if (hurt.length) {
+      const h=28+Math.floor(Math.random()*14), idx=G.party.indexOf(hurt[0]);
+      hurt[0].hp=Math.min(hurt[0].mhp,hurt[0].hp+h);
+      floatDmg('p',idx,'+'+h,'heal');
+      log(member.name+' heals '+hurt[0].name+' for '+h+'!','h');
+      if(Math.random()<.25) chatMsg(member.name,'heal up!','ally'); return;
+    }
+    if (ae.some(e=>e.status.includes("Warden's Bless"))&&member.mp>=20) {
+      member.mp-=20;
+      ae.forEach(e=>{ if(e.status.includes("Warden's Bless")){ e.status=e.status.filter(s=>s!=="Warden's Bless"); e.def=e.bdef; }});
+      log(member.name+" PURGE! Warden's Bless stripped!",'b');
+      chatMsg(member.name,'purge done — go hard!','ally'); return;
+    }
+  }
+  if (member.role==='Strategist'&&member.mp>=14&&Math.random()<.3) {
+    const ns=ap.filter(p=>!p.status.includes('Surge'));
+    if(ns.length){ const t=ns[Math.floor(Math.random()*ns.length)]; t.status.push('Surge'); log(member.name+' SURGE → '+t.name+'!','b'); member.mp-=14; return; }
+  }
+  if (member.role==='Guardian'&&!member.status.includes('Taunted')&&Math.random()<.2) {
+    ap.forEach(p=>p.status=p.status.filter(s=>s!=='Taunted'));
+    member.status.push('Taunted');
+    log(member.name+' TAUNT — enemies focus '+member.name+'!','b'); return;
+  }
+  const t=ae[Math.floor(Math.random()*ae.length)];
+  const d=calcDmg(member,t,member.role==='Magi'?1.3:1);
+  dmgE(member,t,d); log(member.name+' attacks '+t.name+' for '+d+'!','d');
+  member.lb=Math.min(100,member.lb+7);
+}
+
+function enemyAct(enemy) {
+  if (!enemy.alive) return;
+  // Root / Stop / Sleep = lose the turn (duration ticks down on the skip)
+  if (isStunned(enemy)) { const why=hasS(enemy,'sleep')?'is asleep':hasS(enemy,'stop')?'is stopped':'is rooted'; log(enemy.name+' '+why+' and cannot act!','b'); tickCombatantStatuses(enemy); return; }
+
+  const taunter = G.party.find(p=>p.alive && hasS(p,'taunted'));
+  const front   = G.party.filter(p=>p.alive && p.row==='front');
+  const all     = G.party.filter(p=>p.alive);
+  const pool    = taunter ? [taunter] : (front.length ? front : all);
+  if (!pool.length) return;
+
+  if (Math.random() < 0.45) {
+    const lines = (enemy.lines && enemy.lines.length) ? enemy.lines : (ELINES[enemy.defId] || ELINES[enemy.id]);
+    showBubble(enemy.id, getLine(enemy.id, lines));
+  }
+
+  const D = MB.DATA||{};
+  const silenced = hasS(enemy,'silence');
+  const berserk  = hasS(enemy,'berserk');
+  const usable = berserk ? [] : (enemy.skills||[])
+    .map(id => (D.skills && D.skills[id]) ? Object.assign({id}, D.skills[id]) : null)
+    .filter(Boolean)
+    .filter(sk => (sk.mpCost||0) <= (enemy.mp||0))
+    .filter(sk => !(silenced && sk.type==='spell'));   // Silence blocks spells
+
+  if (usable.length && Math.random() < 0.6) {
+    const sk = usable[Math.floor(Math.random()*usable.length)];
+    enemy.mp = (enemy.mp||0) - (sk.mpCost||0);
+    let ct = null;
+    if (sk.effect==='damage' || sk.effect==='debuff') ct = pool[Math.floor(Math.random()*pool.length)];
+    castSkill(enemy, sk, 'e', ct);
+  } else {
+    const t = pool[Math.floor(Math.random()*pool.length)];
+    const d = basicAttack(enemy, t, 'p');
+    log(enemy.name+' attacks '+t.name+' for '+d+'!','d');
+  }
+  tickCombatantStatuses(enemy);
+}
+
+function checkEnd() {
+  if (G.over || !G.dungeon) return;
+  if (G.enemies.length && G.enemies.every(e=>!e.alive)) {
+    const waves = G.dungeon.waves || [];
+    if (G.waveIdx + 1 < waves.length) {
+      // advance to next wave
+      G.waveIdx++;
+      G.yourTurn = false;
+      log('WAVE CLEARED!', 'big');
+      setTimeout(() => {
+        if (G.over) return;
+        spawnWave();
+        log('Wave ' + (G.waveIdx+1) + ' of ' + waves.length + (waves[G.waveIdx].name?' — '+waves[G.waveIdx].name:''), 'b');
+        drawField(); drawHUD();
+      }, 1200);
+    } else {
+      // dungeon cleared
+      G.over = true; G.victory = true;
+      const r = G.dungeon.clearReward || {};
+      if (G.run){ G.run.doubloons += (r.coins||0); const half=Math.round((r.xp||0)/2); G.run.combatXp+=half; G.run.magicXp+=((r.xp||0)-half); (r.items||[]).forEach(it=>{ const id=it.item||it; const q=it.qty||1; G.run.drops[id]=(G.run.drops[id]||0)+q; }); }
+      grantRunRewards();
+      log(G.dungeon.name + ' CLEARED!', 'big');
+      showResult(true);
+    }
+  } else if (G.party.every(p=>!p.alive)) {
+    G.over = true; G.victory = false;
+    log('DEFEATED...', 'big');
+    showResult(false);
+  }
+}
+
+// ── LOOP ──
+function tick(t) {
+  if (lastT===null) lastT=t;
+  const dt = Math.min((t-lastT)/1000, .06); lastT=t;
+  if (!G.over) {
+    const frozen = !!G.timeStop;     // Chrono Drake Aegis: only the caster acts
+    G.party.forEach(c=>{ if(!c.alive) return; if(frozen && !c.isLocal) return; c.atb=Math.min(100,c.atb+effSpd(c)*1.7*dt); });
+    if (!frozen) G.enemies.forEach(e=>{ if(!e.alive) return; e.atb=Math.min(100,e.atb+effSpd(e)*1.7*dt); });
+    const rv=ME();
+    // Aegis timed form: drain the LB gauge across aegisDuration; end the form at 0.
+    if (rv && rv.aegisActive && rv._aegisDurMs){
+      const left = 1 - (performance.now() - rv._aegisStart)/rv._aegisDurMs;
+      rv.lb = Math.max(0, left*100);
+      if (left<=0) endAegisForm(rv);
+    }
+    if (frozen && rv && rv.alive) rv.atb=100;   // keep the caster ready during time stop
+    if (!G.yourTurn && rv && rv.alive && rv.atb>=100) {
+      if (!frozen && isStunned(rv)) {           // root / stop / sleep: lose the turn
+        const why=hasS(rv,'sleep')?'is asleep':hasS(rv,'stop')?'is stopped':'is rooted';
+        log(rv.name+' '+why+' and loses a turn!','b'); tickCombatantStatuses(rv); rv.atb=0;
+      } else { rv.atb=100; G.yourTurn=true; }
+    }
+    if (!frozen && t-G.aiThr>1150) { const rd=G.party.filter(c=>!c.isLocal&&c.alive&&c.atb>=100); if(rd.length){ G.aiThr=t; const a=rd[0]; a.atb=0; aiAct(a); } }
+    if (!frozen && t-G.eThr>1350)  { const rd=G.enemies.filter(e=>e.alive&&e.atb>=100); if(rd.length){ G.eThr=t; const e=rd[0]; e.atb=0; enemyAct(e); } }
+  }
+  drawField(); drawHUD();
+  requestAnimationFrame(tick);
+}
+
+// ── DUNGEON SELECT + FLOW (DB-driven) ─────────────────────────
+// Spawn a combat enemy instance from the combatEnemies DB row.
+function enemyFromDef(defId, i){
+  const D = (MB.DATA && MB.DATA.combatEnemies) ? MB.DATA.combatEnemies[defId] : null;
+  if (!D) return { id:defId+'_'+i, defId, name:(defId||'ENEMY').toUpperCase(), em:'❓',
+    hp:50,mhp:50,atb:0,spd:12,atk:10,def:8,bdef:8,arc:0,wil:0,resist:{},skills:[],lines:[],status:[],alive:true };
+  return {
+    id: defId+'_'+i, defId, name:D.name||defId, em:D.em||'❓',
+    hp:D.hp, mhp:D.hp, atb:0,
+    spd:D.agi||12,                       // Agility drives the ATB
+    atk:D.atk||10, def:D.def||8, bdef:D.def||8,
+    arc:D.arc||0, wil:D.wil||0, agi:D.agi||12,
+    resist:D.resist||{}, skills:D.skills||[], lines:D.lines||[],
+    boss:!!D.boss, status:[], alive:true,
+  };
+}
+function spawnWave(){
+  const wave = (G.dungeon.waves||[])[G.waveIdx] || { enemies:[] };
+  G.enemies = (wave.enemies||[]).map((id,i)=>enemyFromDef(id,i));
+  G.party.forEach((c,i)=>{ c.atb = i*8; });
+  G.yourTurn = false;
+}
+function startDungeon(id){
+  if (!MB.DATA) return;
+  const dn = (MB.DATA.dungeons||[]).find(d=>d.id===id);
+  if (!dn){ log('Dungeon not found.','d'); return; }
+  G.dungeon = dn; G.waveIdx = 0;
+  G.party = assembleParty();           // rebuild player combatant w/ full stats (DATA now loaded)
+  G.over = false; G.victory = false;
+  G.run = { combatXp:0, magicXp:0, doubloons:0, drops:{} };
+  G.timeStop = null;
+  // myth passive: start-of-battle status (e.g. Chrono Drake begins Hasted)
+  if (MB.PLAYER.myth && MB.DATA.myths){
+    const m = MB.DATA.myths.find(x=>x.id===MB.PLAYER.myth||x.name===MB.PLAYER.myth);
+    if (m && m.startStatus && ME()) applyStatus(ME(), m.startStatus);
+  }
+  spawnWave();
+  const sel = document.getElementById('dungeon-select'); if (sel) sel.style.display = 'none';
+  const rov = document.getElementById('result-overlay'); if (rov) rov.style.display = 'none';
+  const logEl = document.getElementById('log'); if (logEl) logEl.innerHTML = '';
+  const waves = dn.waves||[];
+  log(dn.name + ' — ' + waves.length + ' wave' + (waves.length!==1?'s':''), 'big');
+  log('Role: ' + (G.role||'dps').toUpperCase() + (MB.PLAYER.myth?(' \u00b7 Myth: '+String(MB.PLAYER.myth).toUpperCase()):''), 'b');
+  if (waves[0] && waves[0].name) log(waves[0].name, 'b');
+  log('Your turn, ' + ME().name + '!', 's');
+  G.yourTurn = true;
+  drawField(); drawHUD();
+  if (!G._loopRunning){ G._loopRunning = true; lastT = null; requestAnimationFrame(tick); }
+}
+function returnToSelect(){
+  G.over = true; G.dungeon = null; G.enemies = []; G.yourTurn = false;
+  const ov=document.getElementById('result-overlay'); if(ov) ov.style.display='none';
+  showDungeonSelect();
+}
+// ── DEBUG HELPERS (visible only during an active battle) ──
+function dbgFillLb(){ const r=ME(); if(r){ r.lb=100; showHUD(); log('[debug] Aegis gauge filled.','s'); } }
+function dbgFullHpMp(){ const r=ME(); if(r){ r.hp=r.mhp; r.mp=r.mmp; showHUD(); log('[debug] HP / MP fully restored.','s'); } }
+function dbgResetAegis(){ const r=ME(); if(r){ r.aegisUsed=false; r.aegisActive=false; r._aegisArmor=false; r.lb=100; showHUD(); log('[debug] Aegis recharged & ready.','s'); } }
+function dbgKillWave(){ if(!G.dungeon) return; G.enemies.forEach(e=>{ if(e.alive){ e.hp=0; e.alive=false; } }); log('[debug] Wave cleared.','s'); checkEnd(); }
+function retryDungeon(){
+  const id = G.dungeon && G.dungeon.id;
+  const ov=document.getElementById('result-overlay'); if(ov) ov.style.display='none';
+  if(id) startDungeon(id);
+}
+function showResult(win){
+  const ov=document.getElementById('result-overlay'); if(!ov) return;
+  const run=G.run||{combatXp:0,magicXp:0,doubloons:0,drops:{}};
+  const drops=Object.entries(run.drops||{});
+  const itemName=id=>((MB.ITEMS||{})[id]&&MB.ITEMS[id].name)||id;
+  const itemEm=id=>((MB.ITEMS||{})[id]&&(MB.ITEMS[id].emoji||MB.ITEMS[id].em))||'📦';
+  document.getElementById('result-box').className='result-box '+(win?'win':'lose');
+  document.getElementById('result-title').textContent = win?'VICTORY':'GAME OVER';
+  document.getElementById('result-sub').textContent = win ? ((G.dungeon?G.dungeon.name:'Dungeon')+' cleared!') : 'Your party has fallen.';
+  document.getElementById('result-rewards').innerHTML = win
+    ? `<div class="res-rewards">
+         <div class="res-row"><span>🪙 Doubloons</span><span>+${run.doubloons}</span></div>
+         <div class="res-row"><span>⚔️ Combat XP</span><span>+${run.combatXp}</span></div>
+         <div class="res-row"><span>🔮 Magic XP</span><span>+${run.magicXp}</span></div>
+         ${drops.length?`<div class="res-loot-h">LOOT</div>`+drops.map(([id,q])=>`<div class="res-row"><span>${itemEm(id)} ${itemName(id)}</span><span>×${q}</span></div>`).join(''):`<div class="res-row" style="opacity:.6"><span>No loot this run</span><span></span></div>`}
+       </div>`
+    : `<div class="res-rewards"><div class="res-row" style="opacity:.7"><span>No rewards earned</span><span></span></div></div>`;
+  document.getElementById('result-actions').innerHTML =
+    (win?'':`<button class="dsel-role on" onclick="retryDungeon()">↻ RETRY</button>`)
+    + `<button class="dsel-role" onclick="returnToSelect()">▸ DUNGEON SELECT</button>`;
+  ov.style.display='flex';
+}
+function showDungeonSelect(){
+  const sel = document.getElementById('dungeon-select');
+  if (sel) sel.style.display = 'flex';
+  renderRoles();
+  renderDungeonList();
+}
+function renderRoles(){
+  const wrap=document.getElementById('dsel-roles'); if(!wrap) return;
+  const roles=(MB.DATA&&MB.DATA.combatRoles)||{tank:{name:'Tank',em:'🛡️'},support:{name:'Support',em:'➕'},dps:{name:'DPS',em:'⚔️'}};
+  wrap.innerHTML=Object.entries(roles).map(([id,r])=>
+    `<button class="dsel-role ${G.role===id?'on':''}" onclick="setRole('${id}')">${r.em||''} ${(r.name||id).toUpperCase()}</button>`
+  ).join('');
+}
+function setRole(r){ G.role=r; renderRoles(); }
+function renderDungeonList(){
+  const list = document.getElementById('dsel-list');
+  if (!list) return;
+  const dungeons = (MB.DATA && MB.DATA.dungeons) ? MB.DATA.dungeons : [];
+  if (!dungeons.length){ list.innerHTML = '<div class="dsel-empty">No dungeons yet. Add some in the admin Data Editor → BATTLE DATABASE → DUNGEONS.</div>'; return; }
+  const elColors = (MB.DATA && MB.DATA.elements) || {};
+  list.innerHTML = dungeons.map(d=>{
+    const waves = (d.waves||[]).length;
+    const ec = (elColors[d.element]||{}).color || '#cc44ff';
+    const kind = (d.kind||'dungeon').toUpperCase();
+    return `<div class="dsel-card" onclick="startDungeon('${d.id}')">
+      <div class="dsel-top"><span class="dsel-name">${d.name||d.id}</span>
+        <span class="dsel-kind" style="color:${ec};border-color:${ec}">${kind}</span></div>
+      <div class="dsel-meta">${(MB.DATA.elements&&MB.DATA.elements[d.element]?MB.DATA.elements[d.element].em+' '+MB.DATA.elements[d.element].name:d.element||'—')} · Lv ${d.minLevel||1}+ · ${waves} wave${waves!==1?'s':''}</div>
+      <div class="dsel-desc">${d.desc||''}</div>
+    </div>`;
+  }).join('');
+}
+
+// Boot: wait for the game DB, then show the dungeon picker (no auto-fight, no mock party).
+MB.gameDataReady.then(showDungeonSelect).catch(showDungeonSelect);
+
+if (!MB.requireAuth()) throw new Error("not signed in");
+MB.injectUltimateCSS();
+MB.renderNav('main-nav','battle');
+</script>
+</div>
+</body>
+</html>

@@ -1,0 +1,2145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MYTHBOUND — The Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<script src="mythbound_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:'VT323',monospace;font-size:18px;}
+body{display:flex;flex-direction:column;}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:2px solid #fff;background:#000;flex-shrink:0;}
+.logo{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;}
+.nav-links{display:flex;gap:5px;}
+.nb{background:#000;border:2px solid #444;color:#444;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.nb:hover,.nb.on{border-color:#fff;color:#fff;}
+.nb.wip{border-color:#222;color:#333;cursor:default;}
+.nb.myth{border-color:#555;color:#555;}
+
+.body{flex:1;display:flex;overflow:hidden;min-height:0;}
+
+/* ── LEFT: MEMBERS SIDEBAR ── */
+.members-sidebar{width:200px;flex-shrink:0;border-right:1px solid #222;display:flex;flex-direction:column;background:#000;}
+.ms-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;padding:11px 13px;border-bottom:1px solid #222;}
+.ms-sec{font-family:'Press Start 2P',monospace;font-size:6px;color:#333;padding:9px 13px 4px;letter-spacing:.5px;}
+.ms-list{flex:1;overflow-y:auto;padding:5px 8px;display:flex;flex-direction:column;gap:3px;}
+.ms-me{background:#0a0a0a;border-left:2px solid #fff !important;}
+.ms-row{display:flex;align-items:center;gap:8px;padding:6px 8px;cursor:pointer;border:1px solid transparent;transition:border-color .1s;}
+.ms-row:hover{border-color:#333;}
+.ms-av{font-size:16px;flex-shrink:0;}
+.ms-info{flex:1;min-width:0;}
+.ms-name{font-family:'Press Start 2P',monospace;font-size:6px;color:#fff;line-height:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ms-act{font-size:13px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ms-dot{width:6px;height:6px;border-radius:50%;background:#fff;flex-shrink:0;}
+.ms-dot.away{background:#555;}
+
+/* ── CENTER: CHAT ── */
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #222;position:relative;}
+.chat-tabs{display:flex;border-bottom:1px solid #222;flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+.chat-tabs::-webkit-scrollbar{display:none;}
+.ct{flex-shrink:0;padding:10px 14px;font-family:'Press Start 2P',monospace;font-size:6px;color:#444;cursor:pointer;text-align:center;border-bottom:2px solid transparent;transition:all .1s;white-space:nowrap;}
+.ct:hover{color:#888;}.ct.on{color:#fff;border-bottom-color:#fff;}
+.ct.ct-clan{color:#555;border-bottom-color:transparent;}
+.ct.ct-clan.on{color:#fff;border-bottom-color:#fff;}
+.ct.ct-add{color:#333;border-left:1px solid #1a1a1a;padding-left:16px;margin-left:auto;}
+.ct.ct-add:hover{color:#666;}
+/* clan picker dropdown */
+.clan-menu{display:none;position:absolute;bottom:100%;left:0;right:0;background:#000;border:1px solid #333;border-bottom:none;z-index:50;max-height:220px;overflow-y:auto;}
+.clan-menu.open{display:block;}
+.clan-opt{padding:10px 16px;font-family:'Press Start 2P',monospace;font-size:6px;color:#555;cursor:pointer;border-bottom:1px solid #111;display:flex;align-items:center;gap:10px;}
+.clan-opt:hover{color:#fff;background:#111;}
+.clan-opt.active{color:#fff;}
+.clan-opt .co-em{font-size:14px;width:18px;text-align:center;}
+.clan-opt .co-members{font-size:11px;color:#333;margin-left:auto;}
+.chat-log{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:6px;}
+
+/* ── MESSAGES ── */
+.msg{display:flex;flex-direction:column;gap:3px;}
+.msg-head{display:flex;align-items:center;gap:8px;}
+.msg-av-sm{font-size:15px;flex-shrink:0;cursor:pointer;}
+.msg-name{font-family:'Press Start 2P',monospace;font-size:6px;color:#fff;cursor:pointer;user-select:none;}
+.msg-name:hover{text-decoration:underline;}
+.msg-time{font-size:13px;color:#2a2a2a;margin-left:auto;}
+.msg-body{font-size:17px;color:#ccc;padding-left:24px;line-height:1.5;}
+.msg.sys .msg-body{color:#333;font-style:italic;padding-left:0;font-size:15px;}
+.msg.whisper-local{padding:4px 10px;font-family:'Press Start 2P',monospace;font-size:6px;color:#cc88ff;border-left:2px solid #7733aa;margin:2px 0;line-height:1.8;}
+.msg.whisper{border-left:2px solid #444;padding-left:8px;}
+.msg.whisper .msg-name{color:#888;}
+.msg.whisper .msg-body{color:#888;}
+.msg.announce .msg-body{color:#aaa;border-left:2px solid #555;padding-left:10px;font-size:16px;}
+
+/* ITEM LINKS */
+.item-link{cursor:pointer;border-bottom:1px dashed;transition:opacity .1s;white-space:nowrap;}
+.item-link:hover{opacity:.7;}
+.item-link.common{color:#aaa;border-color:#555;}
+.item-link.uncommon{color:#6bff9b;border-color:#3a995e;}
+.item-link.rare{color:#6bb5ff;border-color:#3a6a99;}
+.item-link.epic{color:#c455e8;border-color:#7a3399;font-weight:bold;}
+.item-link.legendary{color:#ffdd6b;border-color:#998832;font-weight:bold;}
+/* ultimate handled by MB.ULTIMATE_CSS injection */
+
+/* ── CHAT INPUT ── */
+.chat-input-area{border-top:1px solid #222;padding:10px 14px;display:flex;gap:0;flex-shrink:0;}
+.chat-inp{background:#000;border:2px solid #fff;color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;padding:9px 12px;outline:none;flex:1;}
+.chat-inp::placeholder{color:#2a2a2a;}
+.chat-ctr{font-family:'Press Start 2P',monospace;font-size:6px;color:#333;padding:0 8px;align-self:center;flex-shrink:0;}
+.chat-send{background:#fff;border:2px solid #fff;color:#000;font-family:'Press Start 2P',monospace;font-size:7px;padding:9px 14px;cursor:pointer;}
+.chat-send:hover{background:#ccc;}
+
+/* ── RIGHT: PROFILE SIDEBAR ── */
+.profile-sidebar{width:240px;flex-shrink:0;display:flex;flex-direction:column;background:#000;}
+.ps-card{padding:18px 16px;border-bottom:1px solid #222;}
+.ps-av{font-size:52px;text-align:center;margin-bottom:12px;line-height:1;}
+.ps-name{font-family:'Press Start 2P',monospace;font-size:10px;color:#fff;text-align:center;margin-bottom:5px;}
+.ps-title{font-family:'VT323',monospace;font-size:14px;color:#cfcfcf;text-align:center;margin-bottom:8px;letter-spacing:.3px;}
+.ps-myth{font-family:'VT323',monospace;font-size:15px;color:#ddd;text-align:center;padding:5px 10px;border:1px solid #333;margin-bottom:12px;display:block;}
+.ps-myth.is-mythbound{padding:2px;background:linear-gradient(90deg,#ff0000,#ff8800,#ffff00,#00ff88,#00ccff,#8844ff,#ff0088,#ff0000);background-size:200% auto;animation:mb-rainbow-bg 2.4s linear infinite;border:none;}
+.ps-myth.is-mythbound > .ps-myth-inner{background:#000;display:block;padding:5px 10px;font-family:'VT323',monospace;font-size:15px;color:#fff;text-align:center;}
+.ps-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px;}
+.ps-stat{background:#080808;border:1px solid #1a1a1a;padding:6px 8px;text-align:center;}
+.ps-stat-lbl{font-family:'VT323',monospace;font-size:14px;color:#e6e6e6;margin-bottom:3px;}
+.ps-stat-val{font-family:'VT323',monospace;font-size:18px;color:#fff;}
+.ps-coins{font-family:'Press Start 2P',monospace;font-size:8px;color:#fff;text-align:center;padding:8px;border:1px solid #222;background:#080808;}
+.ps-section{font-family:'VT323',monospace;font-size:16px;color:#cfcfcf;padding:10px 16px 5px;letter-spacing:.5px;}
+.ps-profs{padding:0 16px;display:flex;flex-direction:column;gap:6px;}
+.ps-prof{display:flex;align-items:center;gap:8px;}
+.ps-prof-ico{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.ps-prof-bar-wrap{flex:1;}
+.ps-prof-name{font-family:'VT323',monospace;font-size:14px;color:#e6e6e6;margin-bottom:2px;}
+.ps-prof-bar{height:4px;background:#111;border:1px solid #222;overflow:hidden;}
+.ps-prof-fill{height:100%;background:#fff;}
+.ps-prof-lvl{font-family:'VT323',monospace;font-size:15px;color:#fff;width:28px;text-align:right;flex-shrink:0;}
+
+/* ── SOCIAL PANEL ── */
+.social-tabs{display:flex;border-bottom:1px solid #222;flex-shrink:0;}
+.soc-tab{flex:1;padding:8px 4px;font-family:'VT323',monospace;font-size:14px;color:#aaa;cursor:pointer;text-align:center;border-bottom:2px solid transparent;}
+.soc-tab:hover{color:#ddd;}.soc-tab.on{color:#fff;border-bottom-color:#fff;}
+.social-body{flex:1;overflow-y:auto;padding:8px;}
+.soc-row{display:flex;align-items:center;gap:8px;padding:7px 6px;border-bottom:1px solid #0d0d0d;}
+.soc-em{font-size:18px;width:22px;text-align:center;flex-shrink:0;}
+.soc-name{font-family:'Press Start 2P',monospace;font-size:6px;color:#fff;flex:1;}
+.soc-act{font-size:13px;color:#444;margin-top:2px;}
+.soc-btn{font-family:'Press Start 2P',monospace;font-size:5px;background:#000;border:1px solid #333;color:#555;padding:3px 6px;cursor:pointer;flex-shrink:0;}
+.soc-btn:hover{border-color:#fff;color:#fff;}
+.soc-btn.red:hover{border-color:#ff4444;color:#ff4444;}
+.soc-empty{font-family:'Press Start 2P',monospace;font-size:6px;color:#222;text-align:center;padding:20px 8px;line-height:2.5;}
+.soc-inv-type{font-family:'Press Start 2P',monospace;font-size:5px;color:#6bff9b;margin-top:2px;}
+.ps-quick{border-top:1px solid #222;display:flex;flex-direction:column;margin-top:auto;max-height:220px;overflow:hidden;}
+.ps-qbtn{background:#000;border:1px solid #333;color:#555;padding:8px 12px;font-family:'Press Start 2P',monospace;font-size:6px;cursor:pointer;text-align:center;transition:all .1s;}
+.ps-qbtn:hover{border-color:#fff;color:#fff;}
+
+/* ── CONTEXT MENU ── */
+.ctx{position:fixed;z-index:600;background:#000;border:2px solid #fff;min-width:180px;display:none;}
+.ctx-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#555;padding:9px 12px;border-bottom:1px solid #222;}
+.ctx-item{padding:9px 14px;font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.ctx-item:hover{background:#111;}
+.ctx-item.danger{color:#666;}.ctx-item.danger:hover{color:#fff;background:#111;}
+.ctx-sep{border-top:1px solid #1a1a1a;margin:2px 0;}
+
+/* INVITE SUB */
+.ctx-sub{position:fixed;z-index:601;background:#000;border:2px solid #fff;min-width:160px;display:none;}
+.ctx-sub .ctx-item{font-size:7px;}
+
+/* ── WHISPER ── */
+.whisper-box{position:fixed;z-index:700;background:#000;border:2px solid #7733aa;
+  width:320px;display:none;bottom:70px;right:256px;flex-direction:column;}
+.whisper-box.show{display:flex;}
+.wb-header{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:1px solid #2a1a3a;flex-shrink:0;}
+.wb-header-title{font-family:'Press Start 2P',monospace;font-size:6px;color:#cc88ff;}
+.wb-close{background:#000;border:1px solid #333;color:#555;font-family:'Press Start 2P',monospace;font-size:6px;padding:3px 8px;cursor:pointer;}
+.wb-close:hover{border-color:#cc88ff;color:#cc88ff;}
+.wb-tabs{display:flex;border-bottom:1px solid #1a0a2a;flex-shrink:0;overflow-x:auto;scrollbar-width:none;}
+.wb-tabs::-webkit-scrollbar{display:none;}
+.wb-tab{flex-shrink:0;padding:6px 10px;font-family:'Press Start 2P',monospace;font-size:5px;color:#aaa;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;}
+.wb-tab:hover{color:#cc88ff;}.wb-tab.on{color:#cc88ff;border-bottom-color:#cc88ff;}
+.wb-tab .wb-unread{display:inline-block;background:#7733aa;color:#fff;font-size:5px;padding:1px 4px;margin-left:4px;border-radius:2px;}
+.wb-hist{flex:1;overflow-y:auto;padding:8px 10px;display:flex;flex-direction:column;gap:5px;min-height:100px;max-height:160px;}
+.wb-msg{font-size:15px;line-height:1.5;padding:2px 6px;}
+.wb-msg.mine{color:#e8ccff;text-align:right;border-right:2px solid #7733aa;}
+.wb-msg.theirs{color:#cc88ff;border-left:2px solid #44228a;}
+.wb-msg-name{font-family:'Press Start 2P',monospace;font-size:5px;margin-bottom:1px;}
+.wb-msg.mine .wb-msg-name{color:#7733aa;}
+.wb-msg.theirs .wb-msg-name{color:#5522aa;}
+.wb-row{display:flex;gap:0;border-top:1px solid #1a0a2a;flex-shrink:0;}
+.wb-inp{background:#000;border:none;border-right:1px solid #2a1a3a;color:#fff;font-family:'VT323',monospace;font-size:18px;padding:8px 10px;outline:none;flex:1;}
+.wb-inp::placeholder{color:#333;}
+.wb-send{background:#000;border:none;color:#7733aa;font-family:'Press Start 2P',monospace;font-size:6px;padding:8px 12px;cursor:pointer;}
+.wb-send:hover{background:#1a0a2a;color:#cc88ff;}
+
+/* ── TRADE MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:800;display:none;align-items:center;justify-content:center;}
+.overlay.on{display:flex;}
+.trade-box{background:#000;border:2px solid #fff;padding:20px;width:560px;}
+.modal-title{font-family:'Press Start 2P',monospace;font-size:10px;color:#fff;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.modal-close{background:#000;border:2px solid #fff;color:#fff;padding:6px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.modal-close:hover{background:#fff;color:#000;}
+.trade-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:14px;}
+.trade-col{border:1px solid #333;padding:12px;}
+.tc-lbl{font-family:'Press Start 2P',monospace;font-size:7px;color:#555;margin-bottom:10px;}
+.tc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;min-height:80px;}
+.tc-slot{aspect-ratio:1;background:#080808;border:1px solid #222;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;}
+.tc-slot:hover{border-color:#fff;}
+.tc-slot.filled{border-color:#444;}
+.trade-status{font-family:'Press Start 2P',monospace;font-size:7px;color:#ccc;text-align:center;padding:10px;border:1px solid #222;margin-bottom:12px;}
+.trade-acts{display:flex;gap:10px;justify-content:center;}
+.t-btn{background:#000;border:2px solid #fff;color:#fff;padding:10px 18px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.t-btn:hover{background:#fff;color:#000;}
+.t-btn.ghost{border-color:#444;color:#555;}.t-btn.ghost:hover{border-color:#fff;color:#fff;}
+
+/* ── ITEM TOOLTIP ── */
+.item-tip{position:fixed;z-index:900;background:#000;border:2px solid #fff;padding:14px 16px;
+  min-width:200px;max-width:260px;pointer-events:none;display:none;}
+.it-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.it-em{font-size:28px;}
+.it-name{font-family:'Press Start 2P',monospace;font-size:8px;line-height:1.5;}
+.it-rar{font-family:'Press Start 2P',monospace;font-size:6px;color:#555;margin-bottom:6px;}
+.it-desc{font-size:15px;color:#666;line-height:1.5;margin-bottom:6px;}
+.it-row{display:flex;justify-content:space-between;font-size:15px;padding:2px 0;}
+.it-k{color:#444;}.it-v{font-family:'Press Start 2P',monospace;font-size:6px;color:#fff;}
+.it-src{font-size:13px;color:#2a2a2a;border-top:1px solid #111;padding-top:5px;margin-top:5px;}
+
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#000;border:2px solid #fff;
+  color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px 16px;z-index:999;
+  opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
+.toast.on{opacity:1;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="logo">MYTHBOUND</div>
+    <button class="nb" style="border-color:#333;color:#444;font-size:6px;" onclick="openAdmin()">👁 ADMIN</button>
+  </div>
+  <div class="nav-links" id="main-nav"></div>
+</nav>
+
+<div class="body">
+
+  <!-- LEFT: ONLINE MEMBERS -->
+  <div class="members-sidebar">
+    <div class="ms-hdr">ONLINE — <span id="online-n" style="color:#ddd;">0</span></div>
+    <div class="ms-sec">IN HUB</div>
+    <div class="ms-list" id="ms-list"></div>
+  </div>
+
+  <!-- CENTER: CHAT -->
+  <div class="chat-area">
+    <div class="clan-menu" id="clan-menu"></div>
+    <div class="chat-tabs" id="chat-tabs">
+      <div class="ct on" onclick="setChannel(this,'global','GLOBAL')">GLOBAL</div>
+      <div class="ct"    onclick="setChannel(this,'trade','TRADE')">TRADE</div>
+      <div class="ct"    onclick="setChannel(this,'lore','LORE')">LORE</div>
+      <!-- clan tabs injected here by JS -->
+      <div class="ct ct-add" onclick="openClanMenu()" title="Switch to a clan channel">＋ CLAN</div>
+    </div>
+    <div style="position:relative;flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;">
+      <div class="chat-log" id="chat-log" onscroll="onChatScroll()" style="flex:1;min-height:0;overflow-y:auto;"></div>
+      <div id="new-msg-badge" onclick="scrollToBottom()" style="display:none;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);background:#fff;color:#000;font-family:'Press Start 2P',monospace;font-size:7px;padding:6px 14px;cursor:pointer;white-space:nowrap;z-index:10;">▼ NEW MESSAGES</div>
+    </div>
+    <div class="chat-input-area">
+      <input class="chat-inp" id="chat-inp" placeholder="Say something..." maxlength="120" oninput="updCtr()">
+      <span class="chat-ctr" id="chat-ctr">0/120</span>
+      <button class="chat-send" onclick="sendChat()">SEND</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: PLAYER PROFILE -->
+  <div class="profile-sidebar">
+    <div class="ps-card">
+      <div class="ps-av" id="ps-av"></div>
+      <div class="ps-name" id="ps-name"></div>
+      <div class="ps-title" id="ps-title"></div>
+      <span class="ps-myth" id="ps-myth"></span>
+      <div class="ps-stats" id="ps-stats"></div>
+      <div class="ps-coins" id="ps-coins"></div>
+    </div>
+    <div class="ps-section">PROFESSIONS</div>
+    <div class="ps-profs" id="ps-profs"></div>
+    <div class="ps-quick">
+      <div class="social-tabs">
+        <div class="soc-tab on" onclick="setSocialTab(this,'friends')">FRIENDS</div>
+        <div class="soc-tab" onclick="setSocialTab(this,'requests')">REQUESTS</div>
+        <div class="soc-tab" onclick="setSocialTab(this,'invites')">INVITES</div>
+        <div class="soc-tab" onclick="setSocialTab(this,'blocked')">BLOCKED</div>
+      </div>
+      <div class="social-body" id="social-body"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx" id="ctx">
+  <div class="ctx-hdr" id="ctx-hdr">PLAYER</div>
+  <div class="ctx-item" onclick="openWhisper()">WHISPER</div>
+  <div class="ctx-item" onmouseenter="showSub(event)" onclick="showSub(event)">INVITE <span style="color:#555;">▶</span></div>
+  <div class="ctx-item" onclick="openTradeModal()">TRADE</div>
+  <div class="ctx-item" onclick="openProfileModal()">VIEW PROFILE</div>
+  <div class="ctx-item" onclick="openProfileModal()">INSPECT GEAR</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-friend" onclick="toggleFriend()">ADD FRIEND</div>
+  <div class="ctx-item danger" id="ctx-block" onclick="blockPlayer()">BLOCK</div>
+  <div class="ctx-item danger" onclick="toast('Reported.')">REPORT</div>
+</div>
+<div class="ctx-sub" id="ctx-sub">
+  <div class="ctx-item" onclick="inviteAction('party')">🗡️ PARTY</div>
+  <div class="ctx-item" onclick="inviteAction('dungeon')">🏰 DUNGEON</div>
+  <div class="ctx-item" onclick="inviteAction('fishing')">🎣 FISHING LOBBY</div>
+  <div class="ctx-item" onclick="inviteAction('raid')">⚡ RAID</div>
+</div>
+
+<!-- WHISPER -->
+<div class="whisper-box" id="whisper-box">
+  <div class="wb-header">
+    <span class="wb-header-title">&#9658; WHISPERS</span>
+    <button class="wb-close" onclick="closeWhisperBox()">&#10005;</button>
+  </div>
+  <div class="wb-tabs" id="wb-tabs"></div>
+  <div class="wb-hist" id="wb-hist"></div>
+  <div class="wb-row">
+    <input class="wb-inp" id="wb-inp" placeholder="Whisper..." maxlength="200" onkeydown="if(event.key==='Enter')sendWhisper()">
+    <button class="wb-send" onclick="sendWhisper()">&#8629;</button>
+  </div>
+</div>
+
+<!-- TRADE -->
+<div class="overlay" id="trade-overlay">
+  <div class="trade-box">
+    <div class="modal-title">
+      <span id="trade-title">TRADE REQUEST</span>
+      <button class="modal-close" onclick="document.getElementById('trade-overlay').classList.remove('on')">✕ CLOSE</button>
+    </div>
+    <div class="trade-cols">
+      <div class="trade-col">
+        <div class="tc-lbl">YOUR OFFER</div>
+        <div class="tc-grid">
+          <div class="tc-slot filled">🐊</div><div class="tc-slot filled">🟤</div>
+          <div class="tc-slot"></div><div class="tc-slot"></div>
+          <div class="tc-slot"></div><div class="tc-slot"></div>
+          <div class="tc-slot"></div><div class="tc-slot"></div>
+        </div>
+      </div>
+      <div class="trade-col">
+        <div class="tc-lbl" id="their-lbl">THEIR OFFER</div>
+        <div class="tc-grid">
+          <div class="tc-slot filled">🫎</div><div class="tc-slot filled">🔵</div>
+          <div class="tc-slot"></div><div class="tc-slot"></div>
+          <div class="tc-slot"></div><div class="tc-slot"></div>
+          <div class="tc-slot"></div><div class="tc-slot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="trade-status" id="trade-status">Both players must CONFIRM to complete.</div>
+    <div class="trade-acts">
+      <button class="t-btn" onclick="confirmTrade()">CONFIRM</button>
+      <button class="t-btn ghost" onclick="document.getElementById('trade-overlay').classList.remove('on')">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- ITEM TOOLTIP -->
+<div class="item-tip" id="item-tip">
+  <div class="it-head"><div class="it-em" id="it-em">🐟</div><div class="it-name" id="it-name">Item</div></div>
+  <div class="it-rar" id="it-rar">COMMON</div>
+  <div class="it-desc" id="it-desc"></div>
+  <div id="it-rows"></div>
+  <div class="it-src" id="it-src"></div>
+</div>
+
+
+
+<!-- ADMIN PANEL -->
+<div id="admin-overlay" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.5);justify-content:flex-end;align-items:stretch;">
+  <div style="width:520px;background:#000;border-left:2px solid #fff;display:flex;flex-direction:column;height:100vh;">
+
+    <div style="border-bottom:2px solid #fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:10px;color:#fff;">👁 ADMIN — HUB MONITOR</div>
+        <div style="font-size:15px;color:#555;margin-top:3px;">Moderator view · Global Chat</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="MB.nav('dataeditor')" style="background:#000;border:2px solid #555;color:#888;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;">&#9658; DATA EDITOR</button>
+        <button onclick="closeAdmin()" style="background:#000;border:2px solid #fff;color:#fff;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;">✕ CLOSE</button>
+      </div>
+    </div>
+
+    <div style="display:flex;border-bottom:1px solid #333;flex-shrink:0;">
+      <div class="ct on" style="font-size:7px;" onclick="adminTab(this,'senditems')">SEND ITEMS</div>
+      <div class="ct" style="font-size:7px;" onclick="adminTab(this,'unmyth')">UNMYTH</div>
+      <div class="ct" style="font-size:7px;" onclick="adminTab(this,'grant');populateGrantMyths()">GRANT MYTH</div>
+    </div>
+
+    <!-- MONITOR -->
+    <div id="adm-monitor" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+      <div style="padding:8px 14px;border-bottom:1px solid #111;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap;">
+        <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#555;">CHANNEL:</div>
+        <select style="background:#000;border:1px solid #333;color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;padding:5px 9px;outline:none;">
+          <option>GLOBAL</option><option>GUILD</option><option>TRADE</option><option>LORE</option>
+        </select>
+        <div style="margin-left:auto;display:flex;gap:6px;">
+          <button onclick="adminAction('Slow mode ON (10s cooldown)')" style="background:#000;border:2px solid #fff;color:#fff;padding:5px 10px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;">SLOW MODE</button>
+          <button onclick="adminAction('Channel muted')" style="background:#000;border:1px solid #666;color:#666;padding:5px 10px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;">MUTE CH</button>
+        </div>
+      </div>
+      <div id="adm-feed" style="flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:5px;"></div>
+      <div style="border-top:1px solid #222;padding:10px 14px;flex-shrink:0;">
+        <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#555;margin-bottom:6px;">BROADCAST AS SYSTEM</div>
+        <div style="display:flex;gap:0;">
+          <input id="adm-inp" style="background:#000;border:2px solid #fff;color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;padding:8px;outline:none;flex:1;" placeholder="System announcement..." onkeydown="if(event.key==='Enter')adminBroadcast()">
+          <button onclick="adminBroadcast()" style="background:#fff;border:2px solid #fff;color:#000;font-family:'Press Start 2P',monospace;font-size:7px;padding:8px 12px;cursor:pointer;">BROADCAST</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYERS -->
+    <div id="adm-players" style="flex:1;overflow-y:auto;padding:10px 14px;display:none;">
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#cfcfcf;margin-bottom:10px;">ONLINE PLAYERS</div>
+      <div id="adm-player-rows" style="display:flex;flex-direction:column;gap:5px;"></div>
+    </div>
+
+    <!-- FLAGS -->
+    <div id="adm-flags" style="flex:1;overflow-y:auto;padding:10px 14px;display:none;">
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#555;margin-bottom:10px;">FLAGGED MESSAGES (3 pending)</div>
+      <div id="adm-flag-rows" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <!-- ACTION LOG -->
+    <div id="adm-alog" style="flex:1;overflow-y:auto;padding:10px 14px;display:none;">
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#555;margin-bottom:10px;">ACTION LOG — TODAY</div>
+      <div id="adm-log-list" style="display:flex;flex-direction:column;gap:4px;font-size:16px;color:#444;">
+        <div style="border-bottom:1px solid #0d0d0d;padding:5px 0;"><span style="color:#333;">10:42</span> · System announcement sent</div>
+        <div style="border-bottom:1px solid #0d0d0d;padding:5px 0;"><span style="color:#333;">09:18</span> · Report on APEX dismissed</div>
+        <div style="border-bottom:1px solid #0d0d0d;padding:5px 0;"><span style="color:#333;">08:55</span> · Warning issued to MILL</div>
+        <div style="padding:5px 0;"><span style="color:#333;">08:02</span> · Channel GLOBAL unmuted</div>
+      </div>
+    </div>
+
+    <!-- SEND ITEMS -->
+    <div id="adm-senditems" style="display:none;padding:20px;overflow-y:auto;flex-direction:column;gap:14px;">
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;letter-spacing:1px;">SEND ITEMS TO PLAYER</div>
+      <div style="font-size:15px;color:#555;line-height:1.6;">Items arrive as system mail from "The MYTHBOUND Team". Up to 10 items per send.</div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#444;">RECIPIENT</div>
+        <div style="display:flex;gap:8px;">
+          <input id="si-player" style="background:#000;border:2px solid #555;color:#fff;font-family:'VT323',monospace;font-size:20px;padding:8px 12px;outline:none;flex:1;" placeholder="Username..." maxlength="32" oninput="siCheckPlayer()">
+          <div id="si-player-status" style="font-size:14px;color:#555;align-self:center;min-width:80px;"></div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#444;">SEARCH ITEMS</div>
+        <input id="si-search" style="background:#000;border:2px solid #555;color:#fff;font-family:'VT323',monospace;font-size:20px;padding:8px 12px;outline:none;width:100%;" placeholder="Item name, type, rarity..." oninput="siSearch()">
+        <div id="si-results" style="display:flex;flex-wrap:wrap;gap:6px;max-height:180px;overflow-y:auto;padding:4px 0;"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#444;">SELECTED (<span id="si-count">0</span>/10)</div>
+        <div id="si-selected" style="display:flex;flex-wrap:wrap;gap:6px;min-height:40px;padding:4px 0;"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#444;">MAIL SUBJECT (optional)</div>
+        <input id="si-subject" style="background:#000;border:2px solid #555;color:#fff;font-family:'VT323',monospace;font-size:20px;padding:8px 12px;outline:none;width:100%;" placeholder="Leave blank for default..." maxlength="60">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#444;">MAIL MESSAGE (optional)</div>
+        <textarea id="si-body" style="background:#000;border:2px solid #555;color:#fff;font-family:'VT323',monospace;font-size:18px;padding:8px 12px;outline:none;width:100%;resize:none;min-height:70px;" placeholder="Leave blank for default..."></textarea>
+      </div>
+
+      <button onclick="siSend()" style="font-family:'Press Start 2P',monospace;font-size:7px;background:#000;border:2px solid #fff;color:#fff;padding:12px;cursor:pointer;width:100%;">&#9658; SEND VIA SYSTEM MAIL</button>
+      <div id="si-feedback" style="font-family:'Press Start 2P',monospace;font-size:6px;color:#6bff9b;min-height:16px;"></div>
+    </div>
+
+    <!-- UNMYTH -->
+    <div id="adm-unmyth" style="display:none;padding:20px;overflow-y:auto;">
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;margin-bottom:16px;letter-spacing:1px;">REMOVE MYTHBINDING</div>
+      <div style="font-size:16px;color:#555;margin-bottom:14px;line-height:1.6;">Enter a player username to remove their mythbinding.</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;">
+        <input id="unmyth-inp" style="background:#000;border:2px solid #555;color:#fff;font-family:'VT323',monospace;font-size:20px;padding:8px 12px;outline:none;flex:1;" placeholder="Username..." maxlength="32" oninput="checkUnmyth()">
+        <button onclick="checkUnmyth()" style="font-family:'Press Start 2P',monospace;font-size:6px;background:#000;border:2px solid #555;color:#555;padding:8px 14px;cursor:pointer;">LOOK UP</button>
+      </div>
+      <div id="unmyth-result" style="margin-bottom:14px;"></div>
+      <button id="unmyth-confirm-btn" onclick="confirmUnmyth()" style="display:none;font-family:'Press Start 2P',monospace;font-size:7px;background:#000;border:2px solid #ff4444;color:#ff4444;padding:10px 18px;cursor:pointer;width:100%;">⚠ YES, REMOVE MYTHBINDING</button>
+    </div>
+
+    <!-- GRANT MYTH (testing) -->
+    <div id="adm-grant" style="display:none;padding:20px;overflow-y:auto;">
+      <div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;margin-bottom:16px;letter-spacing:1px;">GRANT MYTH (TESTING)</div>
+      <div style="font-size:16px;color:#555;margin-bottom:14px;line-height:1.6;">Bind a specific myth to an account for battle testing. Replaces any existing myth and equips its heart.</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <input id="grant-inp" style="background:#000;border:2px solid #555;color:#fff;font-family:'VT323',monospace;font-size:20px;padding:8px 12px;outline:none;flex:1;" placeholder="Username..." maxlength="32">
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;align-items:center;">
+        <select id="grant-myth" style="background:#000;border:2px solid #555;color:#fff;font-family:'VT323',monospace;font-size:20px;padding:8px 12px;outline:none;flex:1;"></select>
+        <button onclick="confirmGrant()" style="font-family:'Press Start 2P',monospace;font-size:7px;background:#000;border:2px solid #6bff9b;color:#6bff9b;padding:10px 16px;cursor:pointer;">✶ GRANT</button>
+      </div>
+      <div id="grant-result"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── ITEM REGISTRY (single source — same data as inventory / fishing / mining) ──
+const RC = MB.RC; // from mythbound_shared.js
+const ITEMS={
+  perch:     {em:'🐟',name:'Common Perch',    rar:'common',   type:'fish',        xp:12, sell:12,  desc:'A plain river perch.',          src:'The River · Shallow Waters'},
+  roach:     {em:'🐠',name:'River Roach',     rar:'common',   type:'fish',        xp:14, sell:15,  desc:'Slippery little thing.',         src:'The River · Shallow Waters'},
+  carp:      {em:'🐡',name:'Muddy Carp',      rar:'common',   type:'fish',        xp:18, sell:22,  desc:'Bottom feeder.',                 src:'The River · Shallow Waters'},
+  duck:      {em:'🦆',name:'Angry Duck',      rar:'uncommon', type:'fish',        xp:30, sell:0,   desc:'It bit your line.',              src:'The River'},
+  eel:       {em:'🫎',name:'River Eel',       rar:'uncommon', type:'fish',        xp:35, sell:60,  desc:'Long and pale.',                 src:'The River · Mid River'},
+  trout:     {em:'🐟',name:'Speckled Trout',  rar:'uncommon', type:'fish',        xp:40, sell:80,  desc:'Good eating.',                   src:'The River · Mid River'},
+  pike:      {em:'🐊',name:'Ghost Pike',      rar:'rare',     type:'fish',        xp:65, sell:200, desc:'Massive. Almost translucent.',   src:'The River · Deep Pool'},
+  kelpie:    {em:'🐎',name:'Kelpie',          rar:'rare',     type:'fish',        xp:65, sell:150, desc:'Scottish water horse.',          src:'The River · Mid River · Lv.5+'},
+  bottle:    {em:'🍶',name:'Sealed Bottle',   rar:'rare',     type:'fish',        xp:50, sell:140, desc:'Something inside.',              src:'The River'},
+  koi_ryu:   {em:'🐉',name:'Koi-Ryū',         rar:'epic',     type:'fish',        xp:160,sell:620, desc:'Mid-ascension to dragonhood.',   src:'The River · Deep Pool'},
+  mythcarp:  {em:'🐲',name:'Mythbound Carp',  rar:'epic',     type:'fish',        xp:200,sell:800, desc:'Pulsing with mythic energy.',    src:'The River · Deep Pool'},
+  leviathan: {em:'🐍',name:'Leviathan Spawn', rar:'epic',     type:'fish',        xp:180,sell:700, desc:'Coil of the Primordial Sea Beast.', src:'The River · Lv.9+'},
+  qallu:     {em:'🫧',name:'Qallupilluit',    rar:'epic',     type:'fish',        xp:220,sell:900, desc:'Inuit ice spirits.',             src:'The River · Deep Pool'},
+  copper_ore:{em:'🟤',name:'Copper Ore',      rar:'common',   type:'ore',         xp:8,  sell:10,  desc:'Smelts into copper ingots.',     src:'Deep Mine · Surface Veins'},
+  iron_ore:  {em:'⬛',name:'Iron Ore',        rar:'common',   type:'ore',         xp:12, sell:15,  desc:'Heavy and useful.',              src:'Deep Mine · Surface Veins'},
+  coal:      {em:'🪨',name:'Coal',            rar:'common',   type:'ore',         xp:5,  sell:5,   desc:'Burns hot.',                     src:'Deep Mine · Surface Veins'},
+  flint:     {em:'🔷',name:'Flint',           rar:'uncommon', type:'ore',         xp:10, sell:18,  desc:'Sharp edges.',                   src:'Deep Mine · Surface Veins'},
+  silver_ore:{em:'⬜',name:'Silver Ore',      rar:'uncommon', type:'ore',         xp:28, sell:45,  desc:'Conducts magic well.',           src:'Deep Mine · Mid Veins'},
+  gold_ore:  {em:'🟡',name:'Gold Ore',        rar:'rare',     type:'ore',         xp:40, sell:80,  desc:'Heavy and lustrous.',            src:'Deep Mine · Mid Veins'},
+  mithril:   {em:'🔵',name:'Mithril Ore',     rar:'rare',     type:'ore',         xp:55, sell:120, desc:'Found only in deep veins.',      src:'Deep Mine · Mid Veins'},
+  shadow_gem:{em:'💎',name:'Shadow Gem',      rar:'epic',     type:'ore',         xp:100,sell:500, desc:'Absorbs light.',                 src:'Deep Mine · Bedrock'},
+  void_shard:{em:'🟣',name:'Void Shard',      rar:'epic',     type:'ore',         xp:120,sell:600, desc:'Fragment of pure void.',         src:'Deep Mine · Bedrock'},
+  myth_ore:  {em:'✨',name:'Mythril Vein',    rar:'legendary',type:'ore',         xp:200,sell:1200,desc:'Resonates with myth energy.',    src:'Deep Mine · Bedrock'},
+  potion:    {em:'🧪',name:'Potion',          rar:'common',   type:'consumable',  sell:20,          desc:'Heals 40 Stamina.',              src:'Shop / Dungeon Drop'},
+  elixir:    {em:'⚗️',name:'Elixir',          rar:'rare',     type:'consumable',  sell:200,         desc:'Full Stamina + MP.',             src:'Dungeon Drop'},
+  myth_heart:{em:'💜',name:'Myth Heart',      rar:'ultimate', type:'key',         sell:0,           desc:'Used for myth binding. Soulbound.', src:'Raid Drop only'},
+  ancient_sap:{em:'🫙',name:'Ancient Sap',   rar:'rare',     type:'material',    xp:35, sell:120, desc:'Seeps from ancient roots.',       src:'Deep Mine · Mid Veins'},
+};
+function getKey(item){return Object.keys(ITEMS).find(k=>ITEMS[k]===item)||null;}
+
+// ── SOCIAL SYSTEM (server-authoritative graph) ─────────────────
+// The server (/__social/get, /__social/act) owns the friend graph,
+// blocked list, and pending requests, persisted across restarts.
+// SOCIAL here is just an in-memory cache, refreshed from the server.
+function meName(){ return (MB.PLAYER.name || '').toUpperCase(); }
+let SOCIAL = { friends:[], blocked:[], requests:[], outgoing:[], invites:[] };
+let _socialFirstLoad = true;
+
+function loadSocial(){ return SOCIAL; }      // compat shim (callers still reference it)
+function saveSocial(){ /* server is source of truth — no-op */ }
+
+async function refreshSocial(){
+  if (!MB.isSignedIn()) return;
+  try {
+    const r = await fetch(MB.SERVER + '/__social/get?name=' + encodeURIComponent(meName()));
+    if (!r.ok) return;
+    const g = await r.json();
+    const prevReq = SOCIAL.requests || [];
+    SOCIAL = {
+      friends:  g.friends  || [],
+      blocked:  g.blocked  || [],
+      requests: g.incoming || [],   // people who asked to friend me
+      outgoing: g.outgoing || [],
+      invites:  g.invites  || [],
+    };
+    if (!_socialFirstLoad) {
+      SOCIAL.requests.forEach(n => { if (!prevReq.includes(n)) toast('\uD83D\uDCEC Friend request from ' + n + '!'); });
+    }
+    _socialFirstLoad = false;
+    renderSocialPanel(activeSocialTab);
+    if (typeof refreshOnlineList === 'function') { /* online list re-reads block list on its own cycle */ }
+  } catch(e){}
+}
+
+async function socialAct(target, action){
+  const t = (target||'').toUpperCase();
+  if (!t) return;
+  try {
+    await fetch(MB.SERVER + '/__social/act', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ actor: meName(), target: t, action }),
+    });
+  } catch(e){}
+  await refreshSocial();
+}
+
+function isFriend(name){ return (SOCIAL.friends ||[]).includes((name||'').toUpperCase()); }
+function isBlocked(name){ return (SOCIAL.blocked ||[]).includes((name||'').toUpperCase()); }
+function hasPending(name){ return (SOCIAL.outgoing||[]).includes((name||'').toUpperCase()); }
+
+async function sendFriendRequest(name){ await socialAct(name, 'request'); }
+async function removeFriend(name){ await socialAct(name, 'remove'); }
+async function acceptRequest(name){ await socialAct(name, 'accept'); toast(name + ' added as friend!'); }
+async function declineRequest(name){ await socialAct(name, 'decline'); }
+async function blockUser(name){ await socialAct(name, 'block'); toast(name + ' blocked.'); }
+async function unblockUser(name){ await socialAct(name, 'unblock'); }
+
+async function sendInvite(toName, type){
+  try {
+    await fetch(MB.SERVER + '/__social/invite', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ from: meName(), to:(toName||'').toUpperCase(), type }),
+    });
+  } catch(e){}
+}
+async function acceptInvite(idx){
+  const inv = (SOCIAL.invites||[])[idx]; if (!inv) return;
+  try {
+    await fetch(MB.SERVER + '/__social/invite/respond', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name: meName(), index: idx }),
+    });
+  } catch(e){}
+  addMsg({text:'Accepted ' + inv.from + "'s " + inv.type + ' invite', type:'sys'});
+  toast('Accepted'); await refreshSocial();
+}
+async function declineInvite(idx){
+  try {
+    await fetch(MB.SERVER + '/__social/invite/respond', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ name: meName(), index: idx }),
+    });
+  } catch(e){}
+  await refreshSocial();
+}
+// ── PLAYERS ────────────────────────────────────────────────────────────────
+// ME reflects whoever is signed in — updates on each page load
+const ME = MB.PLAYER;
+// Dummy online players — in production replaced by Supabase Realtime presence
+const DUMMY_PLAYERS = [
+  {id:'foxpaw', name:'FOXPAW', em:'🦊',  level:10, class:'Ranger',    act:'In Hub',             friend:true},
+  {id:'ribbit', name:'RIBBIT', em:'🐸',  level:8,  class:'Mage',      act:'In Hub',             friend:true},
+  {id:'mill',   name:'MILL',   em:'🦝',  level:15, class:'Warrior',   act:'Fishing — The River', friend:false},
+  {id:'apex',   name:'APEX',   em:'🐺',  level:20, class:'Assassin',  act:'Deep Mine',           friend:false},
+  {id:'wren',   name:'WREN',   em:'🦉',  level:5,  class:'Healer',    act:'In Hub',              friend:false},
+  {id:'cinder', name:'CINDER', em:'🐱',  level:18, class:'Striker',   act:'Dungeon Queue',       friend:false},
+  {id:'zephyr', name:'ZEPHYR', em:'🐭',  level:3,  class:'Mage',      act:'In Hub',              friend:false},
+];
+
+// Build PLAYERS list — signed-in user first, then dummies (excluding any name match)
+const signedInName = MB.isSignedIn() ? (MB.PLAYER.name || '').toUpperCase() : null;
+const PLAYERS = [];
+if (MB.isSignedIn()) {
+  PLAYERS.push({
+    id:     MB.PLAYER.id || 'me',
+    name:   MB.PLAYER.name || 'YOU',
+    em:     MB.PLAYER.em  || '?',
+    level:  MB.PLAYER.level || 1,
+    class:  MB.PLAYER.role || 'Adventurer',
+    act:    'In Hub',
+    isMe:   true,
+    friend: false,
+  });
+}
+// DUMMY_PLAYERS kept for name/emoji lookup in context menus only
+// Do NOT push to PLAYERS — online list comes entirely from server presence
+
+// ── RENDER MEMBERS ─────────────────────────────────────────────────────────
+function renderMembers(){
+  // Delegates to refreshOnlineList which shows real server presence data
+  refreshOnlineList();
+}
+
+// ── CONTEXT MENU ───────────────────────────────────────────────────────────
+let ctxId=null;
+function openCtx(e,id){
+  e.preventDefault();
+  ctxId=id;
+  // Resolve player — check PLAYERS list first, then treat id as name for chat messages
+  // id is always the player's NAME (uppercased) — resolve from PLAYERS or build minimal record
+  const _pl = window._lastPresenceData || [];
+  let p = _pl.find(x=>x.name===(id||'').toUpperCase())
+       || PLAYERS.find(x=>x.name.toUpperCase()===(id||'').toUpperCase())
+       || DUMMY_PLAYERS.find(x=>x.name.toUpperCase()===(id||'').toUpperCase())
+       || { id, name:(id||'').toUpperCase().replace(/^LOCAL_\d+$/,''), em:'?', level:'?', class:'Player' };
+  // Don't open ctx for yourself
+  const myName = (MB.PLAYER.name||'').toUpperCase();
+  if ((p.name||'').toUpperCase() === myName) return;
+  ctxId = p.name; // always use name as canonical identifier
+  document.getElementById('ctx-hdr').textContent = (p.em||'?') + ' ' + p.name + (p.level && p.level!=='?' ? ' · Lv.'+p.level+' '+(p.class||'') : '');
+  // Friend state from SOCIAL store
+  const fn = isFriend(p.name) ? 'UNFRIEND' : hasPending(p.name) ? 'REQUEST SENT' : 'ADD FRIEND';
+  document.getElementById('ctx-friend').textContent = fn;
+  document.getElementById('ctx-block').textContent = isBlocked(p.name) ? 'UNBLOCK' : 'BLOCK';
+  const menu=document.getElementById('ctx');
+  menu.style.left=Math.min(e.clientX,window.innerWidth-200)+'px';
+  menu.style.top =Math.min(e.clientY,window.innerHeight-280)+'px';
+  menu.style.display='block';
+  document.getElementById('ctx-sub').style.display='none';
+}
+function hideCtx(){document.getElementById('ctx').style.display='none';document.getElementById('ctx-sub').style.display='none';}
+function showSub(e){
+  const inv=document.getElementById('ctx').querySelector('.ctx-item').getBoundingClientRect();
+  const sub=document.getElementById('ctx-sub');
+  sub.style.left=(+document.getElementById('ctx').style.left.replace('px','')+document.getElementById('ctx').offsetWidth)+'px';
+  sub.style.top=document.getElementById('ctx').style.top;
+  sub.style.display='block';
+  e.stopPropagation();
+}
+function inviteAction(type){
+  const p=PLAYERS.find(x=>x.name.toUpperCase()===(ctxId||'').toUpperCase())||PLAYERS.find(x=>x.id===ctxId);
+  addMsg({text:`→ Sent ${p.name} a ${type.toUpperCase()} invite`,type:'sys'});
+  toast('Invite sent to '+p.name);hideCtx();
+}
+// ── WHISPER SYSTEM ────────────────────────────────────────────
+// ── WHISPER SYSTEM ─────────────────────────────────────────────
+// Multi-conversation, server-backed, no public chat bleed.
+// whisperConvos: { NAME: [{from,to,text,ts}] }
+// activeWhisper: currently open tab name
+
+let whisperConvos  = {};  // all open whisper threads
+let activeWhisper  = null;
+let lastWhisperFrom = null;
+
+function closeWhisperBox() {
+  document.getElementById('whisper-box').classList.remove('show');
+}
+
+function openWhisper(targetName, messageToSend) {
+  if (!targetName) {
+    // ctxId is a player name — resolve from PLAYERS or use directly
+    const p = PLAYERS.find(x=>x.name.toUpperCase()===(ctxId||'').toUpperCase())
+           || PLAYERS.find(x=>x.id===ctxId)
+           || {name: ctxId};
+    targetName = p.name;
+  }
+  // Strip local_ ids that shouldn't have reached here
+  const name = (targetName||'').toUpperCase().replace(/^LOCAL_\d+$/, '');
+  if (!name) return;
+  if (isBlocked(name)) { toast("You've blocked " + name); hideCtx(); return; }
+
+  // Ensure conversation exists
+  if (!whisperConvos[name]) whisperConvos[name] = [];
+  activeWhisper = name;
+  lastWhisperFrom = name;
+
+  const box = document.getElementById('whisper-box');
+  box.classList.add('show');
+  renderWhisperTabs();
+  renderWhisperHist(name);
+  setTimeout(() => document.getElementById('wb-inp').focus(), 50);
+  hideCtx();
+
+  // Send message immediately if provided (from /w NAME message)
+  if (messageToSend) {
+    document.getElementById('wb-inp').value = messageToSend;
+    sendWhisper();
+  }
+}
+
+function renderWhisperTabs() {
+  const tabs = document.getElementById('wb-tabs');
+  tabs.innerHTML = '';
+  Object.keys(whisperConvos).forEach(name => {
+    const tab = document.createElement('div');
+    tab.className = 'wb-tab' + (name === activeWhisper ? ' on' : '');
+    tab.textContent = name;
+    tab.onclick = () => { activeWhisper = name; lastWhisperFrom = name; renderWhisperTabs(); renderWhisperHist(name); };
+    // Close button on tab
+    const x = document.createElement('span');
+    x.textContent = ' ×'; x.style.cssText = 'color:#555;cursor:pointer;';
+    x.onclick = e => { e.stopPropagation(); delete whisperConvos[name]; if (activeWhisper === name) { const remaining = Object.keys(whisperConvos); activeWhisper = remaining.length ? remaining[0] : null; } renderWhisperTabs(); if (activeWhisper) renderWhisperHist(activeWhisper); else closeWhisperBox(); };
+    tab.appendChild(x);
+    tabs.appendChild(tab);
+  });
+}
+
+function renderWhisperHist(name) {
+  const hist = document.getElementById('wb-hist');
+  hist.innerHTML = '';
+  const myName = (MB.PLAYER.name||'YOU').toUpperCase();
+  (whisperConvos[name]||[]).forEach(m => {
+    const isMine = m.from === myName;
+    const el  = document.createElement('div'); el.className = 'wb-msg ' + (isMine ? 'mine' : 'theirs');
+    const nm  = document.createElement('div'); nm.className = 'wb-msg-name'; nm.textContent = isMine ? 'You' : m.from;
+    const txt = document.createElement('div'); txt.textContent = m.text;
+    el.appendChild(nm); el.appendChild(txt);
+    hist.appendChild(el);
+  });
+  hist.scrollTop = hist.scrollHeight;
+}
+
+async function sendWhisper() {
+  if (!activeWhisper) return;
+  const inp = document.getElementById('wb-inp');
+  const msg = inp.value.trim(); if (!msg) return;
+  const myName = (MB.PLAYER.name||'YOU').toUpperCase();
+  const msgObj = { from: myName, to: activeWhisper, text: msg, ts: Date.now() };
+
+  // Add to local convo
+  if (!whisperConvos[activeWhisper]) whisperConvos[activeWhisper] = [];
+  whisperConvos[activeWhisper].push(msgObj);
+  renderWhisperHist(activeWhisper);
+  inp.value = '';
+
+  // Send via server so recipient receives it
+  try {
+    console.log('[whisper] sending to', activeWhisper, ':', msg);
+    const sr = await fetch(MB.SERVER + '/__whisper/send', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(msgObj),
+    });
+    console.log('[whisper] send response:', sr.status);
+  } catch(e) { console.warn('[whisper] send failed:', e); }
+
+  lastWhisperFrom = activeWhisper;
+}
+
+
+// Load persisted whisper history from the server so threads survive restarts.
+async function loadWhisperThreads() {
+  const myName = (MB.PLAYER.name||'').toUpperCase();
+  if (!myName) return;
+  try {
+    const r = await fetch(MB.SERVER + '/__whisper/threads?name=' + encodeURIComponent(myName));
+    if (!r.ok) return;
+    const threads = await r.json(); // { OTHER: [ {from,to,text,ts} ] }
+    Object.keys(threads || {}).forEach(other => {
+      if (typeof isBlocked === 'function' && isBlocked(other)) return; // don't surface blocked threads
+      whisperConvos[other] = (threads[other] || []).slice();
+    });
+    if (activeWhisper && whisperConvos[activeWhisper]) renderWhisperHist(activeWhisper);
+  } catch(e){}
+}
+
+let _whisperPoll = null;
+MB._ownWhisperPoll = true; // tell shared.js the hub drives its own whisper poll
+function startWhisperPoll() {
+  if (_whisperPoll) return;
+  const myName = (MB.PLAYER.name||'').toUpperCase();
+  if (!myName) return;
+  _whisperPoll = setInterval(async () => {
+    try {
+      const r = await fetch(MB.SERVER + '/__whisper/poll?name=' + encodeURIComponent(myName));
+      if (!r.ok) return;
+      const msgs = await r.json();
+      if (!msgs || !msgs.length) return;
+      msgs.forEach(m => {
+        const sender = m.from.toUpperCase();
+        if (typeof isBlocked === 'function' && isBlocked(sender)) return; // ignore blocked senders
+        if (!whisperConvos[sender]) whisperConvos[sender] = [];
+        // Dedupe: history load + live poll can both carry the same message
+        const dup = whisperConvos[sender].some(x => x.ts === m.ts && x.from === m.from && x.text === m.text);
+        if (dup) return;
+        whisperConvos[sender].push(m);
+        lastWhisperFrom = sender;
+        const box = document.getElementById('whisper-box');
+        if (!box.classList.contains('show')) { activeWhisper = sender; box.classList.add('show'); }
+        if (activeWhisper === sender) renderWhisperHist(sender);
+        renderWhisperTabs();
+        toast('\u25b8 Whisper from ' + sender);
+      });
+    } catch(e) {}
+  }, 2000);
+}
+
+function handleChatCommand(text) {
+  const parts = text.trim().split(' ');
+  const cmd = parts[0].toLowerCase();
+
+  if (cmd === '/whisper' || cmd === '/w') {
+    const target = parts[1];
+    if (!target) { chatHint('/whisper [name] [message]'); return true; }
+    const msg = parts.slice(2).join(' ').trim();
+    openWhisper(target, msg || null);
+    return true;
+  }
+
+  if (cmd === '/r') {
+    if (!lastWhisperFrom) { toast('No whisper to reply to.'); return true; }
+    const msg = parts.slice(1).join(' ').trim();
+    openWhisper(lastWhisperFrom, msg || null);
+    return true;
+  }
+
+  if (cmd === '/friend' || cmd === '/fr') {
+    const target = parts[1];
+    if (!target) { chatHint('/friend [name]'); return true; }
+    const name = target.toUpperCase();
+    if (name === (MB.PLAYER.name||'').toUpperCase()) { toast("Can't friend yourself."); return true; }
+    if (isFriend(name)) { toast(name + ' is already your friend.'); return true; }
+    if (hasPending(name)) { toast('Request already sent to ' + name + '.'); return true; }
+    sendFriendRequest(name);
+    toast('Friend request sent to ' + name + '!');
+    renderSocialPanel(activeSocialTab);
+    return true;
+  }
+
+  if (cmd.startsWith('/')) {
+    chatHint('Commands: /whisper [name] [msg] · /r [msg] · /friend [name]');
+    return true;
+  }
+
+  return false;
+}
+
+function chatHint(msg) {
+  const log = document.getElementById('chat-log'); if (!log) return;
+  const el = document.createElement('div'); el.className = 'msg sys';
+  const b = document.createElement('div'); b.className = 'msg-body'; b.style.color = '#555';
+  b.textContent = '▸ ' + msg; el.appendChild(b); log.appendChild(el); log.scrollTop = log.scrollHeight;
+}
+// ── TRADING (server-backed, atomic) ───────────────────────────
+// Pull items from your bag into your offer; both sides confirm; the
+// server performs the swap atomically against the authoritative saves.
+let tradeId = null, tradePoll = null, curTrade = null, tradeMeKey = 'a';
+
+function tradeTheirKey(){ return tradeMeKey === 'a' ? 'b' : 'a'; }
+function tradeMyOffer(){ return (curTrade && curTrade[tradeMeKey] && curTrade[tradeMeKey].offer) || []; }
+function tradeMyCoins(){ return (curTrade && curTrade[tradeMeKey] && curTrade[tradeMeKey].coins) || 0; }
+function bagQtyOf(id){ const it=(MB.PLAYER.bag||[]).find(i=>i.id===id); return it?(it.qty||0):0; }
+function offeredQtyOf(id){ const o=tradeMyOffer().find(x=>x.itemId===id); return o?o.qty:0; }
+
+async function openTradeModal(){
+  let p = PLAYERS.find(x=>x.name.toUpperCase()===(ctxId||'').toUpperCase()) || {name: ctxId};
+  const target = (p.name || ctxId || '').replace(/^local_\d+$/i,'').toUpperCase();
+  hideCtx();
+  if (!target) return;
+  if (isBlocked(target)) { toast("You've blocked " + target); return; }
+  if (target === meName()) { toast("You can't trade with yourself."); return; }
+  try {
+    const r = await fetch(MB.SERVER + '/__trade/open', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ from: meName(), to: target }),
+    });
+    const j = await r.json();
+    if (!j || !j.ok) { toast((j && j.error) ? j.error : 'Could not start trade.'); return; }
+    enterTrade(j.trade);
+  } catch(e) { toast('Trade unavailable \u2014 is the server running?'); }
+}
+
+function enterTrade(trade){
+  curTrade = trade;
+  tradeId = trade.id;
+  tradeMeKey = (trade.a.name === meName()) ? 'a' : 'b';
+  MB._tradeLock = true; // pause background saves so the swap result isn't clobbered
+  document.getElementById('trade-title').textContent = 'TRADE WITH ' + curTrade[tradeTheirKey()].name;
+  buildTradeUI();
+  renderTrade();
+  document.getElementById('trade-overlay').classList.add('on');
+  if (tradePoll) clearInterval(tradePoll);
+  tradePoll = setInterval(pollTrade, 1000);
+}
+
+// Build the dynamic trade layout once (reuses existing tc-* styles).
+function buildTradeUI(){
+  const cols = document.querySelector('#trade-overlay .trade-cols');
+  if (!cols) return;
+  cols.innerHTML =
+    '<div class="trade-col">' +
+      '<div class="tc-lbl">YOUR OFFER</div>' +
+      '<div class="tc-grid" id="my-offer-grid"></div>' +
+      '<div style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;color:#aaa;">' +
+        '<span>\uD83E\uDE99</span>' +
+        '<input id="my-coins" type="number" min="0" value="0" style="width:90px;background:#000;border:1px solid #333;color:#fff;font-size:12px;padding:3px 5px;">' +
+        '<button class="soc-btn" onclick="tradeApplyCoins()">SET COINS</button>' +
+      '</div>' +
+      '<div class="tc-lbl" style="margin-top:10px;">TAP YOUR BAG TO ADD</div>' +
+      '<div id="my-bag-list" style="max-height:150px;overflow:auto;display:flex;flex-direction:column;gap:3px;"></div>' +
+    '</div>' +
+    '<div class="trade-col">' +
+      '<div class="tc-lbl" id="their-lbl">THEIR OFFER</div>' +
+      '<div class="tc-grid" id="their-offer-grid"></div>' +
+      '<div id="their-coins-line" style="margin-top:8px;font-size:12px;color:#aaa;">\uD83E\uDE99 0</div>' +
+      '<div id="their-confirm" style="margin-top:10px;font-size:12px;color:#888;">\u25cb Not confirmed</div>' +
+    '</div>';
+  const acts = document.querySelector('#trade-overlay .trade-acts');
+  if (acts) acts.innerHTML =
+    '<button class="t-btn" id="trade-confirm-btn" onclick="tradeConfirm()">CONFIRM</button>' +
+    '<button class="t-btn ghost" onclick="tradeCancel()">CANCEL</button>';
+}
+
+function slotHtml(itemId, qty, onclickAttr, title){
+  const it = ITEMS[itemId] || { em:'?', name:itemId };
+  return '<div class="tc-slot filled" title="' + (title||it.name) + '" ' + onclickAttr + ' style="cursor:'+(onclickAttr?'pointer':'default')+';position:relative;">' +
+    (it.em||'?') +
+    (qty>1 ? '<span style="position:absolute;bottom:1px;right:3px;font-size:11px;color:#fff;">'+qty+'</span>' : '') +
+    '</div>';
+}
+
+function renderTrade(){
+  if (!curTrade) return;
+  const mine = curTrade[tradeMeKey], theirs = curTrade[tradeTheirKey()];
+  // My offer
+  const mg = document.getElementById('my-offer-grid');
+  if (mg) {
+    let h = (mine.offer||[]).map(o => slotHtml(o.itemId, o.qty, 'onclick="tradeRemove(\''+o.itemId+'\')"', (ITEMS[o.itemId]||{}).name+' \u2014 tap to remove')).join('');
+    for (let i=(mine.offer||[]).length; i<8; i++) h += '<div class="tc-slot"></div>';
+    mg.innerHTML = h;
+  }
+  // Their offer
+  const tg = document.getElementById('their-offer-grid');
+  if (tg) {
+    let h = (theirs.offer||[]).map(o => slotHtml(o.itemId, o.qty, '', (ITEMS[o.itemId]||{}).name)).join('');
+    for (let i=(theirs.offer||[]).length; i<8; i++) h += '<div class="tc-slot"></div>';
+    tg.innerHTML = h;
+  }
+  document.getElementById('their-lbl').textContent = theirs.name + "'S OFFER";
+  document.getElementById('their-coins-line').textContent = '\uD83E\uDE99 ' + (theirs.coins||0);
+  const tc = document.getElementById('their-confirm');
+  if (tc) { tc.textContent = theirs.confirmed ? '\u2714 Confirmed' : '\u25cb Not confirmed'; tc.style.color = theirs.confirmed ? '#6bff9b' : '#888'; }
+  // Bag list (remaining after what's already offered)
+  const bl = document.getElementById('my-bag-list');
+  if (bl) {
+    const bag = (MB.PLAYER.bag||[]).filter(i => bagQtyOf(i.id) - offeredQtyOf(i.id) > 0);
+    if (!bag.length) bl.innerHTML = '<div style="color:#555;font-size:12px;padding:4px;">Nothing left to add.</div>';
+    else bl.innerHTML = bag.map(i => {
+      const it = ITEMS[i.id] || { em:'?', name:i.id };
+      const rem = bagQtyOf(i.id) - offeredQtyOf(i.id);
+      return '<div onclick="tradeAdd(\''+i.id+'\')" style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:3px 5px;background:#0a0a0a;border:1px solid #222;font-size:12px;">' +
+        '<span>'+(it.em||'?')+'</span><span style="flex:1;color:#ddd;">'+it.name+'</span><span style="color:#777;">\u00d7'+rem+'</span></div>';
+    }).join('');
+  }
+  // Confirm button + status
+  const meConfirmed = mine.confirmed;
+  const btn = document.getElementById('trade-confirm-btn');
+  if (btn) { btn.textContent = meConfirmed ? 'CONFIRMED' : 'CONFIRM'; btn.style.opacity = meConfirmed ? '0.6' : '1'; }
+  const s = document.getElementById('trade-status');
+  if (s && curTrade.status === 'open') {
+    if (meConfirmed && !theirs.confirmed) { s.textContent = 'You confirmed \u2014 waiting for ' + theirs.name + '\u2026'; s.style.color = '#aaa'; }
+    else if (!meConfirmed && theirs.confirmed) { s.textContent = theirs.name + ' confirmed \u2014 your move.'; s.style.color = '#ffd24a'; }
+    else { s.textContent = 'Tap items from your bag, then both CONFIRM.'; s.style.color = '#555'; }
+  }
+}
+
+async function tradePost(path, extra){
+  const r = await fetch(MB.SERVER + '/__trade/' + path, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(Object.assign({ id: tradeId, name: meName() }, extra||{})),
+  });
+  return r.json();
+}
+
+async function pushOffer(items, coins){
+  try { const j = await tradePost('offer', { items, coins }); if (j && j.trade) { curTrade = j.trade; renderTrade(); } }
+  catch(e){}
+}
+function tradeAdd(itemId){
+  if (offeredQtyOf(itemId) + 1 > bagQtyOf(itemId)) { toast('No more ' + ((ITEMS[itemId]||{}).name||itemId) + ' to add.'); return; }
+  const items = (tradeMyOffer()||[]).map(o => ({ itemId:o.itemId, qty:o.qty }));
+  const ex = items.find(o => o.itemId === itemId);
+  if (ex) ex.qty += 1; else items.push({ itemId, qty:1 });
+  pushOffer(items, tradeMyCoins());
+}
+function tradeRemove(itemId){
+  let items = (tradeMyOffer()||[]).map(o => ({ itemId:o.itemId, qty:o.qty }));
+  const ex = items.find(o => o.itemId === itemId);
+  if (!ex) return;
+  ex.qty -= 1; if (ex.qty <= 0) items = items.filter(o => o.itemId !== itemId);
+  pushOffer(items, tradeMyCoins());
+}
+function tradeApplyCoins(){
+  let v = parseInt(document.getElementById('my-coins').value) || 0;
+  v = Math.max(0, Math.min(v, MB.PLAYER.coins||0));
+  document.getElementById('my-coins').value = v;
+  pushOffer((tradeMyOffer()||[]).map(o=>({itemId:o.itemId,qty:o.qty})), v);
+}
+async function tradeConfirm(){
+  if (!tradeId) return;
+  try { const j = await tradePost('confirm', {}); if (j && j.trade) { curTrade = j.trade; renderTrade(); handleTradeOutcome(); } }
+  catch(e){ toast('Confirm failed \u2014 try again.'); }
+}
+async function tradeCancel(){
+  if (tradeId) { try { await tradePost('cancel', {}); } catch(e){} }
+  closeTrade();
+}
+async function pollTrade(){
+  if (!tradeId) return;
+  try {
+    const r = await fetch(MB.SERVER + '/__trade/state?id=' + encodeURIComponent(tradeId));
+    const j = await r.json();
+    if (!j || !j.trade) return;
+    curTrade = j.trade;
+    if (curTrade.status === 'open') renderTrade();
+    else handleTradeOutcome();
+  } catch(e){}
+}
+function handleTradeOutcome(){
+  if (!curTrade || curTrade.status === 'open') return;
+  const s = document.getElementById('trade-status');
+  if (curTrade.status === 'complete') {
+    if (s) { s.textContent = '\u2714 TRADE COMPLETE'; s.style.color = '#6bff9b'; }
+    toast('Trade complete!');
+  } else {
+    if (s) { s.textContent = '\u2715 ' + (curTrade.error || 'Trade cancelled.'); s.style.color = '#ff6644'; }
+    toast(curTrade.error || 'Trade cancelled.');
+  }
+  if (tradePoll) { clearInterval(tradePoll); tradePoll = null; }
+  setTimeout(() => closeTrade(), 1400);
+}
+async function closeTrade(){
+  if (tradePoll) { clearInterval(tradePoll); tradePoll = null; }
+  tradeId = null; curTrade = null;
+  document.getElementById('trade-overlay').classList.remove('on');
+  // Pull the authoritative post-trade save, THEN release the lock and persist.
+  try { await MB.reloadPlayerFromServer(); } catch(e){}
+  MB._tradeLock = false;
+  try { if (typeof renderProfilePanel === 'function') renderProfilePanel(); } catch(e){}
+  try { MB.serverSavePlayer(); } catch(e){}
+}
+
+// Recipient side: watch for an incoming trade and auto-open the window.
+setInterval(async () => {
+  if (tradeId || !MB.isSignedIn()) return;
+  try {
+    const r = await fetch(MB.SERVER + '/__trade/state?name=' + encodeURIComponent(meName()));
+    const j = await r.json();
+    if (j && j.trade && j.trade.status === 'open') {
+      toast('\u21c4 ' + j.trade[(j.trade.a.name===meName()?'b':'a')].name + ' wants to trade!');
+      enterTrade(j.trade);
+    }
+  } catch(e){}
+}, 2000);
+function openProfileModal(){
+  const p=PLAYERS.find(x=>x.id===ctxId);if(!p)return;
+  toast('Profile: '+p.name+' — full profile modal (connecting to character screen)');hideCtx();
+}
+function toggleFriend(){
+  let p = PLAYERS.find(x=>x.name.toUpperCase()===(ctxId||'').toUpperCase()) || {name: ctxId};
+  const name = (p.name || ctxId || '').replace(/^local_\d+$/i,'').toUpperCase();
+  if (!name) { hideCtx(); return; }
+  if (isFriend(name)) { removeFriend(name); toast(name + ' removed from friends.'); }
+  else if (hasPending(name)) { toast('Friend request already sent to ' + name + '.'); }
+  else { sendFriendRequest(name); toast('Friend request sent to ' + name + '!'); }
+  hideCtx();
+}
+function blockPlayer(){
+  let p = PLAYERS.find(x=>x.name.toUpperCase()===(ctxId||'').toUpperCase()) || {name: ctxId};
+  const name = (p.name || ctxId || '').replace(/^local_\d+$/i,'').toUpperCase();
+  if (!name) { hideCtx(); return; }
+  if (isBlocked(name)) { unblockUser(name); toast(name + ' unblocked.'); }
+  else { blockUser(name); }
+  hideCtx();
+}
+
+// ── CHAT ───────────────────────────────────────────────────────────────────
+
+// ── CHAT PERSISTENCE ──────────────────────────────────────────
+const CHAT_KEY = 'mythbound_chat_global_v1';
+const CHAT_MAX = 200;
+let CHAT_LOG = [];
+
+function loadChat() {
+  try { const r = localStorage.getItem(CHAT_KEY); return r ? JSON.parse(r) : null; }
+  catch(e) { return null; }
+}
+function saveChat() {
+  try {
+    if (CHAT_LOG.length > CHAT_MAX) CHAT_LOG = CHAT_LOG.slice(-CHAT_MAX);
+    localStorage.setItem(CHAT_KEY, JSON.stringify(CHAT_LOG));
+  } catch(e) {}
+}
+function addMsgToLog(msg) {
+  CHAT_LOG.push(msg);
+  if (CHAT_LOG.length > CHAT_MAX) CHAT_LOG = CHAT_LOG.slice(-CHAT_MAX);
+  saveChat();
+}
+
+let chatStream = null;
+let activeChannel = 'global';
+
+function connectChannel(channel) {
+  if (chatStream) { try { chatStream.close(); } catch(e){} chatStream = null; }
+  activeChannel = channel;
+  // Update presence with new channel immediately
+  if (MB.isSignedIn()) MB.sendPresencePing();
+  CHAT_LOG = [];
+  const log = document.getElementById('chat-log');
+  if (log) log.innerHTML = '';
+  chatStream = new EventSource(MB.SERVER + '/__chat/stream?channel=' + encodeURIComponent(channel));
+  chatStream.onmessage = function(e) {
+    try {
+      const data = JSON.parse(e.data);
+      if (data.type === 'history') { CHAT_LOG = data.messages || []; renderChatLog(); }
+      else { addMsgToLog(data); renderMsg(data, true); }
+    } catch(err) {}
+  };
+  chatStream.onerror = function() {
+    // Delay warning — page load interrupts the SSE stream briefly, not a real error
+    if (!chatStream._warnTimer) {
+      chatStream._warnTimer = setTimeout(() => {
+        if (!chatStream._warned) {
+          chatStream._warned = true;
+          const log = document.getElementById('chat-log');
+          if (!log) return;
+          const el = document.createElement('div'); el.className = 'msg sys';
+          const b = document.createElement('div'); b.className = 'msg-body';
+          b.style.color = '#ff6644'; b.textContent = 'Chat server offline. Restart server.js.';
+          el.appendChild(b); log.appendChild(el);
+        }
+      }, 3000); // only show if still offline after 3s
+    }
+  };
+}
+
+async function postChat(msg) {
+  try {
+    msg.channel = activeChannel;
+    const r = await fetch(MB.SERVER + '/__chat/send', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(msg),
+    });
+    if (!r.ok) throw new Error('bad response');
+  } catch(e) {
+    addMsgToLog(msg); renderMsg(msg, true);
+  }
+}
+function renderChatLog() {
+  const log = document.getElementById('chat-log');
+  if (!log) return;
+  log.innerHTML = '';
+  CHAT_LOG.forEach(m => renderMsg(m, false));
+  log.scrollTop = log.scrollHeight;
+}
+function renderMsg(m, scroll) {
+  const log = document.getElementById('chat-log');
+  if (!log) return;
+  // Hide messages from blocked players entirely (real chat only, not sys/announce)
+  if (m.type !== 'sys' && m.type !== 'announce' && typeof isBlocked === 'function' && isBlocked(m.id || m.name)) return;
+  const now = new Date(m.ts || Date.now());
+  const t = now.getHours() + ':' + (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+  const el = document.createElement('div');
+  const typ = m.type === 'sys' ? 'sys' : m.type === 'whisper' ? 'whisper' : m.type === 'announce' ? 'announce' : '';
+  el.className = 'msg ' + typ;
+  if (m.type === 'sys' || m.type === 'announce') {
+    const body = document.createElement('div');
+    body.className = 'msg-body';
+    body.textContent = m.text || '';
+    el.appendChild(body);
+  } else {
+    const head = document.createElement('div');
+    head.className = 'msg-head';
+    const av = document.createElement('span');
+    av.className = 'msg-av-sm';
+    av.textContent = m.em || '?';
+    av.onclick = () => openCtx(event, m.id || '');
+    av.oncontextmenu = (e) => { openCtx(e, m.id || ''); e.preventDefault(); };
+    const nm = document.createElement('span');
+    nm.className = 'msg-name';
+    nm.textContent = m.name || '?';
+    nm.onclick = () => openCtx(event, m.id || '');
+    nm.oncontextmenu = (e) => { openCtx(e, m.id || ''); e.preventDefault(); };
+    const ts = document.createElement('span');
+    ts.className = 'msg-time';
+    ts.textContent = t;
+    head.appendChild(av); head.appendChild(nm); head.appendChild(ts);
+    const body = document.createElement('div');
+    body.className = 'msg-body';
+    body.textContent = m.text || '';
+    const item = m.itemKey ? ITEMS[m.itemKey] : null;
+    if (item) {
+      const link = document.createElement('span');
+      link.className = 'item-link ' + item.rar;
+      link.textContent = ' [' + item.name + ']';
+      link.dataset.id = m.itemKey;
+      link.onmouseenter = (e) => showTip(e, m.itemKey);
+      link.onmouseleave = hideTip;
+      body.appendChild(link);
+    }
+    el.appendChild(head); el.appendChild(body);
+  }
+  log.appendChild(el);
+  if (scroll) {
+    const isAtBottom = log.scrollHeight - log.scrollTop - log.clientHeight < 60;
+    if (isAtBottom) log.scrollTop = log.scrollHeight;
+    else showNewMsgBadge();
+  }
+}
+
+function addMsg({name,em,id,text,type='chat',item}){
+  const itemKey = item ? getKey(item) : null;
+  const msg = { name, em, id, text, type, itemKey, ts: Date.now() };
+  if (type === 'sys' || type === 'announce') {
+    // System messages rendered locally only
+    addMsgToLog(msg);
+    renderMsg(msg, true);
+  } else {
+    postChat(msg); // sends to server → broadcast to all windows
+  }
+}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── ITEM TOOLTIP ──────────────────────────────────────────────────────────
+function showTip(e,id){
+  const item=ITEMS[id];if(!item)return;
+  const tip=document.getElementById('item-tip');
+  document.getElementById('it-em').textContent=item.em;
+  document.getElementById('it-name').textContent=item.name;
+  document.getElementById('it-name').style.color=RC[item.rar]||'#fff';
+  document.getElementById('it-rar').textContent=item.rar.toUpperCase()+' · '+item.type.toUpperCase();
+  document.getElementById('it-desc').textContent=item.desc||'';
+  document.getElementById('it-rows').innerHTML=[
+    item.xp  ?`<div class="it-row"><span class="it-k">XP</span><span class="it-v">+${item.xp}</span></div>`:'',
+    item.sell ?`<div class="it-row"><span class="it-k">Sell</span><span class="it-v">${item.sell} 🪙</span></div>`:'',
+    item.sell===0&&item.type==='key'?`<div class="it-row"><span class="it-k">Sell</span><span class="it-v">Cannot sell</span></div>`:'',
+  ].join('');
+  document.getElementById('it-src').textContent='⬦ '+item.src;
+  tip.style.display='block';
+  const r=e.target.getBoundingClientRect();
+  let tx=r.left,ty=r.top;
+  tip.style.left='0px';tip.style.top='0px';tip.style.display='block';
+  const tw=tip.offsetWidth,th=tip.offsetHeight;
+  tx=Math.max(4,Math.min(window.innerWidth-tw-4,r.left));
+  ty=r.top-th-8; if(ty<4) ty=r.bottom+6;
+  tip.style.left=tx+'px';tip.style.top=ty+'px';
+}
+function hideTip(){document.getElementById('item-tip').style.display='none';}
+
+// ── CHAT SEND ──────────────────────────────────────────────────────────────
+function sendChat(){
+  const inp=document.getElementById('chat-inp'),msg=inp.value.trim();if(!msg)return;
+  if(!MB.isSignedIn()){toast('Sign in to chat.');return;}
+  // Handle slash commands (/r /w etc)
+  if(msg.startsWith('/') && handleChatCommand(msg)){ inp.value='';updCtr();return; }
+  addMsg({name:MB.PLAYER.name,em:MB.PLAYER.em,id:MB.PLAYER.name,text:msg,type:'chat'}); // id=name is canonical
+  inp.value='';updCtr();
+}
+document.getElementById('chat-inp').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){sendChat();e.stopPropagation();}e.stopPropagation();
+});
+function onChatScroll(){
+  const log=document.getElementById('chat-log');
+  const atBottom=log.scrollHeight-log.scrollTop-log.clientHeight<60;
+  if(atBottom){
+    document.getElementById('new-msg-badge').style.display='none';
+  }
+}
+function scrollToBottom(){
+  const log=document.getElementById('chat-log');
+  log.scrollTop=log.scrollHeight;
+  document.getElementById('new-msg-badge').style.display='none';
+}
+function showNewMsgBadge(){
+  document.getElementById('new-msg-badge').style.display='block';
+}
+function updCtr(){
+  const v=document.getElementById('chat-inp').value.length;
+  const el=document.getElementById('chat-ctr');el.textContent=v+'/120';
+  el.style.color=v>100?'#fff':v>80?'#888':'#333';
+}
+
+// ── CLAN / CHANNEL SYSTEM ────────────────────────────────────
+// Players can join multiple clans. Each clan = a channel tab.
+const PLAYER_CLANS = [
+  { id:'obsidian_order', name:'OBSIDIAN ORDER', em:'🗿', members:24, color:'#888' },
+  { id:'tide_runners',   name:'TIDE RUNNERS',   em:'🌊', members:11, color:'#6bb5ff' },
+];
+
+// All clans available to join
+const ALL_CLANS = [
+  ...PLAYER_CLANS,
+  { id:'ember_guild',   name:'EMBER GUILD',   em:'🔥', members:38, color:'#ff7733' },
+  { id:'silver_fangs',  name:'SILVER FANGS',  em:'🐺', members:19, color:'#ddd'    },
+  { id:'moon_court',    name:'MOON COURT',    em:'🌙', members:7,  color:'#aaaaff' },
+];
+
+
+function buildClanTabs() {
+  const tabs = document.getElementById('chat-tabs');
+  // Remove old clan tabs
+  tabs.querySelectorAll('.ct-clan').forEach(t => t.remove());
+  const addBtn = tabs.querySelector('.ct-add');
+  PLAYER_CLANS.forEach(clan => {
+    const tab = document.createElement('div');
+    tab.className = 'ct ct-clan' + (activeChannel === clan.id ? ' on' : '');
+    tab.textContent = clan.em + ' ' + clan.name;
+    tab.onclick = () => setChannel(tab, clan.id, clan.name);
+    tabs.insertBefore(tab, addBtn);
+  });
+}
+
+function setChannel(el, id, name) {
+  document.querySelectorAll('.ct').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  closeClanMenu();
+  connectChannel(id);
+  addMsg({text: 'Switched to ' + name + ' channel', type:'sys'});
+}
+
+function openClanMenu() {
+  const menu = document.getElementById('clan-menu');
+  if (menu.classList.contains('open')) { closeClanMenu(); return; }
+  menu.innerHTML = ALL_CLANS.map(cl => {
+    const joined = PLAYER_CLANS.some(p => p.id === cl.id);
+    const active = activeChannel === cl.id;
+    return `<div class="clan-opt ${active?'active':''}" onclick="selectClanFromMenu('${cl.id}','${cl.name}','${cl.em}')">
+      <span class="co-em">${cl.em}</span>
+      <span style="color:${joined?'#fff':'#444'}">${cl.name}</span>
+      ${joined ? '' : '<span style="font-family:monospace;font-size:12px;color:#333;margin-left:4px;">JOIN</span>'}
+      <span class="co-members">${cl.members} members</span>
+    </div>`;
+  }).join('');
+  menu.classList.add('open');
+}
+
+function selectClanFromMenu(id, name, em) {
+  const already = PLAYER_CLANS.some(p => p.id === id);
+  if (!already) {
+    // Join the clan and add tab
+    const found = ALL_CLANS.find(c => c.id === id);
+    if (found) { PLAYER_CLANS.push(found); buildClanTabs(); }
+  }
+  // Switch to that channel
+  const tab = document.querySelector('.ct-clan[data-id="' + id + '"]') ||
+    Array.from(document.querySelectorAll('.ct-clan')).find(t => t.textContent.includes(name.slice(0,6)));
+  closeClanMenu();
+  activeChannel = id;
+  document.querySelectorAll('.ct').forEach(t => t.classList.remove('on'));
+  if (tab) tab.classList.add('on');
+  addMsg({text: 'Switched to ' + em + ' ' + name + ' channel', type:'sys'});
+  buildClanTabs();
+}
+
+function closeClanMenu() {
+  document.getElementById('clan-menu').classList.remove('open');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ct-add') && !e.target.closest('.clan-menu')) closeClanMenu();
+});
+
+// legacy alias so old seed calls still work
+function setTab(el, name) { setChannel(el, name, name); }
+
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#ctx')&&!e.target.closest('#ctx-sub')&&!e.target.closest('.ms-row')&&!e.target.closest('.msg-name')&&!e.target.closest('.msg-av-sm'))
+    hideCtx();
+});
+
+// ── SEED ─────────────────────────────────────────────────────────────────
+function seed(){
+  // Connect to global channel — server sends history automatically
+  connectChannel('global');
+}
+
+let tTmr=null;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');if(tTmr)clearTimeout(tTmr);tTmr=setTimeout(()=>t.classList.remove('on'),2600);}
+
+
+
+// ── ADMIN VISIBILITY ──────────────────────────────────────────
+function initAdminVisibility() {
+  const session = MB.getSession();
+  if (!session) return;
+  const accounts = (function(){
+    try { return JSON.parse(localStorage.getItem('mythbound_accounts_v1')) || {}; }
+    catch(e) { return {}; }
+  })();
+  const acc = accounts[(session.name||'').toUpperCase()];
+  const isAdmin = session.name === 'RAVEN' || (acc && acc.isAdmin);
+  const btn = document.getElementById('admin-btn');
+  if (btn && isAdmin) btn.style.display = '';
+}
+// ── ADMIN PANEL ────────────────────────────────────────────────────────────
+function openAdmin() {
+  const overlay = document.getElementById('admin-overlay');
+  overlay.style.display = 'flex';
+  // Default to SEND ITEMS tab
+  adminTab(document.querySelector('#admin-overlay .ct'), 'senditems');
+}
+function closeAdmin() {
+  document.getElementById('admin-overlay').style.display = 'none';
+}
+function adminTab(el, tab) {
+  document.querySelectorAll('#admin-overlay .ct').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  ['adm-monitor','adm-players','adm-flags','adm-alog','adm-unmyth','adm-senditems','adm-grant'].forEach(id => {
+    const el2 = document.getElementById(id);
+    if(el2) { el2.style.display = 'none'; el2.style.flex = ''; }
+  });
+  const map={monitor:'adm-monitor',players:'adm-players',flags:'adm-flags',senditems:'adm-senditems',unmyth:'adm-unmyth',grant:'adm-grant',alog:'adm-alog'};
+  const target = document.getElementById(map[tab]||'adm-alog');
+  if(target) { target.style.display = tab === 'monitor' ? 'flex' : 'block'; target.style.flex = tab === 'monitor' ? '1' : ''; }
+}
+
+const ADM_MSGS = [
+  {em:'🦊', name:'FOXPAW', text:'just reeled in a [Ghost Pike]',     flagged:false},
+  {em:'🦝', name:'MILL',   text:'mined some [Mithril Ore]',          flagged:false},
+  {em:'🐺', name:'APEX',   text:'anyone raiding tonight?',            flagged:true},
+  {em:'🦉', name:'WREN',   text:'ooh nice find apex',                 flagged:false},
+  {em:'🐱', name:'CINDER', text:'finally got a [Koi-Ryu]',           flagged:false},
+  {em:'🐸', name:'RIBBIT', text:'ribbit ribbit',                      flagged:true},
+  {em:'🐭', name:'ZEPHYR', text:'hey all, looking to trade ore',      flagged:false},
+];
+
+function buildAdmFeed() {
+  const feed = document.getElementById('adm-feed');
+  if(!feed || feed.children.length) return;
+  ADM_MSGS.forEach(m => {
+    const el = document.createElement('div');
+    el.style.cssText = 'border:1px solid ' + (m.flagged ? '#333' : '#0d0d0d') + ';padding:8px 10px;background:' + (m.flagged ? '#0a0808' : 'transparent') + ';';
+    el.innerHTML = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+      '<span style="font-size:14px;">' + m.em + '</span>' +
+      '<span style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:' + (m.flagged ? '#888' : '#fff') + '">' + m.name + '</span>' +
+      (m.flagged ? '<span style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:#555;border:1px solid #333;padding:1px 5px;margin-left:4px;">⚑ FLAGGED</span>' : '') +
+      '<div style="margin-left:auto;display:flex;gap:4px;">' +
+        '<button onclick="adminAction(\'Message deleted\')" style="background:#000;border:1px solid #fff;color:#fff;padding:3px 8px;font-family:\'Press Start 2P\',monospace;font-size:6px;cursor:pointer;">DEL</button>' +
+        '<button onclick="adminAction(\'Warning sent to ' + m.name + '\')" style="background:#000;border:1px solid #666;color:#666;padding:3px 8px;font-family:\'Press Start 2P\',monospace;font-size:6px;cursor:pointer;">WARN</button>' +
+        '<button onclick="adminAction(\'' + m.name + ' muted\')" style="background:#000;border:1px solid #444;color:#444;padding:3px 8px;font-family:\'Press Start 2P\',monospace;font-size:6px;cursor:pointer;">MUTE</button>' +
+      '</div></div>' +
+      '<div style="font-size:17px;color:#888;padding-left:22px;">' + m.text + '</div>';
+    feed.appendChild(el);
+  });
+}
+
+const ADM_PLAYERS = [
+  {em:'🐦‍⬛', name:'RAVEN',  status:'In Hub',             flags:0, owner:true},
+  {em:'🦊',   name:'FOXPAW', status:'In Hub',             flags:0, owner:false},
+  {em:'🐸',   name:'RIBBIT', status:'In Hub',             flags:1, owner:false},
+  {em:'🦝',   name:'MILL',   status:'Fishing — The River',flags:0, owner:false},
+  {em:'🐺',   name:'APEX',   status:'Deep Mine',          flags:2, owner:false},
+  {em:'🦉',   name:'WREN',   status:'In Hub',             flags:0, owner:false},
+  {em:'🐱',   name:'CINDER', status:'Dungeon Queue',      flags:0, owner:false},
+  {em:'🐭',   name:'ZEPHYR', status:'In Hub',             flags:0, owner:false},
+];
+
+function buildAdmPlayers() {
+  const rows = document.getElementById('adm-player-rows');
+  if(!rows || rows.children.length) return;
+  ADM_PLAYERS.forEach(p => {
+    const el = document.createElement('div');
+    el.style.cssText = 'display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid #111;';
+    el.innerHTML =
+      '<span style="font-size:18px;">' + p.em + '</span>' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-family:\'Press Start 2P\',monospace;font-size:7px;color:#fff;">' + p.name + (p.owner ? ' <span style="font-size:5px;color:#444;border:1px solid #333;padding:1px 4px;">OWNER</span>' : '') + '</div>' +
+        '<div style="font-size:14px;color:#444;margin-top:2px;">' + p.status + '</div>' +
+      '</div>' +
+      (p.flags ? '<span style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:#666;">' + p.flags + ' ⚑</span>' : '') +
+      '<div style="display:flex;gap:4px;">' +
+        '<button onclick="adminAction(\'Warning sent to ' + p.name + '\')" style="background:#000;border:1px solid #fff;color:#fff;padding:4px 8px;font-family:\'Press Start 2P\',monospace;font-size:6px;cursor:pointer;">WARN</button>' +
+        '<button onclick="adminAction(\'' + p.name + ' muted 10m\')" style="background:#000;border:1px solid #666;color:#666;padding:4px 8px;font-family:\'Press Start 2P\',monospace;font-size:6px;cursor:pointer;">MUTE</button>' +
+        '<button onclick="adminAction(\'' + p.name + ' kicked\')" style="background:#000;border:1px solid #444;color:#444;padding:4px 8px;font-family:\'Press Start 2P\',monospace;font-size:6px;cursor:pointer;">KICK</button>' +
+      '</div>';
+    rows.appendChild(el);
+  });
+}
+
+const ADM_FLAGS = [
+  {reporter:'WREN',   target:'APEX',  msg:'anyone raiding tonight? i have an elixir', reason:'Spam / solicitation'},
+  {reporter:'ZEPHYR', target:'RIBBIT',msg:'ribbit ribbit',                             reason:'Repeated single-word spam'},
+  {reporter:'MILL',   target:'APEX',  msg:'anyone raiding tonight? i have an elixir', reason:'Duplicate report'},
+];
+
+function buildAdmFlags() {
+  const rows = document.getElementById('adm-flag-rows');
+  if(!rows || rows.children.length) return;
+  ADM_FLAGS.forEach(f => {
+    const el = document.createElement('div');
+    el.style.cssText = 'background:#080808;border:1px solid #222;padding:12px 14px;';
+    el.innerHTML =
+      '<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:#444;margin-bottom:6px;">REPORTED BY ' + f.reporter + ' · TARGET: ' + f.target + '</div>' +
+      '<div style="font-size:16px;color:#888;border-left:2px solid #333;padding-left:10px;margin-bottom:6px;">"' + f.msg + '"</div>' +
+      '<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:#333;margin-bottom:10px;">Reason: ' + f.reason + '</div>' +
+      '<div style="display:flex;gap:6px;">' +
+        '<button onclick="this.closest(\'div[style]\').style.opacity=\'0.3\';adminAction(\'Report dismissed\')" style="background:#000;border:1px solid #fff;color:#fff;padding:5px 10px;font-family:\'Press Start 2P\',monospace;font-size:6px;cursor:pointer;">DISMISS</button>' +
+        '<button onclick="adminAction(\'Warning issued to ' + f.target + '\')" style="background:#000;border:1px solid #aaa;color:#aaa;padding:5px 10px;font-family:\'Press Start 2P\',monospace;font-size:6px;cursor:pointer;">WARN USER</button>' +
+        '<button onclick="adminAction(\'Message deleted\')" style="background:#000;border:1px solid #666;color:#666;padding:5px 10px;font-family:\'Press Start 2P\',monospace;font-size:6px;cursor:pointer;">DELETE MSG</button>' +
+        '<button onclick="adminAction(\'' + f.target + ' muted 1hr\')" style="background:#000;border:1px solid #444;color:#444;padding:5px 10px;font-family:\'Press Start 2P\',monospace;font-size:6px;cursor:pointer;">MUTE 1HR</button>' +
+      '</div>';
+    rows.appendChild(el);
+  });
+}
+
+function adminBroadcast() {
+  const inp = document.getElementById('adm-inp');
+  const msg = inp.value.trim(); if(!msg) return;
+  addMsg({text: '[ADMIN] ' + msg, type:'announce'});
+  adminAction('Broadcast: "' + msg.slice(0,30) + '"');
+  inp.value = '';
+  toast('Broadcast sent to all players');
+}
+
+function adminAction(desc) {
+  toast('✓ ' + desc);
+  const now = new Date();
+  const t = now.getHours() + ':' + (now.getMinutes()<10?'0':'') + now.getMinutes();
+  const list = document.getElementById('adm-log-list');
+  if(!list) return;
+  const el = document.createElement('div');
+  el.style.cssText = 'border-bottom:1px solid #0d0d0d;padding:5px 0;font-size:16px;color:#aaa;';
+  el.innerHTML = '<span style="color:#555;">' + t + '</span> · ' + desc;
+  list.insertBefore(el, list.firstChild);
+}
+
+
+
+// ── PLAYER SUMMARY (right panel) ──────────────────────────────
+function renderPlayerSummary() {
+  const p = MB.PLAYER;
+
+  // Avatar + name
+  document.getElementById('ps-av').textContent  = p.em || '🐦‍⬛';
+  document.getElementById('ps-name').textContent = p.name || 'PLAYER';
+  document.getElementById('ps-title').textContent= p.title || '';
+
+  // Myth box — rainbow if mythbound
+  const mythEl = document.getElementById('ps-myth');
+  if (p.myth) {
+    mythEl.className = 'ps-myth is-mythbound';
+    mythEl.innerHTML = `<span class="ps-myth-inner">✦ ${p.myth.toUpperCase()} MYTHBOUND</span>`;
+  } else {
+    mythEl.className = 'ps-myth';
+    mythEl.textContent = 'NO MYTHBOUND';
+    mythEl.style.color = '#333';
+  }
+
+  // Calc equipped stats for ILVL/ATK/DEF/STM
+  const base = { stm:80, agi:14, def:6, wil:8, atk:12, arc:5 };
+  if (p.equipped) {
+    Object.values(p.equipped).filter(Boolean).forEach(it => {
+      if (it.stats) Object.entries(it.stats).forEach(([k,v]) => { base[k] = (base[k]||0)+v; });
+    });
+  }
+  const ilvl = Object.values(p.equipped||{}).filter(i=>i&&i.stats).length * 8;
+  const playerLvl = MB.ECONOMY.calcPlayerLevel(p);
+
+  document.getElementById('ps-stats').innerHTML = [
+    ['LVL',   playerLvl],
+    ['CLASS',  p.role||'—', 'font-size:7px;'],
+    ['ILVL',   ilvl],
+    ['ATK',    base.atk],
+    ['DEF',    base.def],
+    ['STM',    base.stm],
+  ].map(([lbl,val,style]) =>
+    `<div class="ps-stat">
+       <div class="ps-stat-lbl">${lbl}</div>
+       <div class="ps-stat-val" ${style?'style="'+style+'"':''}>${val}</div>
+     </div>`
+  ).join('');
+
+  document.getElementById('ps-coins').textContent = p.coins.toLocaleString() + ' 🪙';
+
+  // Professions — all active skills from MB.PLAYER.professions
+  const PROF_META = [
+    { key:'fishing',   ico:'🎣', label:'FISHING'   },
+    { key:'mining',    ico:'⛏️', label:'MINING'    },
+    { key:'herbalism', ico:'🌿', label:'HERBALISM'  },
+    { key:'hunting',   ico:'🏹', label:'HUNTING'    },
+    { key:'combat',    ico:'⚔️', label:'COMBAT'    },
+  ];
+  const craft = p.craft ? [{
+    key:'craft', ico:'🔨', label: (p.craft||'CRAFT').toUpperCase(),
+    level: p.craftLevel||1, xp: p.craftXp||0, xpMax: MB.xpForLevel(p.craftLevel||1)
+  }] : [];
+
+  const allProfs = PROF_META.map(pm => {
+    const prof = p.professions[pm.key] || { level:1, xp:0, xpMax:100 };
+    return { ...pm, level: prof.level, xp: prof.xp, xpMax: prof.xpMax };
+  }).concat(craft);
+
+  document.getElementById('ps-profs').innerHTML = allProfs.map(pr => {
+    const pct = Math.min(100, Math.floor((pr.xp / (pr.xpMax||100)) * 100));
+    return `<div class="ps-prof">
+      <div class="ps-prof-ico">${pr.ico}</div>
+      <div class="ps-prof-bar-wrap">
+        <div class="ps-prof-name">${pr.label}</div>
+        <div class="ps-prof-bar"><div class="ps-prof-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="ps-prof-lvl">Lv.${pr.level}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── SHARED INIT ──────────────────────────────────────────────
+// Nav runs unconditionally first — nothing can block it
+try { MB.injectUltimateCSS(); } catch(e){}
+try { MB.renderNav('main-nav', 'hub'); } catch(e){ console.error('[nav]',e); }
+try { initAdminVisibility(); } catch(e){}
+try { renderSocialPanel('friends'); } catch(e){}
+// Pull the authoritative social graph from the server on load.
+if (MB.isSignedIn()) { MB.gameDataReady.then(() => refreshSocial()).catch(() => refreshSocial()); }
+// Start presence immediately — MB.PLAYER is loaded synchronously
+let _presencePoll = null;
+// Shared.js auto-starts MB.startPresenceReporter on every page.
+// Hub additionally refreshes the online list panel every 8s.
+try {
+  MB.gameDataReady.then(() => {
+    MB.sendPresencePing().then(() => refreshOnlineList());
+    if (!_presencePoll) _presencePoll = setInterval(() => {
+      MB.sendPresencePing(); refreshOnlineList();
+    }, 8000);
+  });
+} catch(e) { console.error('[presence]', e); }
+// Whisper poll needs gameDataReady for MB.PLAYER.name guarantee
+if (MB.isSignedIn()) {
+  MB.gameDataReady.then(() => {
+    loadWhisperThreads().finally(startWhisperPoll);
+  }).catch(() => startWhisperPoll());
+}
+try { buildClanTabs(); } catch(e){}
+try { seed(); } catch(e){}
+try {
+  if (MB.isSignedIn()) {
+    renderPlayerSummary();
+  } else {
+    const card = document.querySelector('.ps-card');
+    if (card) card.innerHTML = `
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:48px;margin-bottom:14px;">⚔️</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:#fff;margin-bottom:10px;line-height:2;">MYTHBOUND</div>
+        <div style="font-family:'Press Start 2P',monospace;font-size:6px;color:#555;line-height:2.5;margin-bottom:20px;">Sign in to access<br>your character,<br>inventory, and more.</div>
+        <button onclick="MB.nav('auth')" style="font-family:'Press Start 2P',monospace;font-size:7px;background:#000;border:2px solid #fff;color:#fff;padding:10px 16px;cursor:pointer;width:100%;">▸ SIGN IN</button>
+      </div>`;
+    const profs = document.querySelector('.ps-profs');
+    if (profs) profs.innerHTML = '';
+    const quick = document.querySelector('.ps-quick');
+    if (quick) quick.innerHTML = '';
+  }
+} catch(e) { console.warn('[MB] summary error:', e); }
+
+// ── UNMYTH ────────────────────────────────────────────────────
+let unmythTarget = null;
+
+function checkUnmyth() {
+  const name = (document.getElementById('unmyth-inp').value || '').trim().toUpperCase();
+  const result = document.getElementById('unmyth-result');
+  const btn = document.getElementById('unmyth-confirm-btn');
+  unmythTarget = null;
+  btn.style.display = 'none';
+  result.innerHTML = '';
+  if (!name) return;
+
+  const accounts = (function(){
+    try { return JSON.parse(localStorage.getItem('mythbound_accounts_v1')) || {}; } catch(e) { return {}; }
+  })();
+  const acc = accounts[name];
+  const saved = (function(){
+    try { const r = localStorage.getItem('mythbound_player_v2_' + name); return r ? JSON.parse(r) : null; } catch(e) { return null; }
+  })();
+  const myth = (saved && saved.myth) || (acc && acc.myth) || null;
+  const displayName = (acc && acc.name) || name;
+
+  const setResult = (text, color) => {
+    const d = document.createElement('div');
+    d.style.cssText = 'font-family:monospace;font-size:13px;padding:8px 0;';
+    d.style.color = color || '#fff';
+    d.textContent = text;
+    result.appendChild(d);
+  };
+
+  if (!acc && !saved) { setResult('PLAYER NOT FOUND', '#ff4444'); return; }
+  if (!myth) { setResult(displayName + ' has no mythbinding.', '#555'); return; }
+
+  unmythTarget = { name, myth };
+
+  const nameEl = document.createElement('div');
+  nameEl.style.cssText = 'font-family:monospace;font-size:15px;color:#fff;margin-bottom:6px;font-weight:bold;';
+  nameEl.textContent = displayName;
+  result.appendChild(nameEl);
+
+  const mythEl = document.createElement('div');
+  mythEl.style.cssText = 'font-family:monospace;font-size:13px;color:#c455e8;margin-bottom:8px;';
+  mythEl.textContent = '✶ ' + myth.toUpperCase() + ' MYTHBOUND';
+  result.appendChild(mythEl);
+
+  const warnEl = document.createElement('div');
+  warnEl.style.cssText = 'font-size:14px;color:#888;line-height:1.6;';
+  warnEl.textContent = 'Removing this will clear their myth slot and unequip their myth heart.';
+  result.appendChild(warnEl);
+
+  btn.style.display = 'block';
+}
+
+function confirmUnmyth() {
+  if (!unmythTarget) return;
+  const { name, myth } = unmythTarget;
+
+  // Remove from saved player data
+  const saveKey = 'mythbound_player_v2_' + name;
+  try {
+    const raw = localStorage.getItem(saveKey);
+    if (raw) {
+      const data = JSON.parse(raw);
+      data.myth = null;
+      data.mythId = null;
+      if (data.equipped) data.equipped.myth = null;
+      localStorage.setItem(saveKey, JSON.stringify(data));
+    }
+  } catch(e) {}
+
+  // Remove from accounts store
+  try {
+    const accounts = JSON.parse(localStorage.getItem('mythbound_accounts_v1')) || {};
+    if (accounts[name]) {
+      accounts[name].myth = null;
+      accounts[name].mythId = null;
+      localStorage.setItem('mythbound_accounts_v1', JSON.stringify(accounts));
+    }
+  } catch(e) {}
+
+  const _ur = document.getElementById('unmyth-result');
+  _ur.innerHTML = '';
+  const _ud = document.createElement('div');
+  _ud.style.cssText = 'font-family:monospace;font-size:14px;color:#6bff9b;padding:6px 0;';
+  _ud.textContent = '\u2713 Removed ' + myth + ' mythbinding from ' + name;
+  _ur.appendChild(_ud);
+  document.getElementById('unmyth-confirm-btn').style.display = 'none';
+  document.getElementById('unmyth-inp').value = '';
+  unmythTarget = null;
+
+  // If that player is currently signed in, update live session
+  if (MB.PLAYER.name && MB.PLAYER.name.toUpperCase() === name) {
+    MB.PLAYER.myth = null;
+    MB.PLAYER.mythId = null;
+    if (MB.PLAYER.equipped) MB.PLAYER.equipped.myth = null;
+    MB.savePlayer();
+  }
+
+  adminLog('Removed ' + myth + ' mythbinding from ' + name);
+  toast('Mythbinding removed from ' + name);
+}
+
+// ── ADMIN: GRANT MYTH (testing) ───────────────────────────────
+function populateGrantMyths(){
+  const sel=document.getElementById('grant-myth'); if(!sel) return;
+  const myths=(MB.DATA&&MB.DATA.myths)||[];
+  sel.innerHTML = myths.length
+    ? myths.map(m=>`<option value="${m.id}">${(m.em||'')+' '+(m.name||m.id)}</option>`).join('')
+    : '<option value="">(myths not loaded)</option>';
+}
+function confirmGrant(){
+  const name=(document.getElementById('grant-inp').value||'').trim().toUpperCase();
+  const mythId=document.getElementById('grant-myth').value;
+  const res=document.getElementById('grant-result'); res.innerHTML='';
+  const say=(t,c)=>{const d=document.createElement('div');d.style.cssText='font-family:monospace;font-size:14px;padding:6px 0;';d.style.color=c||'#fff';d.textContent=t;res.appendChild(d);};
+  if(!name){ say('Enter a username.','#ff4444'); return; }
+  // account must exist (same lookup the UNMYTH tool uses)
+  const accounts = (function(){ try { return JSON.parse(localStorage.getItem('mythbound_accounts_v1')) || {}; } catch(e){ return {}; } })();
+  const accExists = !!accounts[name];
+  const savedExists = (function(){ try { return !!localStorage.getItem('mythbound_player_v2_' + name); } catch(e){ return false; } })();
+  const isLiveSelf = MB.PLAYER.name && MB.PLAYER.name.toUpperCase()===name;
+  if(!accExists && !savedExists && !isLiveSelf){ say('PLAYER NOT FOUND','#ff4444'); return; }
+  const myth=((MB.DATA&&MB.DATA.myths)||[]).find(m=>m.id===mythId);
+  if(!myth){ say('Pick a myth from the list.','#ff4444'); return; }
+  const heartId='myth_heart_'+myth.id;
+  const heartDef={id:heartId,name:myth.name+' Heart',emoji:myth.em,rarity:'ultimate',type:'key',slot:'myth',element:myth.element||'arcana',color:myth.color,sell:0,soulbound:true,mythBound:true,mythId:myth.id,desc:'The bound heart of the '+myth.name+'.'};
+  // saved player blob
+  try{ const k='mythbound_player_v2_'+name; const raw=localStorage.getItem(k);
+    if(raw){ const d=JSON.parse(raw); d.myth=myth.name; d.mythId=myth.id; d.equipped=d.equipped||{}; d.equipped.myth=heartDef; localStorage.setItem(k,JSON.stringify(d)); } }catch(e){}
+  // accounts store
+  try{ const accs=JSON.parse(localStorage.getItem('mythbound_accounts_v1'))||{};
+    if(accs[name]){ accs[name].myth=myth.name; accs[name].mythId=myth.id; localStorage.setItem('mythbound_accounts_v1',JSON.stringify(accs)); } }catch(e){}
+  // live session (if that player is signed in here)
+  if(MB.PLAYER.name && MB.PLAYER.name.toUpperCase()===name){
+    MB.PLAYER.myth=myth.name; MB.PLAYER.mythId=myth.id;
+    MB.PLAYER.equipped=MB.PLAYER.equipped||{}; MB.PLAYER.equipped.myth=heartDef;
+    MB.savePlayer();
+  }
+  say('\u2713 Granted '+myth.name+' to '+name+' (heart equipped).', '#6bff9b');
+  if(typeof adminLog==='function') adminLog('Granted '+myth.name+' myth to '+name);
+  if(typeof toast==='function') toast('Granted '+myth.name+' to '+name);
+}
+
+
+// ── ADMIN: SEND ITEMS ─────────────────────────────────────────
+let siSelectedItems = []; // [{id, item, qty}]
+
+function siCheckPlayer() {
+  const name = (document.getElementById('si-player').value || '').trim().toUpperCase();
+  const status = document.getElementById('si-player-status');
+  if (!name) { status.textContent = ''; return; }
+  const accounts = (function(){
+    try { return JSON.parse(localStorage.getItem('mythbound_accounts_v1')) || {}; } catch(e) { return {}; }
+  })();
+  const saved = (function(){
+    try { const r = localStorage.getItem('mythbound_player_v2_' + name); return !!r; } catch(e) { return false; }
+  })();
+  if (accounts[name] || saved) {
+    status.textContent = '\u2713 Found';
+    status.style.color = '#6bff9b';
+  } else {
+    status.textContent = '\u2717 Not found';
+    status.style.color = '#ff4444';
+  }
+}
+
+function siSearch() {
+  const q = document.getElementById('si-search').value.trim();
+  const results = MB.searchItems(q).slice(0, 24);
+  const container = document.getElementById('si-results');
+  container.innerHTML = '';
+  if (!results.length) {
+    container.innerHTML = '<div style="font-size:14px;color:#333;padding:4px;">No items found.</div>';
+    return;
+  }
+  results.forEach(({id, item}) => {
+    const already = siSelectedItems.some(s => s.id === id);
+    const rar = item.rarity || 'common';
+    const rarColor = {common:'#555',uncommon:'#3a7a50',rare:'#3a6a99',epic:'#7a3399',legendary:'#998832',ultimate:'#888'}[rar]||'#555';
+    const el = document.createElement('div');
+    el.style.cssText = 'border:2px solid ' + rarColor + ';background:#000;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;opacity:' + (already?'0.4':'1') + ';';
+    el.title = item.desc || '';
+    const sprite = document.createElement('div');
+    sprite.style.cssText = 'width:20px;height:20px;image-rendering:pixelated;flex-shrink:0;';
+    sprite.innerHTML = MB.renderItemIconSVG(id, 20);
+    const label = document.createElement('span');
+    label.style.cssText = 'font-family:monospace;font-size:12px;color:#' + (already?'333':'ccc') + ';';
+    label.textContent = item.name;
+    el.appendChild(sprite); el.appendChild(label);
+    if (!already) {
+      el.onclick = () => siAddItem(id, item);
+    }
+    container.appendChild(el);
+  });
+}
+
+function siAddItem(id, item) {
+  if (siSelectedItems.length >= 10) { toast('Max 10 items per mail.'); return; }
+  if (siSelectedItems.some(s => s.id === id)) return;
+  let qty = 1;
+  siSelectedItems.push({ id, item, qty });
+  siRenderSelected();
+  siSearch(); // refresh to gray out added item
+}
+
+function siRemoveItem(id) {
+  siSelectedItems = siSelectedItems.filter(s => s.id !== id);
+  siRenderSelected();
+  siSearch();
+}
+
+function siRenderSelected() {
+  const container = document.getElementById('si-selected');
+  const count = document.getElementById('si-count');
+  count.textContent = siSelectedItems.length;
+  container.innerHTML = '';
+  if (!siSelectedItems.length) {
+    container.innerHTML = '<div style="font-size:14px;color:#333;">No items selected.</div>';
+    return;
+  }
+  siSelectedItems.forEach(({id, item}) => {
+    const rar = item.rarity || 'common';
+    const rarColor = {common:'#555',uncommon:'#3a7a50',rare:'#3a6a99',epic:'#7a3399',legendary:'#998832',ultimate:'#888'}[rar]||'#555';
+    const el = document.createElement('div');
+    el.style.cssText = 'border:2px solid ' + rarColor + ';background:#000;padding:5px 8px;display:flex;align-items:center;gap:6px;';
+    const sprite = document.createElement('div');
+    sprite.style.cssText = 'width:18px;height:18px;image-rendering:pixelated;flex-shrink:0;';
+    sprite.innerHTML = MB.renderItemIconSVG(id, 18);
+    const label = document.createElement('span');
+    label.style.cssText = 'font-family:monospace;font-size:12px;color:#ccc;';
+    label.textContent = item.name;
+    const qty = document.createElement('input');
+    qty.type = 'number'; qty.min = '1'; qty.max = '99'; qty.value = '1';
+    qty.style.cssText = 'width:40px;background:#000;border:1px solid #333;color:#fff;font-size:12px;padding:2px 4px;text-align:center;';
+    qty.oninput = () => {
+      const s = siSelectedItems.find(x => x.id === id);
+      if (s) s.qty = Math.max(1, Math.min(99, parseInt(qty.value)||1));
+    };
+    const rm = document.createElement('button');
+    rm.textContent = '\u00d7';
+    rm.style.cssText = 'background:none;border:none;color:#555;cursor:pointer;font-size:14px;padding:0 2px;';
+    rm.onclick = () => siRemoveItem(id);
+    el.appendChild(sprite); el.appendChild(label); el.appendChild(qty); el.appendChild(rm);
+    container.appendChild(el);
+  });
+}
+
+// Lightweight admin action logger (was referenced but never defined — its
+// absence threw a ReferenceError that aborted the send-mail success handler,
+// leaving the panel stuck on "Sending…").
+function adminLog(msg) { try { console.log('[admin] ' + msg); } catch(e) {} }
+
+async function siSend() {
+  const name = (document.getElementById('si-player').value || '').trim().toUpperCase();
+  const feedback = document.getElementById('si-feedback');
+  feedback.textContent = '';
+
+  if (!name) { feedback.style.color = '#ff4444'; feedback.textContent = 'Enter a recipient.'; return; }
+  if (!siSelectedItems.length) { feedback.style.color = '#ff4444'; feedback.textContent = 'Select at least one item.'; return; }
+
+  const subject = document.getElementById('si-subject').value.trim()
+    || 'Item Delivery from The MYTHBOUND Team';
+  const body = document.getElementById('si-body').value.trim()
+    || 'Greetings, adventurer.\n\nThe MYTHBOUND Team has sent you the following items. They have been placed in your mailbox.\n\n\u2014 The MYTHBOUND Team';
+
+  const attachments = siSelectedItems.map(s => ({ itemId: s.id, qty: s.qty || 1 }));
+  const mail = {
+    from: 'MYTHBOUND', to: name, subject, body, type: 'system',
+    coins: 0, attachments,
+    sent_at: Date.now(), arrives_at: Date.now(),
+    read: false, taken: false, takenItems: {}, coinsTaken: false, deleted: false,
+  };
+
+  feedback.style.color = '#888';
+  feedback.textContent = 'Sending\u2026';
+
+  let res;
+  try {
+    if (!MB.serverMailSend) throw new Error('mail unavailable \u2014 hard-refresh the page');
+    res = await MB.serverMailSend(name, mail);
+  } catch (e) {
+    feedback.style.color = '#ff4444';
+    feedback.textContent = 'Send error: ' + (e && e.message ? e.message : e);
+    return;
+  }
+  if (!res || !res.ok) {
+    feedback.style.color = '#ff4444';
+    feedback.textContent = (res && res.error) ? res.error : 'Delivery failed \u2014 is the server running?';
+    return;
+  }
+
+  // SUCCESS — paint the confirmation BEFORE any bookkeeping that could throw,
+  // so the panel can never get stuck on "Sending…" again.
+  feedback.style.color = '#6bff9b';
+  feedback.textContent = '\u2713 Sent to ' + name + ' (' + attachments.length + ' item' + (attachments.length>1?'s':'') + ')';
+  try { toast('\uD83D\uDCEC Sent ' + attachments.length + ' item(s) to ' + name); } catch(e){}
+  try { adminLog('System mail sent to ' + name + ' with ' + attachments.length + ' item(s)'); } catch(e){}
+  try {
+    siSelectedItems = [];
+    siRenderSelected();
+    document.getElementById('si-search').value = '';
+    document.getElementById('si-results').innerHTML = '';
+    document.getElementById('si-subject').value = '';
+    document.getElementById('si-body').value = '';
+    document.getElementById('si-player').value = '';
+    const st = document.getElementById('si-player-status'); if (st) st.textContent = '';
+  } catch(e){}
+}
+
+
+// ── SOCIAL PANEL ──────────────────────────────────────────────
+let activeSocialTab = 'friends';
+
+function setSocialTab(el, tab) {
+  document.querySelectorAll('.soc-tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  activeSocialTab = tab;
+  renderSocialPanel(tab);
+}
+
+function renderSocialPanel(tab) {
+  if (!MB.isSignedIn()) return;
+  SOCIAL = loadSocial(); // refresh from storage
+  const body = document.getElementById('social-body');
+  if (!body) return;
+  body.innerHTML = '';
+
+  if (tab === 'friends') {
+    if (!SOCIAL.friends || !SOCIAL.friends.length) {
+      body.innerHTML = '<div class="soc-empty">NO FRIENDS YET</div>'; return;
+    }
+    SOCIAL.friends.forEach(name => {
+      const onlinePlayer = (window._lastPresenceData||[]).find(p => p.name === name.toUpperCase());
+      const row = document.createElement('div'); row.className = 'soc-row';
+      row.innerHTML = '<div class="soc-em">' + (onlinePlayer ? onlinePlayer.em : '?') + '</div>'
+        + '<div style="flex:1"><div class="soc-name">' + name + '</div>'
+        + '<div class="soc-act">' + (onlinePlayer ? '● ' + (onlinePlayer.page||'In Hub') : '○ Offline') + '</div></div>';
+      const wb = document.createElement('button'); wb.className = 'soc-btn'; wb.textContent = 'WHISPER';
+      wb.onclick = () => openWhisper(name);
+      const rm = document.createElement('button'); rm.className = 'soc-btn red'; rm.textContent = 'REMOVE';
+      rm.onclick = () => { removeFriend(name); renderSocialPanel('friends'); };
+      row.appendChild(wb); row.appendChild(rm);
+      body.appendChild(row);
+    });
+
+  } else if (tab === 'requests') {
+    if (!SOCIAL.requests || !SOCIAL.requests.length) {
+      body.innerHTML = '<div class="soc-empty">NO PENDING REQUESTS</div>'; return;
+    }
+    SOCIAL.requests.forEach(name => {
+      const row = document.createElement('div'); row.className = 'soc-row';
+      row.innerHTML = '<div class="soc-em">?</div>'
+        + '<div style="flex:1"><div class="soc-name">' + name + '</div>'
+        + '<div class="soc-act">Wants to be friends</div></div>';
+      const acc = document.createElement('button'); acc.className = 'soc-btn'; acc.textContent = 'ACCEPT';
+      acc.onclick = () => acceptRequest(name);
+      const dec = document.createElement('button'); dec.className = 'soc-btn red'; dec.textContent = 'DECLINE';
+      dec.onclick = () => declineRequest(name);
+      row.appendChild(acc); row.appendChild(dec);
+      body.appendChild(row);
+    });
+
+  } else if (tab === 'invites') {
+    if (!SOCIAL.invites || !SOCIAL.invites.length) {
+      body.innerHTML = '<div class="soc-empty">NO PENDING INVITES</div>'; return;
+    }
+    SOCIAL.invites.forEach((inv, i) => {
+      const row = document.createElement('div'); row.className = 'soc-row';
+      row.innerHTML = '<div class="soc-em">📨</div>'
+        + '<div style="flex:1"><div class="soc-name">' + inv.from + '</div>'
+        + '<div class="soc-inv-type">' + inv.type.toUpperCase() + ' INVITE</div></div>';
+      const acc = document.createElement('button'); acc.className = 'soc-btn'; acc.textContent = 'ACCEPT';
+      acc.onclick = () => acceptInvite(i);
+      const dec = document.createElement('button'); dec.className = 'soc-btn red'; dec.textContent = 'DECLINE';
+      dec.onclick = () => declineInvite(i);
+      row.appendChild(acc); row.appendChild(dec);
+      body.appendChild(row);
+    });
+
+  } else if (tab === 'blocked') {
+    if (!SOCIAL.blocked || !SOCIAL.blocked.length) {
+      body.innerHTML = '<div class="soc-empty">NOBODY BLOCKED</div>'; return;
+    }
+    SOCIAL.blocked.forEach(name => {
+      const row = document.createElement('div'); row.className = 'soc-row';
+      row.innerHTML = '<div class="soc-em">🚫</div>'
+        + '<div style="flex:1"><div class="soc-name">' + name + '</div></div>';
+      const ub = document.createElement('button'); ub.className = 'soc-btn'; ub.textContent = 'UNBLOCK';
+      ub.onclick = () => { unblockUser(name); renderSocialPanel('blocked'); };
+      row.appendChild(ub);
+      body.appendChild(row);
+    });
+  }
+}
+
+// Refresh the authoritative social graph from the server every 4s
+// (friends, blocked, incoming requests, outgoing, invites).
+setInterval(refreshSocial, 4000);
+
+
+// ── PRESENCE SYSTEM ───────────────────────────────────────────
+// Heartbeat every 10s — tells server we're online and what page we're on
+
+
+
+async function refreshOnlineList() {
+  try {
+    const r = await fetch(MB.SERVER + '/__presence/list');
+    if (!r.ok) return;
+    const online = await r.json();
+    window._lastPresenceData = online; // cache for friends list status
+    console.log('[presence] list:', online.map(p=>p.name));
+    const myName = (MB.PLAYER.name||'').toUpperCase();
+
+    // Update online count
+    const ctr = document.getElementById('online-n');
+    if (ctr) ctr.textContent = online.length;
+    // Refresh friends list status since it reads from _lastPresenceData
+    if (activeSocialTab === 'friends') renderSocialPanel('friends');
+
+    // Render online list
+    const list = document.getElementById('ms-list');
+    if (!list) return;
+    list.innerHTML = '';
+    online.forEach(p => {
+      if (typeof isBlocked === 'function' && isBlocked(p.name)) return; // hide blocked players
+      const isMe = p.name === myName;
+      const row = document.createElement('div');
+      row.className = 'ms-row' + (isMe ? ' ms-me' : '');
+      if (!isMe) {
+        row.oncontextmenu = (e) => { openCtx(e, p.name); e.preventDefault(); };
+        row.onclick = (e) => openCtx(e, p.name);
+      }
+      const av = document.createElement('div'); av.className = 'ms-av'; av.textContent = p.em || '?';
+      const info = document.createElement('div'); info.className = 'ms-info';
+      const nm = document.createElement('div'); nm.className = 'ms-name';
+      nm.textContent = p.name + (isMe ? ' (you)' : '');
+      if (p.myth) nm.style.color = '#c455e8';
+      const act = document.createElement('div'); act.className = 'ms-act';
+      act.textContent = p.page || 'In Hub';
+      info.appendChild(nm); info.appendChild(act);
+      const dot = document.createElement('div');
+      dot.className = 'ms-dot';
+      row.appendChild(av); row.appendChild(info); row.appendChild(dot);
+      list.appendChild(row);
+    });
+  } catch(e) {}
+}
+
+</script>
+</body>
+</html>

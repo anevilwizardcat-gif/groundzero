@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MYTHBOUND &mdash; Data Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<script src="mythbound_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:'VT323',monospace;font-size:18px;display:flex;flex-direction:column;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:2px solid #fff;background:#000;flex-shrink:0;}
+.logo{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;}
+.nav-links{display:flex;gap:5px;}
+.nb{background:#000;border:2px solid #444;color:#444;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.nb:hover,.nb.on{border-color:#fff;color:#fff;}
+.nb.wip{border-color:#222;color:#333;cursor:default;}
+
+/* Layout */
+.layout{flex:1;display:flex;overflow:hidden;min-height:0;}
+.sidebar{width:200px;flex-shrink:0;border-right:2px solid #222;display:flex;flex-direction:column;overflow-y:auto;}
+.nav-group{font-family:'Press Start 2P',monospace;font-size:6px;color:#6a5acd;padding:11px 14px 5px;letter-spacing:1px;border-bottom:1px solid #111;background:#060606;}
+.nav-group.battle{color:#cc44ff;}
+.sidebar-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#555;padding:12px 14px;border-bottom:1px solid #111;letter-spacing:1px;}
+.stab{padding:11px 14px;font-family:'Press Start 2P',monospace;font-size:6px;color:#444;cursor:pointer;border-left:2px solid transparent;border-bottom:1px solid #0a0a0a;}
+.stab:hover{color:#888;background:#080808;}
+.stab.on{color:#fff;border-left-color:#fff;background:#0d0d0d;}
+
+/* Main panel */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.main-toolbar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid #222;flex-shrink:0;}
+.search-inp{background:#000;border:2px solid #333;color:#fff;font-family:'VT323',monospace;font-size:20px;padding:6px 12px;outline:none;flex:1;}
+.search-inp:focus{border-color:#fff;}
+.search-inp::placeholder{color:#333;}
+.tbtn{background:#000;border:2px solid #333;color:#555;padding:6px 12px;font-family:'Press Start 2P',monospace;font-size:6px;cursor:pointer;}
+.tbtn:hover{border-color:#fff;color:#fff;}
+.tbtn.green{border-color:#3a7a50;color:#6bff9b;}
+.tbtn.green:hover{background:#6bff9b;color:#000;}
+.tbtn.red{border-color:#7a2222;color:#ff6666;}
+.tbtn.red:hover{background:#ff4444;color:#000;}
+.save-status{font-family:'Press Start 2P',monospace;font-size:6px;color:#333;margin-left:auto;}
+.save-status.ok{color:#6bff9b;}.save-status.err{color:#ff4444;}.save-status.saving{color:#ffdd6b;}
+
+/* Table */
+.table-wrap{flex:1;overflow-y:auto;}
+table{width:100%;border-collapse:collapse;}
+thead tr{border-bottom:2px solid #222;position:sticky;top:0;background:#000;z-index:10;}
+th{font-family:'Press Start 2P',monospace;font-size:6px;color:#444;padding:10px 12px;text-align:left;white-space:nowrap;}
+td{padding:8px 12px;border-bottom:1px solid #0a0a0a;font-size:16px;vertical-align:middle;}
+tr:hover td{background:#080808;}
+tr.selected td{background:#0d0d0d;}
+.cell-name{font-size:18px;color:#fff;}
+.cell-id{font-size:13px;color:#444;font-family:monospace;}
+.rarity-badge{font-family:'Press Start 2P',monospace;font-size:5px;padding:3px 7px;border:1px solid;}
+.rb-common{border-color:#555;color:#999;}
+.rb-uncommon{border-color:#3a7a50;color:#6bff9b;}
+.rb-rare{border-color:#3a6a99;color:#6bb5ff;}
+.rb-epic{border-color:#7a3399;color:#c455e8;}
+.rb-legendary{border-color:#998832;color:#ffdd6b;}
+.rb-ultimate{border-color:#888;color:#fff;background:linear-gradient(90deg,#ff0,#0cf,#f0f,#ff0);background-size:200%;animation:mb-rainbow-bg 2.4s linear infinite;-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.type-badge{font-family:'Press Start 2P',monospace;font-size:5px;color:#333;padding:2px 5px;border:1px solid #1a1a1a;}
+.cell-sell{font-family:'Press Start 2P',monospace;font-size:8px;color:#ffdd6b;}
+.cell-icon{width:28px;height:28px;image-rendering:pixelated;flex-shrink:0;}
+.edit-btn{background:#000;border:1px solid #222;color:#333;padding:3px 8px;font-family:'Press Start 2P',monospace;font-size:5px;cursor:pointer;}
+.edit-btn:hover{border-color:#fff;color:#fff;}
+
+/* Editor panel */
+.editor{width:340px;flex-shrink:0;border-left:2px solid #222;display:flex;flex-direction:column;overflow:hidden;}
+.editor-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;padding:12px 16px;border-bottom:1px solid #222;display:flex;justify-content:space-between;align-items:center;}
+.editor-close{background:#000;border:1px solid #333;color:#555;padding:3px 7px;font-family:'Press Start 2P',monospace;font-size:6px;cursor:pointer;}
+.editor-close:hover{border-color:#fff;color:#fff;}
+.editor-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
+.ef{display:flex;flex-direction:column;gap:4px;}
+.ef-label{font-family:'Press Start 2P',monospace;font-size:6px;color:#555;}
+.ef-input{background:#000;border:2px solid #333;color:#fff;font-family:'VT323',monospace;font-size:20px;padding:6px 10px;outline:none;width:100%;}
+.ef-input:focus{border-color:#fff;}
+.ef-select{background:#000;border:2px solid #333;color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;padding:7px 10px;outline:none;width:100%;cursor:pointer;-webkit-appearance:none;}
+.ef-select:focus{border-color:#fff;}
+.ef-textarea{background:#000;border:2px solid #333;color:#fff;font-family:'VT323',monospace;font-size:18px;padding:6px 10px;outline:none;width:100%;resize:none;min-height:70px;}
+.ef-textarea:focus{border-color:#fff;}
+.ef-check{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.ef-check input[type=checkbox]{width:16px;height:16px;accent-color:#fff;cursor:pointer;}
+.ef-check span{font-size:17px;color:#888;}
+.editor-footer{padding:12px 16px;border-top:1px solid #222;display:flex;gap:8px;flex-shrink:0;}
+.ef-save{flex:1;font-family:'Press Start 2P',monospace;font-size:7px;background:#000;border:2px solid #fff;color:#fff;padding:10px;cursor:pointer;}
+.ef-save:hover{background:#fff;color:#000;}
+.ef-del{font-family:'Press Start 2P',monospace;font-size:7px;background:#000;border:2px solid #333;color:#444;padding:10px 12px;cursor:pointer;}
+.ef-del:hover{border-color:#ff4444;color:#ff4444;}
+
+/* Drop table editor */
+.drop-row{display:flex;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid #0d0d0d;}
+.drop-item-sel{background:#000;border:1px solid #222;color:#fff;font-family:'VT323',monospace;font-size:16px;padding:4px 8px;outline:none;flex:1;}
+.drop-weight{background:#000;border:1px solid #222;color:#ffdd6b;font-family:'Press Start 2P',monospace;font-size:7px;padding:4px 6px;outline:none;width:60px;text-align:right;}
+.drop-remove{background:#000;border:1px solid #222;color:#444;font-family:monospace;padding:3px 7px;cursor:pointer;font-size:14px;}
+.drop-remove:hover{border-color:#ff4444;color:#ff4444;}
+.add-drop-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#000;border:1px solid #333;color:#555;padding:5px 10px;cursor:pointer;margin-top:6px;}
+.add-drop-btn:hover{border-color:#6bff9b;color:#6bff9b;}
+.weight-total{font-family:'Press Start 2P',monospace;font-size:6px;color:#555;text-align:right;margin-top:4px;}
+.weight-total.ok{color:#6bff9b;}.weight-total.warn{color:#ffdd6b;}.weight-total.bad{color:#ff4444;}
+
+/* Empty / loading states */
+.empty{padding:60px 30px;text-align:center;font-family:'Press Start 2P',monospace;font-size:7px;color:#222;line-height:3;}
+.toast{position:fixed;bottom:16px;right:16px;background:#000;border:2px solid #fff;color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px 16px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;max-width:280px;line-height:2;}
+.toast.show{opacity:1;}
+
+/* Section tabs for editor when editing rocks */
+.etabs{display:flex;border-bottom:1px solid #111;flex-shrink:0;}
+.etab{flex:1;padding:8px 6px;font-family:'Press Start 2P',monospace;font-size:6px;color:#333;cursor:pointer;text-align:center;border-bottom:2px solid transparent;}
+.etab:hover{color:#777;}.etab.on{color:#fff;border-bottom-color:#fff;}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">MYTHBOUND</div>
+  <div class="nav-links" id="main-nav"></div>
+</nav>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-hdr">DATA EDITOR</div>
+    <div class="nav-group">GAME DATA</div>
+    <div class="stab on" onclick="setSection(this,'items')">&#9658; ITEMS</div>
+    <div class="stab" onclick="setSection(this,'rocks')">&#9658; MINING ROCKS</div>
+    <div class="stab" onclick="setSection(this,'enemies')">&#9658; MINE ENEMIES</div>
+    <div class="stab" onclick="setSection(this,'economy')">&#9658; ECONOMY</div>
+    <div class="stab" onclick="setSection(this,'myths')">&#9658; MYTHS</div>
+    <div class="stab" onclick="setSection(this,'roles')">&#9658; CHAT ROLES</div>
+    <div class="nav-group battle">BATTLE DATABASE</div>
+    <div class="stab" onclick="setSection(this,'combatRoles')">&#9658; COMBAT ROLES</div>
+    <div class="stab" onclick="setSection(this,'skills')">&#9658; SKILLS</div>
+    <div class="stab" onclick="setSection(this,'weapons')">&#9658; WEAPONS</div>
+    <div class="stab" onclick="setSection(this,'armors')">&#9658; ARMORS</div>
+    <div class="stab" onclick="setSection(this,'combatEnemies')">&#9658; COMBAT ENEMIES</div>
+    <div class="stab" onclick="setSection(this,'statuses')">&#9658; STATUSES</div>
+    <div class="stab" onclick="setSection(this,'animations')">&#9658; ANIMATIONS</div>
+    <div class="stab" onclick="setSection(this,'dungeons')">&#9658; DUNGEONS</div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main" id="main-panel">
+    <div class="main-toolbar">
+      <input class="search-inp" id="search" placeholder="Search..." oninput="renderSection()">
+      <button class="tbtn green" id="add-btn" onclick="addNew()">+ NEW</button>
+      <button class="tbtn" onclick="saveAll()">&#9654; SAVE ALL</button>
+      <span class="save-status" id="save-status"></span>
+    </div>
+    <div class="table-wrap" id="table-wrap">
+      <div class="empty" id="loading-msg">&#9654; LOADING DATA...</div>
+    </div>
+  </div>
+
+  <!-- Editor panel -->
+  <div class="editor" id="editor-panel" style="display:none;">
+    <div class="editor-hdr">
+      <span id="editor-title">EDIT ITEM</span>
+      <button class="editor-close" onclick="closeEditor()">&#10005;</button>
+    </div>
+    <div class="editor-body" id="editor-body"></div>
+    <div class="editor-footer">
+      <button class="ef-save" onclick="saveEdit()">&#9658; APPLY CHANGES</button>
+      <button class="ef-del" onclick="deleteEdit()" id="del-btn">DELETE</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+if (!MB.requireAuth()) throw new Error('not signed in');
+MB.injectUltimateCSS();
+MB.renderNav('main-nav','admin');
+
+// ── STATE ─────────────────────────────────────────────────────
+let DATA = null;
+let section = 'items';
+let editingKey = null;
+let editingIsNew = false;
+let unsaved = false;
+
+const RARITIES = ['common','uncommon','rare','epic','legendary','ultimate'];
+const TYPES = ['equipment','consumable','material','fish','key','junk'];
+const SLOTS = ['','helm','chest','legs','boots','ring','trinket','main','off','myth'];
+const ELEMENTS = ['','physical','fire','frost','nature','void','light','arcana'];
+const SOURCES = ['','drop','mining','fishing','herbalism','hunting','chest','craft','quest'];
+
+// ── LOAD ──────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const r = await fetch('http://localhost:3000/__data');
+    if (!r.ok) throw new Error('Server returned '+r.status);
+    DATA = await r.json();
+    document.getElementById('loading-msg').style.display = 'none';
+    renderSection();
+    setSaveStatus('&#9654; Loaded', 'ok', 2000);
+  } catch(e) {
+    document.getElementById('loading-msg').textContent = 'Could not load data. Is server.js running?';
+    document.getElementById('loading-msg').style.color = '#ff4444';
+  }
+}
+
+// ── SAVE ALL ──────────────────────────────────────────────────
+async function saveAll() {
+  if (!DATA) return;
+  setSaveStatus('Saving...', 'saving');
+  const ok = await MB.saveGameData(DATA);
+  if (ok) {
+    unsaved = false;
+    setSaveStatus('&#9654; Saved!', 'ok', 3000);
+    toast('Data saved to mythbound_data.json');
+    // Reload into MB so changes take effect immediately
+    await MB.loadGameData();
+    // Re-hydrate current player's bag from updated MB.ITEMS
+    MB.hydratePlayer();
+    MB.savePlayer(); // persist the hydrated bag
+  } else {
+    setSaveStatus('Save failed!', 'err');
+    toast('Save failed. Check server.');
+  }
+}
+
+function setSaveStatus(msg, cls, clearAfter) {
+  const el = document.getElementById('save-status');
+  el.innerHTML = msg;
+  el.className = 'save-status ' + (cls||'');
+  if (clearAfter) setTimeout(() => { el.innerHTML=''; el.className='save-status'; }, clearAfter);
+}
+
+function markUnsaved() {
+  unsaved = true;
+  setSaveStatus('&#9679; Unsaved changes');
+}
+
+// ── SECTION TABS ──────────────────────────────────────────────
+function setSection(el, s) {
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  section = s;
+  editingKey = null;
+  document.getElementById('editor-panel').style.display = 'none';
+  document.getElementById('search').value = '';
+  document.getElementById('add-btn').style.display = ['economy','roles'].includes(s) ? 'none' : '';
+  renderSection();
+}
+
+// ── RENDER SECTION ────────────────────────────────────────────
+function renderSection() {
+  if (!DATA) return;
+  const wrap = document.getElementById('table-wrap');
+  const q = (document.getElementById('search').value || '').toLowerCase().trim();
+  if (section === 'items')   renderItems(wrap, q);
+  else if (section === 'rocks')   renderRocks(wrap, q);
+  else if (section === 'enemies') renderEnemies(wrap, q);
+  else if (section === 'economy') renderEconomy(wrap);
+  else if (section === 'myths')   renderMyths(wrap, q);
+  else if (section === 'roles')   renderRoles(wrap);
+  else if (section === 'weapons') renderWeapons(wrap, q);
+  else if (section === 'armors')  renderArmors(wrap, q);
+  else if (section === 'dungeons')renderDungeons(wrap, q);
+  else if (GENERIC_SECTIONS[section]) renderGeneric(wrap, q, section);
+}
+
+// ── ITEMS TABLE ───────────────────────────────────────────────
+function renderItems(wrap, q) {
+  const items = Object.entries(DATA.items || {})
+    .filter(([id,it]) => !q || it.name.toLowerCase().includes(q) || id.includes(q) ||
+      (it.type||'').includes(q) || (it.rarity||'').includes(q) || (it.source||'').includes(q))
+    .sort((a,b) => {
+      const ro = {common:0,uncommon:1,rare:2,epic:3,legendary:4,ultimate:5};
+      return (ro[b[1].rarity]||0)-(ro[a[1].rarity]||0) || a[1].name.localeCompare(b[1].name);
+    });
+
+  if (!items.length) { wrap.innerHTML = '<div class="empty">No items found.</div>'; return; }
+
+  let html = '<table><thead><tr>'
+    + '<th></th><th>NAME</th><th>ID</th><th>TYPE</th><th>RARITY</th><th>SELL</th><th>SOURCE</th><th></th>'
+    + '</tr></thead><tbody>';
+
+  items.forEach(([id, it]) => {
+    const rar = it.rarity || 'common';
+    const sel = editingKey === id ? ' selected' : '';
+    html += `<tr class="${sel}" onclick="openItemEditor('${id}')">
+      <td><div class="cell-icon">${MB.renderItemIconSVG(id,28)}</div></td>
+      <td><div class="cell-name">${it.name||id}</div></td>
+      <td><div class="cell-id">${id}</div></td>
+      <td><span class="type-badge">${it.type||'?'}</span></td>
+      <td><span class="rarity-badge rb-${rar}">${rar.toUpperCase()}</span></td>
+      <td><span class="cell-sell">${it.sell||0}</span></td>
+      <td><span class="type-badge">${it.source||'—'}</span></td>
+      <td><button class="edit-btn" onclick="openItemEditor('${id}');event.stopPropagation()">EDIT</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+// ── ROCKS TABLE ───────────────────────────────────────────────
+function renderRocks(wrap, q) {
+  const rocks = Object.entries(DATA.miningRocks || {})
+    .filter(([id,r]) => !q || r.name.toLowerCase().includes(q) || id.includes(q));
+
+  if (!rocks.length) { wrap.innerHTML = '<div class="empty">No rocks defined.</div>'; return; }
+
+  let html = '<table><thead><tr><th>NAME</th><th>TIER</th><th>MIN LVL</th><th>HP</th><th>XP</th><th>DROPS</th><th></th></tr></thead><tbody>';
+  rocks.forEach(([id,r]) => {
+    const sel = editingKey === id ? ' selected' : '';
+    html += `<tr class="${sel}" onclick="openRockEditor('${id}')">
+      <td><div class="cell-name">${r.name}</div><div class="cell-id">${id}</div></td>
+      <td><span class="type-badge">T${r.tier}</span></td>
+      <td>${r.minLevel}</td><td>${r.hp}</td><td>${r.xp}</td>
+      <td><span style="font-size:14px;color:#555;">${(r.drops||[]).length} drops</span></td>
+      <td><button class="edit-btn" onclick="openRockEditor('${id}');event.stopPropagation()">EDIT</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+// ── ENEMIES TABLE ─────────────────────────────────────────────
+function renderEnemies(wrap, q) {
+  const enemies = (DATA.miningEnemies || [])
+    .filter(e => !q || e.name.toLowerCase().includes(q) || e.key.includes(q));
+  if (!enemies.length) { wrap.innerHTML = '<div class="empty">No enemies defined.</div>'; return; }
+  let html = '<table><thead><tr><th>NAME</th><th>KEY</th><th>TIER</th><th>HP</th><th>XP</th><th>LEVELS</th><th>DROPS</th><th></th></tr></thead><tbody>';
+  enemies.forEach((e,i) => {
+    const sel = editingKey === e.key ? ' selected' : '';
+    html += `<tr class="${sel}" onclick="openEnemyEditor('${e.key}')">
+      <td><div class="cell-name">${e.name}</div></td>
+      <td><div class="cell-id">${e.key}</div></td>
+      <td><span class="type-badge">T${e.tier}</span></td>
+      <td>${e.hp}</td><td>${e.xp}</td>
+      <td><span style="font-size:14px;color:#555;">${e.minLevel}–${e.maxLevel}</span></td>
+      <td><span style="font-size:14px;color:#555;">${(e.drops||[]).length} drops</span></td>
+      <td><button class="edit-btn" onclick="openEnemyEditor('${e.key}');event.stopPropagation()">EDIT</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+// ── ECONOMY EDITOR ────────────────────────────────────────────
+function renderEconomy(wrap) {
+  const econ = DATA.economy || {};
+  let html = '<div style="padding:20px;display:flex;flex-direction:column;gap:14px;">';
+  const fields = [
+    ['auctionListingFee','Auction Listing Fee (0–1)','number'],
+    ['craftSwitchCost','Craft Switch Cost (Doubloons)','number'],
+    ['shopSellRate','Shop Buy Rate (0–1)','number'],
+    ['mailDelay','Mail Delay (seconds)','number'],
+    ['mailMaxAttachments','Max Mail Attachments','number'],
+    ['mailMaxCoins','Max Mail Doubloons','number'],
+    ['energyRegenInterval','Energy Regen Interval (ms)','number'],
+    ['energyRegenAmount','Energy Regen Amount','number'],
+    ['bagSlotBaseCost','Bag Slot Base Cost','number'],
+    ['bagSlotCostMultiplier','Bag Slot Cost Multiplier','number'],
+  ];
+  fields.forEach(([key, label, type]) => {
+    html += `<div class="ef">
+      <div class="ef-label">${label}</div>
+      <input class="ef-input" type="${type}" id="econ-${key}" value="${econ[key]??''}" oninput="DATA.economy['${key}']=parseFloat(this.value)||0;markUnsaved()">
+    </div>`;
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+// ── MYTHS ─────────────────────────────────────────────────────
+function renderMyths(wrap, q) {
+  const myths = (DATA.myths || []).filter(m => !q || m.name.toLowerCase().includes(q));
+  let html = '<table><thead><tr><th>EM</th><th>NAME</th><th>ID</th><th>COLOR</th><th>DESC</th><th></th></tr></thead><tbody>';
+  myths.forEach((m,i) => {
+    const sel = editingKey === m.id ? ' selected' : '';
+    html += `<tr class="${sel}" onclick="openMythEditor(${i})">
+      <td style="font-size:24px;">${m.em}</td>
+      <td><div class="cell-name">${m.name}</div></td>
+      <td><div class="cell-id">${m.id}</div></td>
+      <td><span style="background:${m.color};padding:2px 8px;font-size:12px;color:#000;">${m.color}</span></td>
+      <td style="font-size:14px;color:#555;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.desc}</td>
+      <td><button class="edit-btn" onclick="openMythEditor(${i});event.stopPropagation()">EDIT</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+// ── ROLES ─────────────────────────────────────────────────────
+function renderRoles(wrap) {
+  const roles = DATA.roles || {};
+  let html = '<div style="padding:20px;display:flex;flex-direction:column;gap:12px;">';
+  Object.entries(roles).forEach(([key,role]) => {
+    html += `<div style="border:1px solid #1a1a1a;padding:12px 14px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <span style="font-family:'Press Start 2P',monospace;font-size:7px;color:${role.color};">${role.label}</span>
+        <span style="font-size:13px;color:#333;">${key}</span>
+      </div>
+      <div style="font-size:14px;color:#555;">Permissions: ${(role.permissions||[]).join(', ')}</div>
+    </div>`;
+  });
+  html += '</div><div style="padding:0 20px;font-size:14px;color:#333;line-height:2;">Role permissions are edited directly in mythbound_data.json. Use admin panel on hub to assign roles to players.</div>';
+  wrap.innerHTML = html;
+}
+
+// ── ITEM EDITOR ───────────────────────────────────────────────
+function openItemEditor(id) {
+  editingKey = id;
+  editingIsNew = false;
+  const it = DATA.items[id] || {};
+  const panel = document.getElementById('editor-panel');
+  const body = document.getElementById('editor-body');
+  document.getElementById('editor-title').textContent = 'EDIT: ' + id;
+  document.getElementById('del-btn').style.display = '';
+  panel.style.display = 'flex';
+  panel.style.flexDirection = 'column';
+
+  const stats = it.stats || {};
+  body.innerHTML = `
+    <div class="ef"><div class="ef-label">NAME</div><input class="ef-input" id="e-name" value="${it.name||''}"></div>
+    <div class="ef"><div class="ef-label">EMOJI</div><input class="ef-input" id="e-emoji" value="${it.emoji||''}" style="font-size:28px;"></div>
+    <div class="ef">
+      <div class="ef-label">RARITY</div>
+      <select class="ef-select" id="e-rarity">
+        ${RARITIES.map(r=>`<option value="${r}" ${it.rarity===r?'selected':''}>${r.toUpperCase()}</option>`).join('')}
+      </select>
+    </div>
+    <div class="ef">
+      <div class="ef-label">TYPE</div>
+      <select class="ef-select" id="e-type">
+        ${TYPES.map(t=>`<option value="${t}" ${it.type===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <div class="ef">
+      <div class="ef-label">SLOT (equipment only)</div>
+      <select class="ef-select" id="e-slot">
+        ${SLOTS.map(s=>`<option value="${s}" ${it.slot===s?'selected':''}>${s||'—'}</option>`).join('')}
+      </select>
+    </div>
+    <div class="ef">
+      <div class="ef-label">ELEMENT</div>
+      <select class="ef-select" id="e-element">
+        ${ELEMENTS.map(el=>`<option value="${el}" ${it.element===el?'selected':''}>${el||'—'}</option>`).join('')}
+      </select>
+    </div>
+    <div class="ef">
+      <div class="ef-label">SOURCE</div>
+      <select class="ef-select" id="e-source">
+        ${SOURCES.map(s=>`<option value="${s}" ${it.source===s?'selected':''}>${s||'—'}</option>`).join('')}
+      </select>
+    </div>
+    <div class="ef"><div class="ef-label">SELL VALUE</div><input class="ef-input" type="number" id="e-sell" value="${it.sell||0}"></div>
+    <div class="ef"><div class="ef-label">DESCRIPTION</div><textarea class="ef-textarea" id="e-desc" rows="3">${it.desc||''}</textarea></div>
+    <div class="ef"><div class="ef-label">EFFECT (consumables)</div><input class="ef-input" id="e-effect" value="${it.effect||''}"></div>
+    <div class="ef">
+      <div class="ef-label">STATS (equipment — key:value pairs)</div>
+      <input class="ef-input" id="e-stats" placeholder="atk:10, def:5, stm:20..." value="${Object.entries(stats).map(([k,v])=>k+':'+v).join(', ')}">
+    </div>
+    <div class="ef">
+      <label class="ef-check"><input type="checkbox" id="e-soulbound" ${it.soulbound?'checked':''}><span>Soulbound (no trade/sell)</span></label>
+      <label class="ef-check"><input type="checkbox" id="e-usable" ${it.usable?'checked':''}><span>Usable (shows USE button)</span></label>
+      <label class="ef-check"><input type="checkbox" id="e-mythBound" ${it.mythBound?'checked':''}><span>MythBound (locked to myth slot)</span></label>
+    </div>
+    <div style="border-top:1px solid #222;margin:12px 0 4px;padding-top:8px;font-family:'Press Start 2P',monospace;font-size:7px;color:#cc44ff;">BATTLE USE (consumables)</div>
+    <div class="ef"><label class="ef-check"><input type="checkbox" id="e-bat-on" ${it.battle?'checked':''}><span>Usable in battle</span></label></div>
+    <div class="ef"><div class="ef-label">EFFECT</div><select class="ef-select" id="e-bat-use">${['','heal','damage','cure','buff'].map(u=>`<option value="${u}" ${(it.battle&&it.battle.use)===u?'selected':''}>${u||'—'}</option>`).join('')}</select></div>
+    <div class="ef"><div class="ef-label">RESOURCE (heal/damage)</div><select class="ef-select" id="e-bat-res">${['hp','mp','both'].map(r=>`<option value="${r}" ${(it.battle&&it.battle.resource)===r?'selected':''}>${r}</option>`).join('')}</select></div>
+    <div class="ef"><div class="ef-label">POWER (HP/MP restored or dealt)</div><input class="ef-input" type="number" id="e-bat-power" value="${(it.battle&&it.battle.power)||0}"></div>
+    <div class="ef"><div class="ef-label">TARGET</div><select class="ef-select" id="e-bat-target">${['one-ally','all-allies','self','one-enemy','all-enemies'].map(t=>`<option value="${t}" ${(it.battle&&it.battle.target)===t?'selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="ef"><div class="ef-label">STATUS GRANTED (status id — optional)</div><input class="ef-input" id="e-bat-status" value="${(it.battle&&it.battle.status)||''}"></div>
+    <div class="ef"><div class="ef-label">STATUS DURATION (turns)</div><input class="ef-input" type="number" id="e-bat-turns" value="${(it.battle&&it.battle.turns)||0}"></div>
+    <div class="ef"><div class="ef-label">TRAITS (gear — e.g. grantSkill:cleave, resist:fire:15)</div><input class="ef-input" id="e-traits" value="${(it.traits||[]).map(t=>t.type==='grantSkill'?'grantSkill:'+t.skill:t.type==='resist'?'resist:'+t.element+':'+t.value:t.type+':'+(t.value||'')).join(', ')}"></div>
+    <div style="font-size:14px;color:#333;margin-top:4px;">ID: ${id}</div>
+  `;
+  renderSection();
+}
+
+function addNew() {
+  if (section === 'items') {
+    const id = prompt('Enter new item ID (snake_case, e.g. copper_sword):');
+    if (!id || !id.match(/^[a-z_]+$/)) { toast('Invalid ID. Use lowercase letters and underscores.'); return; }
+    if (DATA.items[id]) { toast('Item "'+id+'" already exists.'); return; }
+    DATA.items[id] = { name: id.replace(/_/g,' '), rarity:'common', type:'material', sell:0, desc:'' };
+    markUnsaved();
+    openItemEditor(id);
+    editingIsNew = true;
+  } else if (section === 'rocks') {
+    const id = prompt('Enter new rock ID (e.g. obsidian_rock):');
+    if (!id) return;
+    if (!DATA.miningRocks) DATA.miningRocks = {};
+    DATA.miningRocks[id] = { name: id.toUpperCase(), tier:1, hp:50, minLevel:1, xp:10, drops:[] };
+    markUnsaved(); openRockEditor(id);
+  } else if (section === 'enemies') {
+    const key = prompt('Enter new enemy key (snake_case, e.g. cave_bat):');
+    if (!key || !key.match(/^[a-z_]+$/)) { toast('Invalid key. Use lowercase letters and underscores.'); return; }
+    if (!DATA.miningEnemies) DATA.miningEnemies = [];
+    if (DATA.miningEnemies.find(e=>e.key===key)) { toast('Enemy "'+key+'" already exists.'); return; }
+    DATA.miningEnemies.push({ key, name: key.replace(/_/g,' ').toUpperCase(), tier:1, hp:50, xp:20, minLevel:1, maxLevel:999, shape:'SLIME', drops:[] });
+    markUnsaved(); openEnemyEditor(key);
+  } else if (section === 'myths') {
+    const id = prompt('Enter new myth ID (e.g. frostdrake):');
+    if (!id) return;
+    if (!DATA.myths) DATA.myths = [];
+    DATA.myths.push({ id, name: id, em:'✦', color:'#ffffff', desc:'A new myth creature.' });
+    markUnsaved(); renderSection();
+  } else if (section === 'weapons' || section === 'armors') {
+    const id = prompt('Enter new '+section.slice(0,-1)+' ID (snake_case, e.g. flame_sword):');
+    if (!id || !id.match(/^[a-z_0-9]+$/)) { toast('Invalid ID. lowercase + underscores.'); return; }
+    if (DATA.items[id]) { toast('Item "'+id+'" already exists.'); return; }
+    const slot = section === 'weapons' ? 'main' : 'chest';
+    DATA.items[id] = { name: id.replace(/_/g,' '), emoji:'⚔️', rarity:'common', type:'equipment', slot, element:'physical', sell:0, desc:'', stats:{}, traits:[] };
+    markUnsaved(); openItemEditor(id); editingIsNew = true;
+  } else if (section === 'dungeons') {
+    const id = prompt('Enter new dungeon ID (e.g. ember_caves):');
+    if (!id || !id.match(/^[a-z_0-9]+$/)) { toast('Invalid ID.'); return; }
+    if (!DATA.dungeons) DATA.dungeons = [];
+    if (DATA.dungeons.find(d=>d.id===id)) { toast('Dungeon exists.'); return; }
+    DATA.dungeons.push({ id, name:id.replace(/_/g,' '), kind:'dungeon', element:'physical', minLevel:1, bg:'forest', desc:'', waves:[{name:'Wave 1', enemies:['sprite']}], clearReward:{coins:100,xp:50,items:[]} });
+    markUnsaved(); openDungeonEditor(id);
+  } else if (GENERIC_SECTIONS[section]) {
+    const cfg = GENERIC_SECTIONS[section];
+    const id = prompt('Enter new '+cfg.label+' ID (snake_case):');
+    if (!id || !id.match(/^[a-z_0-9]+$/)) { toast('Invalid ID. lowercase + underscores.'); return; }
+    if ((DATA[cfg.key]||{})[id]) { toast('"'+id+'" already exists.'); return; }
+    if (!DATA[cfg.key]) DATA[cfg.key] = {};
+    DATA[cfg.key][id] = JSON.parse(JSON.stringify(cfg.tpl));
+    markUnsaved(); openGenericEditor(section, id);
+  }
+}
+
+function saveEdit() {
+  if (!editingKey || !DATA) return;
+  if (section === 'items' || section === 'weapons' || section === 'armors') {
+    const it = DATA.items[editingKey];
+    it.name     = document.getElementById('e-name').value.trim();
+    it.emoji    = document.getElementById('e-emoji').value.trim();
+    it.rarity   = document.getElementById('e-rarity').value;
+    it.type     = document.getElementById('e-type').value;
+    it.slot     = document.getElementById('e-slot').value || undefined;
+    it.element  = document.getElementById('e-element').value || undefined;
+    it.source   = document.getElementById('e-source').value || undefined;
+    it.sell     = parseInt(document.getElementById('e-sell').value) || 0;
+    it.desc     = document.getElementById('e-desc').value.trim();
+    it.effect   = document.getElementById('e-effect').value.trim() || undefined;
+    it.soulbound = document.getElementById('e-soulbound').checked || undefined;
+    it.usable   = document.getElementById('e-usable').checked || undefined;
+    it.mythBound = document.getElementById('e-mythBound').checked || undefined;
+    // Parse stats
+    const statsRaw = document.getElementById('e-stats').value.trim();
+    if (statsRaw) {
+      const stats = {};
+      statsRaw.split(',').forEach(pair => {
+        const [k,v] = pair.trim().split(':');
+        if (k && v) stats[k.trim()] = parseInt(v.trim()) || 0;
+      });
+      it.stats = Object.keys(stats).length ? stats : undefined;
+    } else { it.stats = undefined; }
+    // Battle-use (consumables)
+    const batUse = document.getElementById('e-bat-use').value;
+    if (document.getElementById('e-bat-on').checked && batUse) {
+      const b = { use:batUse, resource:document.getElementById('e-bat-res').value, power:parseInt(document.getElementById('e-bat-power').value)||0, target:document.getElementById('e-bat-target').value };
+      const st = document.getElementById('e-bat-status').value.trim();
+      if (st) { b.status = st; b.turns = parseInt(document.getElementById('e-bat-turns').value)||1; }
+      it.battle = b;
+    } else { it.battle = undefined; }
+    // Traits (gear — grantSkill / resist / generic)
+    const traitsRaw = document.getElementById('e-traits').value.trim();
+    if (traitsRaw) {
+      it.traits = traitsRaw.split(',').map(s=>s.trim()).filter(Boolean).map(s=>{
+        const p = s.split(':').map(x=>x.trim());
+        if (p[0]==='grantSkill') return { type:'grantSkill', skill:p[1] };
+        if (p[0]==='resist')     return { type:'resist', element:p[1], value:parseInt(p[2])||0 };
+        return { type:p[0], value:p[1] };
+      });
+    } else { it.traits = undefined; }
+    // Clean undefined
+    Object.keys(it).forEach(k => { if (it[k] === undefined) delete it[k]; });
+    markUnsaved();
+    toast('Changes applied. Press SAVE ALL to persist.');
+    renderSection();
+  } else if (section === 'rocks') {
+    saveRockEdit();
+  } else if (section === 'enemies') {
+    saveEnemyEdit();
+  } else if (section === 'myths') {
+    saveMythEdit();
+  } else if (section === 'dungeons') {
+    saveDungeonEdit();
+  } else if (GENERIC_SECTIONS[section]) {
+    saveGenericEdit();
+  }
+}
+
+function deleteEdit() {
+  if (!editingKey || !DATA) return;
+  if (!confirm('Delete "'+editingKey+'"? This cannot be undone until you reload without saving.')) return;
+  if (section === 'items' || section === 'weapons' || section === 'armors') {
+    delete DATA.items[editingKey];
+  } else if (section === 'rocks') {
+    delete DATA.miningRocks[editingKey];
+  } else if (section === 'enemies') {
+    DATA.miningEnemies = (DATA.miningEnemies||[]).filter(e => e.key !== editingKey);
+  } else if (section === 'myths') {
+    DATA.myths = (DATA.myths||[]).filter(m => m.id !== editingKey);
+  } else if (section === 'dungeons') {
+    DATA.dungeons = (DATA.dungeons||[]).filter(d => d.id !== editingKey);
+  } else if (GENERIC_SECTIONS[section]) {
+    delete DATA[GENERIC_SECTIONS[section].key][editingKey];
+  }
+  markUnsaved();
+  closeEditor();
+  renderSection();
+  toast(editingKey + ' deleted (unsaved).');
+  editingKey = null;
+}
+
+function closeEditor() {
+  document.getElementById('editor-panel').style.display = 'none';
+  editingKey = null;
+  renderSection();
+}
+
+// ── ROCK EDITOR ───────────────────────────────────────────────
+function openRockEditor(id) {
+  editingKey = id;
+  const r = (DATA.miningRocks || {})[id] || {};
+  const panel = document.getElementById('editor-panel');
+  document.getElementById('editor-title').textContent = 'ROCK: ' + id;
+  document.getElementById('del-btn').style.display = '';
+  panel.style.display = 'flex'; panel.style.flexDirection = 'column';
+
+  const drops = r.drops || [];
+  const allItems = Object.keys(DATA.items||{}).sort();
+  const totalWeight = drops.reduce((s,d)=>s+(d.weight||0),0);
+  const wClass = Math.abs(totalWeight-100)<1?'ok':totalWeight>100?'bad':'warn';
+
+  document.getElementById('editor-body').innerHTML = `
+    <div class="ef"><div class="ef-label">NAME</div><input class="ef-input" id="r-name" value="${r.name||''}"></div>
+    <div class="ef"><div class="ef-label">TIER</div><input class="ef-input" type="number" id="r-tier" value="${r.tier||1}" min="1" max="10"></div>
+    <div class="ef"><div class="ef-label">MIN LEVEL</div><input class="ef-input" type="number" id="r-minlv" value="${r.minLevel||1}"></div>
+    <div class="ef"><div class="ef-label">HP</div><input class="ef-input" type="number" id="r-hp" value="${r.hp||50}"></div>
+    <div class="ef"><div class="ef-label">XP PER BREAK</div><input class="ef-input" type="number" id="r-xp" value="${r.xp||10}"></div>
+    <div class="ef">
+      <div class="ef-label">DROP TABLE</div>
+      <div id="drop-list">
+        ${drops.map((d,i)=>`<div class="drop-row" id="dr-${i}">
+          <select class="drop-item-sel" id="di-${i}">
+            ${allItems.map(k=>`<option value="${k}" ${d.item===k?'selected':''}>${k}</option>`).join('')}
+          </select>
+          <input class="drop-weight" type="number" id="dw-${i}" value="${d.weight}" min="0" max="100" step="0.1" oninput="updateWeightTotal()">
+          <button class="drop-remove" onclick="removeDrop(${i})">&#215;</button>
+        </div>`).join('')}
+      </div>
+      <button class="add-drop-btn" onclick="addDrop()">+ ADD DROP</button>
+      <div class="weight-total ${wClass}" id="weight-total">Total weight: ${totalWeight.toFixed(1)} / 100</div>
+    </div>
+  `;
+  renderSection();
+}
+
+let dropCount = 0;
+function addDrop() {
+  const list = document.getElementById('drop-list');
+  if (!list) return;
+  const i = 'new_'+Date.now();
+  const allItems = Object.keys(DATA.items||{}).sort();
+  const row = document.createElement('div');
+  row.className = 'drop-row'; row.id = 'dr-'+i;
+  row.innerHTML = `<select class="drop-item-sel" id="di-${i}">
+    ${allItems.map(k=>`<option value="${k}">${k}</option>`).join('')}
+  </select>
+  <input class="drop-weight" type="number" id="dw-${i}" value="5" min="0" max="100" step="0.1" oninput="updateWeightTotal()">
+  <button class="drop-remove" onclick="this.parentElement.remove();updateWeightTotal()">&#215;</button>`;
+  list.appendChild(row);
+  updateWeightTotal();
+}
+function removeDrop(i) {
+  const el = document.getElementById('dr-'+i);
+  if (el) el.remove();
+  updateWeightTotal();
+}
+function updateWeightTotal() {
+  const weights = [...document.querySelectorAll('.drop-weight')].map(el=>parseFloat(el.value)||0);
+  const total = weights.reduce((s,v)=>s+v,0);
+  const el = document.getElementById('weight-total');
+  if (!el) return;
+  el.textContent = 'Total weight: '+total.toFixed(1)+' / 100';
+  el.className = 'weight-total '+(Math.abs(total-100)<1?'ok':total>100?'bad':'warn');
+}
+function saveRockEdit() {
+  const id = editingKey;
+  if (!DATA.miningRocks) DATA.miningRocks = {};
+  const r = DATA.miningRocks[id] || {};
+  r.name = document.getElementById('r-name').value.trim();
+  r.tier = parseInt(document.getElementById('r-tier').value)||1;
+  r.minLevel = parseInt(document.getElementById('r-minlv').value)||1;
+  r.hp = parseInt(document.getElementById('r-hp').value)||50;
+  r.xp = parseInt(document.getElementById('r-xp').value)||10;
+  // Collect drops from DOM
+  r.drops = [];
+  document.querySelectorAll('.drop-row').forEach(row => {
+    const sel = row.querySelector('.drop-item-sel');
+    const wt = row.querySelector('.drop-weight');
+    if (sel && wt) r.drops.push({ item: sel.value, weight: parseFloat(wt.value)||0, rarity: DATA.items[sel.value]?.rarity||'common', pixel:'#888' });
+  });
+  DATA.miningRocks[id] = r;
+  markUnsaved();
+  toast('Rock updated. Press SAVE ALL.');
+  renderSection();
+}
+
+// ── ENEMY EDITOR ─────────────────────────────────────────────
+function openEnemyEditor(key) {
+  editingKey = key;
+  const e = (DATA.miningEnemies||[]).find(x=>x.key===key) || {};
+  const panel = document.getElementById('editor-panel');
+  document.getElementById('editor-title').textContent = 'ENEMY: '+key;
+  document.getElementById('del-btn').style.display = '';
+  panel.style.display='flex'; panel.style.flexDirection='column';
+  const drops = e.drops||[];
+  const allItems = Object.keys(DATA.items||{}).sort();
+  const totalWeight = drops.reduce((s,d)=>s+(d.weight||0),0);
+  const wClass = Math.abs(totalWeight-100)<1?'ok':totalWeight>100?'bad':'warn';
+  document.getElementById('editor-body').innerHTML = `
+    <div class="ef"><div class="ef-label">NAME</div><input class="ef-input" id="en-name" value="${e.name||''}"></div>
+    <div class="ef"><div class="ef-label">KEY (ID)</div><input class="ef-input" id="en-key" value="${e.key||''}" disabled style="color:#333;"></div>
+    <div class="ef"><div class="ef-label">TIER</div><input class="ef-input" type="number" id="en-tier" value="${e.tier||1}" min="1"></div>
+    <div class="ef"><div class="ef-label">HP</div><input class="ef-input" type="number" id="en-hp" value="${e.hp||50}"></div>
+    <div class="ef"><div class="ef-label">XP</div><input class="ef-input" type="number" id="en-xp" value="${e.xp||20}"></div>
+    <div class="ef"><div class="ef-label">MIN LEVEL</div><input class="ef-input" type="number" id="en-minlv" value="${e.minLevel||1}"></div>
+    <div class="ef"><div class="ef-label">MAX LEVEL</div><input class="ef-input" type="number" id="en-maxlv" value="${e.maxLevel||999}"></div>
+    <div class="ef">
+      <div class="ef-label">SHAPE (in-game sprite)</div>
+      <select class="ef-select" id="en-shape">
+        ${['SLIME','GOLEM'].map(s=>`<option value="${s}" ${(e.shape||'SLIME')===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>
+    <div class="ef">
+      <div class="ef-label">DROP TABLE</div>
+      <div id="drop-list">
+        ${drops.map((d,i)=>`<div class="drop-row" id="dr-${i}">
+          <select class="drop-item-sel" id="di-${i}">
+            ${allItems.map(k=>`<option value="${k}" ${d.item===k?'selected':''}>${k}</option>`).join('')}
+          </select>
+          <input class="drop-weight" type="number" id="dw-${i}" value="${d.weight}" min="0" max="100" step="0.1" oninput="updateWeightTotal()">
+          <button class="drop-remove" onclick="removeDrop(${i})">&#215;</button>
+        </div>`).join('')}
+      </div>
+      <button class="add-drop-btn" onclick="addDrop()">+ ADD DROP</button>
+      <div class="weight-total ${wClass}" id="weight-total">Total weight: ${totalWeight.toFixed(1)} / 100</div>
+    </div>
+  `;
+  renderSection();
+}
+function saveEnemyEdit() {
+  const key = editingKey;
+  const idx = (DATA.miningEnemies||[]).findIndex(x=>x.key===key);
+  if (idx === -1) return;
+  const e = DATA.miningEnemies[idx];
+  e.name = document.getElementById('en-name').value.trim();
+  e.tier = parseInt(document.getElementById('en-tier').value)||1;
+  e.hp = parseInt(document.getElementById('en-hp').value)||50;
+  e.xp = parseInt(document.getElementById('en-xp').value)||20;
+  e.minLevel = parseInt(document.getElementById('en-minlv').value)||1;
+  e.maxLevel = parseInt(document.getElementById('en-maxlv').value)||999;
+  e.shape = document.getElementById('en-shape').value || 'SLIME';
+  e.drops = [];
+  document.querySelectorAll('.drop-row').forEach(row=>{
+    const sel=row.querySelector('.drop-item-sel'); const wt=row.querySelector('.drop-weight');
+    if(sel&&wt) e.drops.push({item:sel.value,weight:parseFloat(wt.value)||0,rarity:DATA.items[sel.value]?.rarity||'common',pixel:'#888'});
+  });
+  markUnsaved(); toast('Enemy updated. Press SAVE ALL.'); renderSection();
+}
+
+// ── MYTH EDITOR ───────────────────────────────────────────────
+function openMythEditor(idx) {
+  const m = (DATA.myths||[])[idx];
+  if (!m) return;
+  editingKey = m.id;
+  const panel = document.getElementById('editor-panel');
+  document.getElementById('editor-title').textContent = 'MYTH: '+m.id;
+  document.getElementById('del-btn').style.display = '';
+  panel.style.display='flex'; panel.style.flexDirection='column';
+  document.getElementById('editor-body').innerHTML = `
+    <div style="font-size:48px;text-align:center;padding:10px 0;">${m.em}</div>
+    <div class="ef"><div class="ef-label">NAME</div><input class="ef-input" id="m-name" value="${m.name}"></div>
+    <div class="ef"><div class="ef-label">EMOJI</div><input class="ef-input" id="m-em" value="${m.em}" style="font-size:28px;"></div>
+    <div class="ef"><div class="ef-label">COLOR</div><input class="ef-input" id="m-color" value="${m.color}" oninput="this.style.borderColor=this.value"></div>
+    <div class="ef"><div class="ef-label">DESCRIPTION</div><textarea class="ef-textarea" id="m-desc">${m.desc}</textarea></div>
+    <div style="font-size:13px;color:#333;">ID: ${m.id} (cannot change)</div>
+  `;
+  renderSection();
+}
+function saveMythEdit() {
+  const idx = (DATA.myths||[]).findIndex(m=>m.id===editingKey);
+  if (idx===-1) return;
+  DATA.myths[idx].name  = document.getElementById('m-name').value.trim();
+  DATA.myths[idx].em    = document.getElementById('m-em').value.trim();
+  DATA.myths[idx].color = document.getElementById('m-color').value.trim();
+  DATA.myths[idx].desc  = document.getElementById('m-desc').value.trim();
+  markUnsaved(); toast('Myth updated. Press SAVE ALL.'); renderSection();
+}
+
+// ── UTILS ─────────────────────────────────────────────────────
+let toastTmr;
+function toast(msg) {
+  const el = document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+  if(toastTmr)clearTimeout(toastTmr); toastTmr=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+// ════════════════════════════════════════════════════════════
+//  BATTLE DATABASE EDITORS
+// ════════════════════════════════════════════════════════════
+const ARMOR_SLOTS = ['helm','chest','legs','boots','ring','trinket','off'];
+
+// WEAPONS / ARMORS are filtered views of DATA.items — they reuse the (working) item editor.
+function renderWeapons(wrap, q){ renderItemsFiltered(wrap, q, it => it.type==='equipment' && it.slot==='main', 'weapons'); }
+function renderArmors(wrap, q){ renderItemsFiltered(wrap, q, it => it.type==='equipment' && ARMOR_SLOTS.includes(it.slot), 'armors'); }
+function renderItemsFiltered(wrap, q, pred, label){
+  const items = Object.entries(DATA.items||{}).filter(([id,it]) => pred(it) && (!q || (it.name||'').toLowerCase().includes(q) || id.includes(q)));
+  if(!items.length){ wrap.innerHTML='<div class="empty">No '+label+' yet. Use + NEW.</div>'; return; }
+  let h='<table><thead><tr><th></th><th>NAME</th><th>ID</th><th>SLOT</th><th>ELEMENT</th><th>STATS / TRAITS</th><th></th></tr></thead><tbody>';
+  items.forEach(([id,it])=>{
+    const sel=editingKey===id?' selected':'';
+    const stats=Object.entries(it.stats||{}).map(([k,v])=>k+':'+v).join(' ');
+    const traits=(it.traits||[]).length?' <span style="color:#cc44ff">+'+it.traits.length+' trait</span>':'';
+    h+=`<tr class="${sel}" onclick="openItemEditor('${id}')"><td style="font-size:22px;">${it.emoji||'?'}</td>
+      <td><div class="cell-name">${it.name||id}</div></td><td><div class="cell-id">${id}</div></td>
+      <td><span class="type-badge">${it.slot||'—'}</span></td><td><span class="type-badge">${it.element||'—'}</span></td>
+      <td style="font-size:13px;color:#888;">${stats||'—'}${traits}</td>
+      <td><button class="edit-btn" onclick="openItemEditor('${id}');event.stopPropagation()">EDIT</button></td></tr>`;
+  });
+  wrap.innerHTML=h+'</tbody></table>';
+}
+
+// Generic object-keyed sections. Friendly Name/Emoji inputs + a full-JSON editor so
+// every field (formula, resist, drops, phases, traits…) is editable now and stays
+// future-proof as the schema grows.
+const GENERIC_SECTIONS = {
+  skills:        { key:'skills',        label:'Skill',        cols:['type','element','effect','target'],
+                   tpl:{ name:'New Skill', em:'✨', type:'skill', effect:'damage', resource:'hp', drain:false, element:'physical', formula:{base:10,stat:'atk',coef:1.0}, mpCost:0, target:'one-enemy', anim:'slash', status:null, statusChance:0, notes:'' } },
+  statuses:      { key:'statuses',      label:'Status',       cols:['kind','effect','duration'],
+                   tpl:{ name:'New Status', em:'❓', kind:'buff', effect:'stat', stat:'atk', magnitude:0.2, duration:3, anim:'buff_glow', desc:'' } },
+  combatRoles:   { key:'combatRoles',   label:'Combat Role',  cols:['favoredStats','baseSkills'],
+                   tpl:{ name:'New Role', em:'❓', favoredStats:['atk'], baseSkills:[], desc:'' } },
+  combatEnemies: { key:'combatEnemies', label:'Combat Enemy', cols:['hp','atk','arc','element'],
+                   tpl:{ name:'NEW ENEMY', em:'❓', element:'physical', hp:60, mp:20, atk:12, arc:8, def:8, wil:6, agi:12, resist:{}, xp:30, gold:10, skills:['strike'], pattern:'aggressive', drops:[], lines:['* It appears.'] } },
+  animations:    { key:'animations',    label:'Animation',    cols:['type','color','durationMs'],
+                   tpl:{ name:'New Anim', type:'flash', color:'#ffffff', em:'', shake:2, durationMs:400 } },
+};
+function renderGeneric(wrap, q, sec){
+  const cfg=GENERIC_SECTIONS[sec]; const store=DATA[cfg.key]||{};
+  const rows=Object.entries(store).filter(([id,o])=>!q || id.includes(q) || JSON.stringify(o).toLowerCase().includes(q));
+  if(!rows.length){ wrap.innerHTML='<div class="empty">No '+cfg.label+' entries. Use + NEW.</div>'; return; }
+  let h='<table><thead><tr><th>NAME</th><th>ID</th>'+cfg.cols.map(c=>'<th>'+c.toUpperCase()+'</th>').join('')+'<th></th></tr></thead><tbody>';
+  rows.forEach(([id,o])=>{
+    const sel=editingKey===id?' selected':'';
+    h+=`<tr class="${sel}" onclick="openGenericEditor('${sec}','${id}')"><td><div class="cell-name">${(o.em?o.em+' ':'')+(o.name||id)}</div></td><td><div class="cell-id">${id}</div></td>`
+      + cfg.cols.map(c=>{let v=o[c]; if(Array.isArray(v))v=v.join(','); else if(v&&typeof v==='object')v=JSON.stringify(v); return '<td style="font-size:13px;color:#999;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(v!==undefined&&v!==null?v:'—')+'</td>';}).join('')
+      + `<td><button class="edit-btn" onclick="openGenericEditor('${sec}','${id}');event.stopPropagation()">EDIT</button></td></tr>`;
+  });
+  wrap.innerHTML=h+'</tbody></table>';
+}
+function openGenericEditor(sec, id){
+  const cfg=GENERIC_SECTIONS[sec]; const o=(DATA[cfg.key]||{})[id]||{};
+  editingKey=id; editingIsNew=false; section=sec;
+  document.getElementById('editor-title').textContent='EDIT: '+id;
+  document.getElementById('del-btn').style.display='';
+  const panel=document.getElementById('editor-panel'); panel.style.display='flex'; panel.style.flexDirection='column';
+  document.getElementById('editor-body').innerHTML=
+    '<div class="ef"><div class="ef-label">NAME</div><input class="ef-input" id="g-name" value="'+(o.name||'').replace(/"/g,'&quot;')+'"></div>'
+    + '<div class="ef"><div class="ef-label">EMOJI</div><input class="ef-input" id="g-em" value="'+(o.em||'')+'" style="font-size:24px;"></div>'
+    + '<div class="ef"><div class="ef-label">FULL DEFINITION (JSON — every field editable)</div>'
+    + '<textarea class="ef-textarea" id="g-json" rows="16" spellcheck="false" style="font-family:monospace;font-size:13px;line-height:1.5;">'
+    + JSON.stringify(o,null,2).replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</textarea></div>'
+    + (sec==='skills'
+        ? (function(){
+            const myths=(DATA.myths||[]);
+            const mythOpts='<option value="">— none (no myth requirement) —</option>'+myths.map(m=>`<option value="${m.id}" ${o.mythReq===m.id?'selected':''}>${(m.em||'')+' '+(m.name||m.id)}</option>`).join('');
+            const roleOpts='<option value="">— none —</option>'+['tank','support','dps'].map(r=>`<option value="${r}" ${o.role===r?'selected':''}>${r.toUpperCase()}</option>`).join('');
+            return '<div class="ef"><div class="ef-label">REQUIRES MYTH (granted only when bound to this myth)</div><select class="ef-select" id="g-mythreq">'+mythOpts+'</select></div>'
+              + '<div class="ef"><div class="ef-label">GRANTED IN ROLE</div><select class="ef-select" id="g-role">'+roleOpts+'</select></div>'
+              + '<div class="ef" style="font-size:12px;color:#9a87c0;">Tip: set both to make a myth-only role skill (e.g. Phoenix + Support). Leave MYTH blank for a normal/assignable skill. Aegis ultimates use the <b>aegis:true</b> field in the JSON.</div>';
+          })()
+        : '')
+    + (sec==='skills'
+        ? '<div class="ef"><div class="ef-label">DAMAGE / HEAL FORMULA — RPG-MAKER STYLE</div>'
+          + '<div style="font-size:13px;color:#9a87c0;line-height:1.55;">Edit the <b style="color:#cdb8f0;">formula</b> field above as a JS expression. <b>a</b> = caster, <b>b</b> = target. Stats: <code>atk</code>, <code>arc</code> (magic atk), <code>def</code>, <code>wil</code> (magic def), <code>agi</code>, <code>stm</code>; pools <code>hp/mp/mhp/mmp</code>; aliases <code>mat=arc</code>, <code>mdf=wil</code>, <code>spd=agi</code>.<br>Examples: <code>a.atk * 2.2 - b.def * 1.5 + 6</code> &middot; <code>a.arc * 3 - b.wil * 1.5 + 8</code> &middot; heal <code>a.arc * 1.8 + 18</code>.<br>Element resist, Protect/Shell/Blind, def buffs and &plusmn;10% variance are applied automatically after.</div>'
+          + '<button class="edit-btn" style="margin-top:8px;" onclick="testSkillFormula()">&#10003; TEST FORMULA</button> <span id="fx-result" style="font-size:13px;margin-left:8px;"></span></div>'
+        : '')
+    + '<div style="font-size:13px;color:#cc44ff;margin-top:4px;">'+cfg.label+' · ID: '+id+'</div>';
+  renderSection();
+}
+function saveGenericEdit(){
+  const cfg=GENERIC_SECTIONS[section]; if(!cfg||!editingKey) return;
+  let obj;
+  try{ obj=JSON.parse(document.getElementById('g-json').value); }
+  catch(e){ toast('Invalid JSON: '+e.message); return; }
+  if(section==='skills' && typeof obj.formula==='string'){
+    const r=validateFormula(obj.formula);
+    if(!r.ok){ toast('Formula error: '+r.error+'  (not saved)'); return; }
+  }
+  if(section==='skills'){
+    const mq=document.getElementById('g-mythreq'); if(mq){ if(mq.value) obj.mythReq=mq.value; else delete obj.mythReq; }
+    const rl=document.getElementById('g-role');    if(rl){ if(rl.value) obj.role=rl.value;    else delete obj.role; }
+  }
+  const nm=document.getElementById('g-name').value.trim(); if(nm)obj.name=nm;
+  const em=document.getElementById('g-em').value.trim(); if(em)obj.em=em;
+  if(!DATA[cfg.key])DATA[cfg.key]={};
+  DATA[cfg.key][editingKey]=obj;
+  markUnsaved(); toast('Applied. Press SAVE ALL to persist.'); renderSection();
+}
+// Compile-test an RPG-Maker formula string with sample stats (same rules as the battle engine).
+function validateFormula(expr){
+  if(typeof expr!=='string' || !expr.trim()) return {ok:true};   // empty / none — fine
+  let fn;
+  try{ fn=new Function('a','b','v','Math','return ('+expr+');'); }
+  catch(e){ return {ok:false, error:e.message}; }
+  const sa={atk:30,arc:25,def:12,wil:10,agi:18,stm:120,hp:120,mp:200,mhp:120,mmp:200,level:12};
+  const sb={atk:14,arc:8, def:8, wil:6, agi:12,stm:120,hp:120,mp:40, mhp:120,mmp:40, level:5};
+  ['mat','mdf','spd','maxhp','maxmp','luk'].forEach(()=>{});
+  sa.mat=sa.arc;sa.mdf=sa.wil;sa.spd=sa.agi;sa.maxhp=sa.mhp;sa.maxmp=sa.mmp;sa.luk=sa.agi;
+  sb.mat=sb.arc;sb.mdf=sb.wil;sb.spd=sb.agi;sb.maxhp=sb.mhp;sb.maxmp=sb.mmp;sb.luk=sb.agi;
+  try{ const v=fn(sa,sb,{},Math); if(typeof v!=='number'||!isFinite(v)) return {ok:false,error:'must return a finite number'}; return {ok:true, sample:Math.round(v)}; }
+  catch(e){ return {ok:false, error:e.message}; }
+}
+function testSkillFormula(){
+  let obj; try{ obj=JSON.parse(document.getElementById('g-json').value); }catch(e){ toast('Invalid JSON: '+e.message); return; }
+  const r=validateFormula(obj.formula);
+  const el=document.getElementById('fx-result'); if(!el) return;
+  el.innerHTML = r.ok
+    ? '<span style="color:#7fd3a0;">&#10003; Valid &mdash; sample (geared caster vs basic foe): <b>'+(r.sample!=null?r.sample:'\u2014')+'</b></span>'
+    : '<span style="color:#e88;">&#10007; '+r.error+'</span>';
+}
+
+// DUNGEONS (array) — light editor per your note: list + per-entry JSON.
+function renderDungeons(wrap, q){
+  const arr=DATA.dungeons||[];
+  const rows=arr.filter(d=>!q || (d.id||'').includes(q) || (d.name||'').toLowerCase().includes(q));
+  if(!rows.length){ wrap.innerHTML='<div class="empty">No dungeons. Use + NEW.</div>'; return; }
+  let h='<table><thead><tr><th>NAME</th><th>ID</th><th>KIND</th><th>WAVES</th><th></th></tr></thead><tbody>';
+  rows.forEach(d=>{
+    const sel=editingKey===d.id?' selected':'';
+    h+=`<tr class="${sel}" onclick="openDungeonEditor('${d.id}')"><td><div class="cell-name">${d.name||d.id}</div></td>
+      <td><div class="cell-id">${d.id}</div></td><td><span class="type-badge">${d.kind||'dungeon'}</span></td>
+      <td>${(d.waves||[]).length}</td><td><button class="edit-btn" onclick="openDungeonEditor('${d.id}');event.stopPropagation()">EDIT</button></td></tr>`;
+  });
+  wrap.innerHTML=h+'</tbody></table>';
+}
+let _dEdit = null;
+function _dAtt(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+function _dTxt(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function openDungeonEditor(id){
+  const d=(DATA.dungeons||[]).find(x=>x.id===id)||{id};
+  _dEdit=JSON.parse(JSON.stringify(d));
+  _dEdit.id=id;
+  if(!Array.isArray(_dEdit.waves)) _dEdit.waves=[];
+  if(!_dEdit.clearReward) _dEdit.clearReward={coins:0,xp:0,items:[]};
+  editingKey=id; section='dungeons';
+  document.getElementById('editor-title').textContent='EDIT: '+id;
+  document.getElementById('del-btn').style.display='';
+  const panel=document.getElementById('editor-panel'); panel.style.display='flex'; panel.style.flexDirection='column';
+  renderDungeonForm();
+  renderSection();
+}
+function renderDungeonForm(){
+  const d=_dEdit;
+  const els=Object.keys(DATA.elements||{});
+  document.getElementById('editor-body').innerHTML =
+    `<div class="ef"><div class="ef-label">NAME</div><input class="ef-input" value="${_dAtt(d.name)}" oninput="_dEdit.name=this.value"></div>`
+   +`<div class="ef"><div class="ef-label">KIND</div><select class="ef-select" onchange="_dEdit.kind=this.value">${['dungeon','raid'].map(k=>`<option ${d.kind===k?'selected':''}>${k}</option>`).join('')}</select></div>`
+   +`<div class="ef"><div class="ef-label">ELEMENT</div><select class="ef-select" onchange="_dEdit.element=this.value">${(els.length?els:['physical']).map(e=>`<option ${d.element===e?'selected':''}>${e}</option>`).join('')}</select></div>`
+   +`<div class="ef"><div class="ef-label">MIN LEVEL</div><input class="ef-input" type="number" value="${d.minLevel||1}" oninput="_dEdit.minLevel=parseInt(this.value)||1"></div>`
+   +`<div class="ef"><div class="ef-label">DESCRIPTION</div><textarea class="ef-textarea" rows="2" oninput="_dEdit.desc=this.value">${_dTxt(d.desc)}</textarea></div>`
+   +`<div class="ef"><div class="ef-label">CLEAR REWARD — COINS / XP</div><div style="display:flex;gap:8px;"><input class="ef-input" type="number" value="${(d.clearReward&&d.clearReward.coins)||0}" oninput="_dEdit.clearReward.coins=parseInt(this.value)||0"><input class="ef-input" type="number" value="${(d.clearReward&&d.clearReward.xp)||0}" oninput="_dEdit.clearReward.xp=parseInt(this.value)||0"></div></div>`
+   +`<div style="border-top:1px solid #222;margin:14px 0 8px;padding-top:10px;font-family:'Press Start 2P',monospace;font-size:7px;color:#cc44ff;">WAVES — enemies come from the Combat Enemies database</div>`
+   +`<div id="d-waves"></div>`
+   +`<button class="edit-btn" style="margin-top:8px;" onclick="dAddWave()">+ ADD WAVE</button>`;
+  renderWavesEditor();
+}
+function renderWavesEditor(){
+  const d=_dEdit;
+  const ce=DATA.combatEnemies||{};
+  const enemyIds=Object.keys(ce);
+  const opts=enemyIds.map(id=>`<option value="${id}">${(ce[id].em||'')+' '+(ce[id].name||id)} (${id})</option>`).join('');
+  const note=enemyIds.length?'':'<div class="empty" style="font-size:13px;margin-bottom:8px;">No Combat Enemies defined yet — add some in BATTLE DATABASE &rarr; COMBAT ENEMIES first.</div>';
+  document.getElementById('d-waves').innerHTML = note + (d.waves||[]).map((w,wi)=>{
+    const chips=(w.enemies||[]).map((en,ei)=>{
+      const def=ce[en]; const ok=!!def;
+      return `<span style="font-size:12px;padding:3px 8px;border:1px solid ${ok?'#3a8d63':'#a33'};color:${ok?'#7fd3a0':'#e88'};display:inline-flex;gap:6px;align-items:center;">${ok?((def.em||'')+' '+(def.name||en)):('? '+en)}<span style="cursor:pointer;color:#ccc;font-weight:bold;" title="remove" onclick="dDelEnemy(${wi},${ei})">✕</span></span>`;
+    }).join(' ') || '<span style="font-size:12px;color:#666;">no enemies yet — add one below</span>';
+    return `<div style="border:1px solid #2a2340;padding:11px;margin-bottom:9px;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="font-family:'Press Start 2P',monospace;font-size:7px;color:#9a87c0;">WAVE ${wi+1}</span>
+        <input class="ef-input" style="flex:1;min-width:120px;" placeholder="wave name" value="${_dAtt(w.name)}" oninput="_dEdit.waves[${wi}].name=this.value">
+        <label style="font-size:13px;color:#9a87c0;display:flex;align-items:center;gap:5px;"><input type="checkbox" ${w.boss?'checked':''} onchange="_dEdit.waves[${wi}].boss=this.checked"> boss</label>
+        <button class="edit-btn" onclick="dDelWave(${wi})">✕ WAVE</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">${chips}</div>
+      <select class="ef-select" onchange="if(this.value){dAddEnemy(${wi},this.value);this.selectedIndex=0;}">
+        <option value="">+ add enemy from Combat Enemies…</option>${opts}
+      </select>
+    </div>`;
+  }).join('');
+}
+function dAddWave(){ _dEdit.waves=_dEdit.waves||[]; _dEdit.waves.push({name:'Wave '+(_dEdit.waves.length+1),enemies:[]}); renderWavesEditor(); }
+function dDelWave(i){ _dEdit.waves.splice(i,1); renderWavesEditor(); }
+function dAddEnemy(wi,id){ _dEdit.waves[wi].enemies=_dEdit.waves[wi].enemies||[]; _dEdit.waves[wi].enemies.push(id); renderWavesEditor(); }
+function dDelEnemy(wi,ei){ _dEdit.waves[wi].enemies.splice(ei,1); renderWavesEditor(); }
+function saveDungeonEdit(){
+  if(!_dEdit){ toast('Nothing to save.'); return; }
+  _dEdit.id=editingKey;
+  if(!DATA.dungeons)DATA.dungeons=[];
+  const i=DATA.dungeons.findIndex(x=>x.id===editingKey);
+  if(i>=0)DATA.dungeons[i]=_dEdit; else DATA.dungeons.push(_dEdit);
+  markUnsaved(); toast('Applied. Press SAVE ALL to persist.'); renderSection();
+}
+
+// Warn on unsaved changes
+window.addEventListener('beforeunload', e => { if(unsaved){ e.preventDefault(); e.returnValue=''; } });
+
+// ── INIT ──────────────────────────────────────────────────────
+loadData();
+</script>
+</body>
+</html>

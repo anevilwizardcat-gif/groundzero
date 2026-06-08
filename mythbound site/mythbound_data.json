@@ -1,0 +1,2679 @@
+{
+  "_version": 1,
+  "_note": "This file is the single source of truth for all editable game data. Edit via the admin panel at /mythbound_admin_data.html or directly. Share this file with Claude when starting a new dev session so changes are not overwritten.",
+  "economy": {
+    "auctionListingFee": 0.05,
+    "craftSwitchCost": 500,
+    "shopSellRate": 0.4,
+    "mailDelay": 3600,
+    "mailMaxAttachments": 10,
+    "mailMaxCoins": 999999,
+    "energyRegenInterval": 2000,
+    "energyRegenAmount": 1,
+    "bagSlotBaseCost": 500,
+    "bagSlotCostMultiplier": 2
+  },
+  "professions": {
+    "gathering": [
+      "fishing",
+      "mining",
+      "herbalism",
+      "hunting"
+    ],
+    "crafting": [
+      "blacksmithing",
+      "cooking",
+      "alchemy",
+      "leatherworking"
+    ],
+    "maxLevel": 100,
+    "xpPerLevelBracket": {
+      "100": 3000,
+      "1-20": 100,
+      "21-50": 300,
+      "51-80": 700,
+      "81-99": 1500
+    }
+  },
+  "toolTiers": [
+    {
+      "tier": 1,
+      "name": "Starter",
+      "craftReq": 0,
+      "craftSkill": null,
+      "free": true,
+      "gatheringUnlock": {
+        "mining": 1,
+        "fishing": 1,
+        "herbalism": 1,
+        "hunting": 1
+      }
+    },
+    {
+      "tier": 2,
+      "name": "Iron",
+      "craftReq": 10,
+      "craftSkill": "blacksmithing",
+      "free": false,
+      "gatheringUnlock": {
+        "mining": 20,
+        "fishing": 15,
+        "herbalism": 15,
+        "hunting": 15
+      }
+    },
+    {
+      "tier": 3,
+      "name": "Silver",
+      "craftReq": 30,
+      "craftSkill": "blacksmithing",
+      "free": false,
+      "gatheringUnlock": {
+        "mining": 40,
+        "fishing": 35,
+        "herbalism": 35,
+        "hunting": 35
+      }
+    },
+    {
+      "tier": 4,
+      "name": "Mithril",
+      "craftReq": 60,
+      "craftSkill": "blacksmithing",
+      "free": false,
+      "gatheringUnlock": {
+        "mining": 60,
+        "fishing": 55,
+        "herbalism": 55,
+        "hunting": 55
+      }
+    },
+    {
+      "tier": 5,
+      "name": "Adamantine",
+      "craftReq": 90,
+      "craftSkill": "blacksmithing",
+      "free": false,
+      "gatheringUnlock": {
+        "mining": 80,
+        "fishing": 75,
+        "herbalism": 75,
+        "hunting": 75
+      }
+    }
+  ],
+  "rarities": [
+    "common",
+    "uncommon",
+    "rare",
+    "epic",
+    "legendary",
+    "ultimate"
+  ],
+  "rarityColors": {
+    "common": "#999999",
+    "uncommon": "#6bff9b",
+    "rare": "#6bb5ff",
+    "epic": "#c455e8",
+    "legendary": "#ffdd6b",
+    "ultimate": "rainbow"
+  },
+  "items": {
+    "iron_crown": {
+      "name": "Iron Crown",
+      "emoji": "⛑️",
+      "rarity": "rare",
+      "type": "equipment",
+      "slot": "helm",
+      "source": "drop",
+      "sell": 180,
+      "desc": "A battered crown taken from a dungeon guardian.",
+      "stats": {
+        "def": 8,
+        "stm": 20
+      },
+      "element": "physical"
+    },
+    "ashen_vest": {
+      "name": "Ashen Vest",
+      "emoji": "🦺",
+      "rarity": "uncommon",
+      "type": "equipment",
+      "slot": "chest",
+      "source": "drop",
+      "sell": 90,
+      "desc": "Leather hardened in volcanic ash.",
+      "stats": {
+        "def": 5,
+        "stm": 15
+      },
+      "element": "physical"
+    },
+    "void_blade": {
+      "name": "Void Blade",
+      "emoji": "⚔️",
+      "rarity": "epic",
+      "type": "equipment",
+      "slot": "main",
+      "source": "drop",
+      "sell": 400,
+      "desc": "Forged from compressed darkness. Whispers when drawn.",
+      "stats": {
+        "atk": 18,
+        "agi": 2
+      },
+      "element": "void",
+      "traits": [
+        {
+          "type": "grantSkill",
+          "skill": "cleave"
+        }
+      ]
+    },
+    "iron_shield": {
+      "name": "Iron Shield",
+      "emoji": "🛡️",
+      "rarity": "common",
+      "type": "equipment",
+      "slot": "off",
+      "source": "drop",
+      "sell": 80,
+      "desc": "Heavy and dependable.",
+      "stats": {
+        "def": 6,
+        "stm": 10
+      },
+      "element": "physical"
+    },
+    "silver_ring": {
+      "name": "Silver Ring",
+      "emoji": "💍",
+      "rarity": "uncommon",
+      "type": "equipment",
+      "slot": "ring",
+      "source": "drop",
+      "sell": 110,
+      "desc": "Faintly magical. Hums when held.",
+      "stats": {
+        "wil": 12,
+        "agi": 1
+      },
+      "element": "arcana"
+    },
+    "ember_boots": {
+      "name": "Ember Boots",
+      "emoji": "🥾",
+      "rarity": "rare",
+      "type": "equipment",
+      "slot": "boots",
+      "source": "drop",
+      "sell": 160,
+      "desc": "Warm to the touch. Forged in volcanic stone.",
+      "stats": {
+        "agi": 4,
+        "atk": 3
+      },
+      "element": "fire"
+    },
+    "sage_legs": {
+      "name": "Sage Legguards",
+      "emoji": "👖",
+      "rarity": "uncommon",
+      "type": "equipment",
+      "slot": "legs",
+      "source": "drop",
+      "sell": 95,
+      "desc": "Woven from enchanted bark-fiber.",
+      "stats": {
+        "wil": 8,
+        "stm": 12
+      },
+      "element": "nature"
+    },
+    "crystal_trinket": {
+      "name": "Crystal Shard",
+      "emoji": "💠",
+      "rarity": "epic",
+      "type": "equipment",
+      "slot": "trinket",
+      "source": "drop",
+      "sell": 350,
+      "desc": "A fragment of a shattered mana crystal.",
+      "stats": {
+        "arc": 14,
+        "wil": 6
+      },
+      "element": "arcana"
+    },
+    "potion": {
+      "name": "Potion",
+      "emoji": "🧪",
+      "rarity": "common",
+      "type": "consumable",
+      "effect": "Heal 40 Stamina",
+      "sell": 20,
+      "desc": "A basic healing potion.",
+      "battle": {
+        "use": "heal",
+        "resource": "hp",
+        "power": 40,
+        "target": "one-ally",
+        "anim": "heal_sparkle"
+      }
+    },
+    "ether": {
+      "name": "Ether",
+      "emoji": "💧",
+      "rarity": "common",
+      "type": "consumable",
+      "effect": "Restore 30 MP",
+      "sell": 20,
+      "desc": "Restores magical energy.",
+      "battle": {
+        "use": "heal",
+        "resource": "mp",
+        "power": 30,
+        "target": "one-ally",
+        "anim": "heal_sparkle"
+      }
+    },
+    "elixir": {
+      "name": "Elixir",
+      "emoji": "⚗️",
+      "rarity": "rare",
+      "type": "consumable",
+      "effect": "Full Stamina + MP",
+      "sell": 200,
+      "desc": "Save it for when it counts.",
+      "battle": {
+        "use": "heal",
+        "resource": "both",
+        "power": 999,
+        "target": "one-ally",
+        "anim": "heal_sparkle"
+      }
+    },
+    "antidote": {
+      "name": "Antidote",
+      "emoji": "💊",
+      "rarity": "common",
+      "type": "consumable",
+      "effect": "Cure Venom",
+      "sell": 15,
+      "desc": "Purges toxins.",
+      "battle": {
+        "use": "cure",
+        "cures": [
+          "poison",
+          "burn"
+        ],
+        "target": "one-ally",
+        "anim": "heal_sparkle"
+      }
+    },
+    "bomb": {
+      "name": "Bomb",
+      "emoji": "💣",
+      "rarity": "uncommon",
+      "type": "consumable",
+      "effect": "60 Physical dmg",
+      "sell": 60,
+      "desc": "Light fuse. Step back.",
+      "battle": {
+        "use": "damage",
+        "element": "fire",
+        "power": 60,
+        "target": "one-enemy",
+        "anim": "fire_burst"
+      }
+    },
+    "stone": {
+      "name": "Stone",
+      "emoji": "🪨",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 2,
+      "desc": "Basic stone."
+    },
+    "copper_ore": {
+      "name": "Copper Ore",
+      "emoji": "🟤",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 10,
+      "desc": "Smelts into copper ingots."
+    },
+    "tin_ore": {
+      "name": "Tin Ore",
+      "emoji": "⬜",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 18,
+      "desc": "Used in bronze alloys."
+    },
+    "iron_ore": {
+      "name": "Iron Ore",
+      "emoji": "🔩",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 15,
+      "desc": "Common and useful."
+    },
+    "coal": {
+      "name": "Coal",
+      "emoji": "⬛",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 22,
+      "desc": "Fuel and smithing input."
+    },
+    "silver_ore": {
+      "name": "Silver Ore",
+      "emoji": "🔘",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 28,
+      "desc": "Bright and conductive."
+    },
+    "quartz": {
+      "name": "Quartz",
+      "emoji": "💎",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 35,
+      "desc": "Alchemical reagent."
+    },
+    "mithril_ore": {
+      "name": "Mithril Ore",
+      "emoji": "🔵",
+      "rarity": "rare",
+      "type": "material",
+      "source": "mining",
+      "sell": 300,
+      "desc": "Found only in deep veins."
+    },
+    "geode": {
+      "name": "Geode",
+      "emoji": "🔮",
+      "rarity": "legendary",
+      "type": "material",
+      "source": "mining",
+      "sell": 800,
+      "desc": "Crystalline wonder."
+    },
+    "root_fiber": {
+      "name": "Root Fiber",
+      "emoji": "🪢",
+      "rarity": "common",
+      "type": "material",
+      "source": "fishing",
+      "sell": 8,
+      "desc": "Used in leatherwork."
+    },
+    "ancient_sap": {
+      "name": "Ancient Sap",
+      "emoji": "🫙",
+      "rarity": "rare",
+      "type": "material",
+      "source": "fishing",
+      "sell": 120,
+      "desc": "Alchemical reagent."
+    },
+    "shadow_gem": {
+      "name": "Shadow Gem",
+      "emoji": "💎",
+      "rarity": "epic",
+      "type": "material",
+      "source": "fishing",
+      "sell": 500,
+      "desc": "Sought by enchanters."
+    },
+    "deeproot_key": {
+      "name": "Deeproot Key",
+      "emoji": "🗝️",
+      "rarity": "uncommon",
+      "type": "key",
+      "sell": 0,
+      "desc": "Unlocks the Sealed Chamber."
+    },
+    "myth_heart": {
+      "name": "Myth Heart",
+      "emoji": "💜",
+      "rarity": "ultimate",
+      "type": "key",
+      "sell": 0,
+      "desc": "Used for myth binding. Soulbound — cannot trade or sell.",
+      "soulbound": true,
+      "usable": true
+    },
+    "iron_ingot": {
+      "name": "Iron Ingot",
+      "emoji": "🔩",
+      "rarity": "common",
+      "type": "material",
+      "source": "craft",
+      "sell": 320,
+      "desc": "Smelted iron. Required for blacksmithing tier 2."
+    },
+    "silver_ingot": {
+      "name": "Silver Ingot",
+      "emoji": "🥈",
+      "rarity": "legendary",
+      "type": "material",
+      "source": "mining",
+      "sell": 480,
+      "desc": "Refined silver bar. Prized by jewelers."
+    },
+    "mithril_bar": {
+      "name": "Mithril Bar",
+      "emoji": "🔵",
+      "rarity": "legendary",
+      "type": "material",
+      "source": "mining",
+      "sell": 900,
+      "desc": "Smelted mithril. The backbone of endgame gear."
+    },
+    "adamant_frag": {
+      "name": "Adamant Frag",
+      "emoji": "💠",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 55,
+      "desc": "A shard of adamantine ore. Brittle but dense."
+    },
+    "slime_glob": {
+      "name": "Slime Glob",
+      "emoji": "🟢",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 8,
+      "desc": "Viscous slime. Used in alchemy and leatherwork."
+    },
+    "slime_resin": {
+      "name": "Slime Resin",
+      "emoji": "🟡",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 65,
+      "desc": "Hardened slime extract. Alchemical reagent."
+    },
+    "slime_crown": {
+      "name": "Slime Crown",
+      "emoji": "👑",
+      "rarity": "ultimate",
+      "type": "material",
+      "source": "mining",
+      "sell": 750,
+      "desc": "Worn by the largest Shade Slimes. Proof of a worthy kill."
+    },
+    "rubble": {
+      "name": "Rubble",
+      "emoji": "🪨",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 4,
+      "desc": "Broken stone fragments."
+    },
+    "golem_core": {
+      "name": "Golem Core",
+      "emoji": "🔷",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 180,
+      "desc": "The animating crystal from a stone golem. Faintly warm."
+    },
+    "runed_heart": {
+      "name": "Runed Heart",
+      "emoji": "❤",
+      "rarity": "legendary",
+      "type": "material",
+      "source": "mining",
+      "sell": 620,
+      "desc": "Carved from a golem\\u2019s chest. The runes still pulse."
+    },
+    "gold_pile": {
+      "name": "Gold Pile",
+      "emoji": "💰",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "chest",
+      "sell": 200,
+      "desc": "A handful of raw gold fragments."
+    },
+    "gem_cache": {
+      "name": "Gem Cache",
+      "emoji": "💎",
+      "rarity": "rare",
+      "type": "material",
+      "source": "chest",
+      "sell": 450,
+      "desc": "A pouch of mixed gemstones."
+    },
+    "ancient_relic": {
+      "name": "Ancient Relic",
+      "emoji": "🏺",
+      "rarity": "legendary",
+      "type": "material",
+      "source": "chest",
+      "sell": 900,
+      "desc": "Predates the current age. Scholars will pay well."
+    },
+    "perch": {
+      "name": "Common Perch",
+      "emoji": "🐟",
+      "rarity": "common",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 12,
+      "desc": "A plain river perch."
+    },
+    "roach": {
+      "name": "River Roach",
+      "emoji": "🐠",
+      "rarity": "common",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 15,
+      "desc": "Slippery little thing."
+    },
+    "carp": {
+      "name": "Muddy Carp",
+      "emoji": "🐡",
+      "rarity": "common",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 22,
+      "desc": "Bottom feeder."
+    },
+    "duck": {
+      "name": "Angry Duck",
+      "emoji": "🦆",
+      "rarity": "uncommon",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 0,
+      "desc": "It bit your line."
+    },
+    "eel": {
+      "name": "River Eel",
+      "emoji": "🐍",
+      "rarity": "uncommon",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 60,
+      "desc": "Long and pale."
+    },
+    "trout": {
+      "name": "Speckled Trout",
+      "emoji": "🐟",
+      "rarity": "uncommon",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 80,
+      "desc": "Good eating."
+    },
+    "bottle": {
+      "name": "Sealed Bottle",
+      "emoji": "🍶",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 140,
+      "desc": "Something inside."
+    },
+    "pike": {
+      "name": "Ghost Pike",
+      "emoji": "🐊",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 200,
+      "desc": "Massive. Translucent."
+    },
+    "afanc": {
+      "name": "Afanc",
+      "emoji": "🦎",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 90,
+      "desc": "Welsh lake beast."
+    },
+    "ahuizotl": {
+      "name": "Ahuizotl",
+      "emoji": "🦦",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 160,
+      "desc": "Aztec river spirit."
+    },
+    "kelpie": {
+      "name": "Kelpie",
+      "emoji": "🐎",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 150,
+      "desc": "Scottish water horse."
+    },
+    "aspido": {
+      "name": "Aspidochelone",
+      "emoji": "🐢",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 250,
+      "desc": "Medieval island-turtle."
+    },
+    "tiddalik": {
+      "name": "Tiddalik",
+      "emoji": "🐸",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 280,
+      "desc": "Frog that swallowed all water."
+    },
+    "koi_ryu": {
+      "name": "Koi-Ryū",
+      "emoji": "🐉",
+      "rarity": "epic",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 620,
+      "desc": "Koi mid-ascension."
+    },
+    "mythcarp": {
+      "name": "Mythbound Carp",
+      "emoji": "🐲",
+      "rarity": "epic",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 800,
+      "desc": "Mythic energy."
+    },
+    "leviathan": {
+      "name": "Leviathan Spawn",
+      "emoji": "🐍",
+      "rarity": "epic",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 700,
+      "desc": "Coil of the Primordial Sea Beast."
+    },
+    "qallu": {
+      "name": "Qallupilluit",
+      "emoji": "🫧",
+      "rarity": "epic",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 900,
+      "desc": "Inuit ice spirits."
+    },
+    "boot": {
+      "name": "Old Boot",
+      "emoji": "👟",
+      "rarity": "common",
+      "type": "junk",
+      "source": "fishing",
+      "sell": 0,
+      "desc": "Someone lost a boot."
+    },
+    "myth_heart_phoenix": {
+      "name": "Phoenix Heart",
+      "emoji": "❤️",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "fire",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "phoenix",
+      "color": "#ff6600",
+      "desc": "The bound heart of the Phoenix. Burns eternally."
+    },
+    "myth_heart_leviathan": {
+      "name": "Leviathan Heart",
+      "emoji": "💙",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "frost",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "leviathan",
+      "color": "#0066ff",
+      "desc": "Thrums with the deep ocean."
+    },
+    "myth_heart_thunderoc": {
+      "name": "Thunderoc Heart",
+      "emoji": "💛",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "arcana",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "thunderoc",
+      "color": "#ffdd00",
+      "desc": "Crackles with storm-born energy."
+    },
+    "myth_heart_voidwyrm": {
+      "name": "Voidwyrm Heart",
+      "emoji": "💜",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "void",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "voidwyrm",
+      "color": "#aa00ff",
+      "desc": "Pulses with the void between worlds."
+    },
+    "myth_heart_solarveil": {
+      "name": "Solarveil Heart",
+      "emoji": "🤍",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "light",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "solarveil",
+      "color": "#ffffff",
+      "desc": "Radiates pure unfiltered light."
+    },
+    "myth_heart_emberbear": {
+      "name": "Emberbear Heart",
+      "emoji": "🧡",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "fire",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "emberbear",
+      "color": "#ff4400",
+      "desc": "Warm as a hearthstone, fierce as a wildfire."
+    },
+    "myth_heart_moonshade": {
+      "name": "Moonshade Heart",
+      "emoji": "🩵",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "arcana",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "moonshade",
+      "color": "#aaaaff",
+      "desc": "Shifts like moonlight on still water."
+    },
+    "myth_heart_stoneheart": {
+      "name": "Stoneheart Heart",
+      "emoji": "🩶",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "physical",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "stoneheart",
+      "color": "#888888",
+      "desc": "Dense and unyielding as bedrock."
+    },
+    "myth_heart_tidecaller": {
+      "name": "Tidecaller Heart",
+      "emoji": "💙",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "frost",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "tidecaller",
+      "color": "#44ccff",
+      "desc": "Ebbs and flows like the tidal pulse."
+    },
+    "myth_heart_wraithwing": {
+      "name": "Wraithwing Heart",
+      "emoji": "🖤",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "void",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "wraithwing",
+      "color": "#666688",
+      "desc": "Cold to the touch. Barely there."
+    },
+    "phoenix_binding": {
+      "name": "Phoenix Binding",
+      "emoji": "🔥",
+      "rarity": "ultimate",
+      "type": "key",
+      "sell": 0,
+      "desc": "Your mythbound connection to the Phoenix. Cannot be removed or traded.",
+      "soulbound": true,
+      "mythBound": true
+    },
+    "nevermore": {
+      "name": "Nevermore",
+      "emoji": "⛓️",
+      "rarity": "ultimate",
+      "type": "equipment",
+      "slot": "chest",
+      "sell": 0,
+      "desc": "Developer item. Non-developers who obtain or use this item will have their accounts wiped by staff.",
+      "stats": {
+        "def": 10000,
+        "wil": 10000,
+        "stm": 35
+      },
+      "soulbound": true
+    }
+  },
+  "miningRocks": {
+    "copper_rock": {
+      "name": "COPPER ROCK",
+      "tier": 1,
+      "hp": 40,
+      "minLevel": 1,
+      "xp": 12,
+      "drops": [
+        {
+          "item": "stone",
+          "rarity": "common",
+          "pixel": "#888888",
+          "weight": 60
+        },
+        {
+          "item": "copper_ore",
+          "rarity": "common",
+          "pixel": "#e8631a",
+          "weight": 35
+        },
+        {
+          "item": "tin_ore",
+          "rarity": "uncommon",
+          "pixel": "#c0c0c0",
+          "weight": 4.9
+        },
+        {
+          "item": "geode",
+          "rarity": "legendary",
+          "pixel": "#c455e8",
+          "weight": 0.1
+        }
+      ]
+    },
+    "iron_rock": {
+      "name": "IRON ROCK",
+      "tier": 2,
+      "hp": 90,
+      "minLevel": 10,
+      "xp": 30,
+      "drops": [
+        {
+          "item": "stone",
+          "rarity": "common",
+          "pixel": "#888888",
+          "weight": 50
+        },
+        {
+          "item": "iron_ore",
+          "rarity": "common",
+          "pixel": "#a08070",
+          "weight": 40
+        },
+        {
+          "item": "coal",
+          "rarity": "uncommon",
+          "pixel": "#2a2a2a",
+          "weight": 9.5
+        },
+        {
+          "item": "geode",
+          "rarity": "legendary",
+          "pixel": "#c455e8",
+          "weight": 0.5
+        }
+      ]
+    },
+    "silver_rock": {
+      "name": "SILVER ROCK",
+      "tier": 3,
+      "hp": 150,
+      "minLevel": 25,
+      "xp": 55,
+      "drops": [
+        {
+          "item": "stone",
+          "rarity": "common",
+          "pixel": "#888888",
+          "weight": 45
+        },
+        {
+          "item": "silver_ore",
+          "rarity": "common",
+          "pixel": "#d0d0e0",
+          "weight": 42
+        },
+        {
+          "item": "quartz",
+          "rarity": "uncommon",
+          "pixel": "#eeeeee",
+          "weight": 12.5
+        },
+        {
+          "item": "geode",
+          "rarity": "legendary",
+          "pixel": "#ffffff",
+          "weight": 0.5
+        }
+      ]
+    },
+    "mithril_rock": {
+      "name": "MITHRIL ROCK",
+      "tier": 4,
+      "hp": 200,
+      "minLevel": 50,
+      "xp": 120,
+      "drops": [
+        {
+          "item": "stone",
+          "rarity": "common",
+          "pixel": "#888888",
+          "weight": 40
+        },
+        {
+          "item": "mithril_ore",
+          "rarity": "rare",
+          "pixel": "#9bd1e8",
+          "weight": 44.5
+        },
+        {
+          "item": "quartz",
+          "rarity": "uncommon",
+          "pixel": "#7ba8c4",
+          "weight": 15
+        },
+        {
+          "item": "geode",
+          "rarity": "legendary",
+          "pixel": "#cfeaf5",
+          "weight": 0.5
+        }
+      ]
+    }
+  },
+  "myths": [
+    {
+      "id": "chrono_drake",
+      "name": "Chronos",
+      "em": "⏱️",
+      "color": "#8e5cab",
+      "desc": "A serpentine dragon that coils through the timestream.",
+      "element": "arcana",
+      "statMods": {
+        "stm": 18,
+        "atk": 4,
+        "arc": 8,
+        "agi": 8,
+        "def": 2,
+        "wil": 6
+      },
+      "resist": {
+        "arcana": 35,
+        "void": 15
+      },
+      "passive": {
+        "name": "Foresight",
+        "desc": "Begins each battle with Haste."
+      },
+      "startStatus": "haste",
+      "aegis": "chronostasis"
+    },
+    {
+      "id": "phoenix",
+      "name": "Phoenix",
+      "em": "🔥",
+      "color": "#ff6600",
+      "desc": "A creature of rebirth. Its flame never dies.",
+      "element": "fire",
+      "statMods": {
+        "stm": 25,
+        "atk": 6,
+        "arc": 4,
+        "agi": 3,
+        "def": 0,
+        "wil": 2
+      },
+      "resist": {
+        "fire": 40,
+        "frost": -20
+      },
+      "passive": {
+        "name": "Rebirth",
+        "desc": "Aegis revives you to full HP."
+      },
+      "aegis": "immortal_flame"
+    },
+    {
+      "id": "void_wyrm",
+      "name": "Void Wyrm",
+      "em": "🐍",
+      "color": "#9b59b6",
+      "desc": "A wyrm born of the space between stars.",
+      "element": "void",
+      "statMods": {
+        "stm": 20,
+        "atk": 5,
+        "arc": 7,
+        "agi": 4,
+        "def": 3,
+        "wil": 6
+      },
+      "resist": {
+        "void": 40,
+        "light": -20
+      },
+      "passive": {
+        "name": "Gravity Well",
+        "desc": "Void spells shred enemy defense."
+      },
+      "aegis": "singularity"
+    },
+    {
+      "id": "glacial_leviathan",
+      "name": "Glacial Leviathan",
+      "em": "🐋",
+      "color": "#4fb0e0",
+      "desc": "A titan of the frozen deep.",
+      "element": "frost",
+      "statMods": {
+        "stm": 30,
+        "atk": 5,
+        "arc": 6,
+        "agi": 2,
+        "def": 4,
+        "wil": 5
+      },
+      "resist": {
+        "frost": 40,
+        "fire": -20
+      },
+      "passive": {
+        "name": "Deep Cold",
+        "desc": "Frost spells chill and slow."
+      },
+      "aegis": "absolute_zero"
+    }
+  ],
+  "roles": {
+    "owner": {
+      "label": "OWNER",
+      "color": "#ff6600",
+      "permissions": [
+        "all"
+      ]
+    },
+    "admin": {
+      "label": "ADMIN",
+      "color": "#ffdd6b",
+      "permissions": [
+        "send_items",
+        "unmyth",
+        "ban",
+        "kick",
+        "mute",
+        "manage_roles"
+      ]
+    },
+    "mod": {
+      "label": "MOD",
+      "color": "#6bff9b",
+      "permissions": [
+        "kick",
+        "mute",
+        "delete_messages",
+        "view_reports"
+      ]
+    },
+    "user": {
+      "label": "USER",
+      "color": "#aaaaaa",
+      "permissions": [
+        "chat",
+        "trade",
+        "mail"
+      ]
+    },
+    "muted": {
+      "label": "MUTED",
+      "color": "#555555",
+      "permissions": [
+        "read_chat"
+      ]
+    },
+    "banned": {
+      "label": "BANNED",
+      "color": "#ff4444",
+      "permissions": []
+    }
+  },
+  "chat": {
+    "maxMessageLength": 500,
+    "maxMessagesStored": 200,
+    "channels": [
+      {
+        "id": "global",
+        "label": "GLOBAL",
+        "description": "Open to all players"
+      },
+      {
+        "id": "trade",
+        "label": "TRADE",
+        "description": "Buy/sell/auction discussion"
+      },
+      {
+        "id": "lore",
+        "label": "LORE",
+        "description": "Lore and roleplay"
+      }
+    ]
+  },
+  "ownerAccounts": [
+    "RAVEN"
+  ],
+  "miningEnemies": [
+    {
+      "key": "slime",
+      "name": "HATE SLIME",
+      "tier": 1,
+      "hp": 50,
+      "xp": 18,
+      "minLevel": 1,
+      "maxLevel": 999,
+      "shape": "SLIME",
+      "drops": [
+        {
+          "item": "stone",
+          "weight": 65,
+          "rarity": "common",
+          "pixel": "#888"
+        },
+        {
+          "item": "quartz",
+          "weight": 30,
+          "rarity": "uncommon",
+          "pixel": "#888"
+        },
+        {
+          "item": "geode",
+          "weight": 5,
+          "rarity": "legendary",
+          "pixel": "#888"
+        }
+      ]
+    },
+    {
+      "key": "golem",
+      "name": "STONE GOLEM",
+      "tier": 2,
+      "hp": 95,
+      "xp": 45,
+      "minLevel": 10,
+      "maxLevel": 999,
+      "shape": "GOLEM",
+      "drops": [
+        {
+          "item": "stone",
+          "rarity": "common",
+          "pixel": "#777",
+          "weight": 55
+        },
+        {
+          "item": "copper_ore",
+          "rarity": "uncommon",
+          "pixel": "#6bb5ff",
+          "weight": 38
+        },
+        {
+          "item": "mithril_ore",
+          "rarity": "legendary",
+          "pixel": "#cfeaf5",
+          "weight": 7
+        }
+      ]
+    }
+  ],
+  "pickaxes": {
+    "copper": {
+      "name": "COPPER",
+      "tier": 1,
+      "damage": 8,
+      "energyCost": 10
+    },
+    "iron": {
+      "name": "IRON",
+      "tier": 2,
+      "damage": 14,
+      "energyCost": 18
+    },
+    "silver": {
+      "name": "SILVER",
+      "tier": 3,
+      "damage": 22,
+      "energyCost": 30
+    },
+    "mithril": {
+      "name": "MITHRIL",
+      "tier": 4,
+      "damage": 40,
+      "energyCost": 60
+    }
+  },
+  "elements": {
+    "physical": {
+      "name": "Physical",
+      "em": "⚔️",
+      "color": "#cccccc"
+    },
+    "fire": {
+      "name": "Fire",
+      "em": "🔥",
+      "color": "#ff6600"
+    },
+    "frost": {
+      "name": "Frost",
+      "em": "❄️",
+      "color": "#4ad6ff"
+    },
+    "nature": {
+      "name": "Nature",
+      "em": "🌿",
+      "color": "#6bff9b"
+    },
+    "void": {
+      "name": "Void",
+      "em": "🟣",
+      "color": "#b14aff"
+    },
+    "arcana": {
+      "name": "Arcana",
+      "em": "🔮",
+      "color": "#ff5fd2"
+    },
+    "light": {
+      "name": "Light",
+      "em": "✨",
+      "color": "#ffe066"
+    }
+  },
+  "combatRoles": {
+    "tank": {
+      "name": "Tank",
+      "em": "🛡️",
+      "favoredStats": [
+        "stm",
+        "def"
+      ],
+      "baseSkills": [
+        "guard",
+        "taunt"
+      ],
+      "desc": "Holds threat and absorbs damage. Scales off DEF/STR."
+    },
+    "support": {
+      "name": "Support",
+      "em": "➕",
+      "favoredStats": [
+        "arc",
+        "wil"
+      ],
+      "baseSkills": [
+        "mend",
+        "protect"
+      ],
+      "desc": "Heals and buffs the party. Scales off INT."
+    },
+    "dps": {
+      "name": "DPS",
+      "em": "⚔️",
+      "favoredStats": [
+        "atk",
+        "agi"
+      ],
+      "baseSkills": [
+        "strike",
+        "quick_slash"
+      ],
+      "desc": "Deals damage. STR for heavy strikers, AGI for quick strikers."
+    }
+  },
+  "skills": {
+    "guard": {
+      "type": "skill",
+      "effect": "buff",
+      "resource": "hp",
+      "drain": false,
+      "element": "physical",
+      "formula": "0",
+      "mpCost": 0,
+      "target": "self",
+      "anim": "buff_glow",
+      "status": "protect",
+      "statusChance": 1,
+      "notes": "TANK base. Raise own DEF.",
+      "name": "Guard",
+      "em": "🛡️"
+    },
+    "taunt": {
+      "type": "skill",
+      "effect": "debuff",
+      "resource": "hp",
+      "drain": false,
+      "element": "physical",
+      "formula": "0",
+      "mpCost": 0,
+      "target": "one-enemy",
+      "anim": "buff_glow",
+      "status": "taunted",
+      "statusChance": 1,
+      "notes": "TANK base. Force a foe to target you.",
+      "name": "Taunt",
+      "em": "💢"
+    },
+    "mend": {
+      "type": "spell",
+      "effect": "heal",
+      "resource": "hp",
+      "drain": false,
+      "element": "nature",
+      "formula": "a.arc * 1.8 + 18",
+      "mpCost": 10,
+      "target": "one-ally",
+      "anim": "heal_sparkle",
+      "status": null,
+      "statusChance": 0,
+      "notes": "SUPPORT base. Heal scales ARC (magic atk).",
+      "name": "Mend",
+      "em": "💚"
+    },
+    "rally": {
+      "type": "spell",
+      "effect": "buff",
+      "resource": "hp",
+      "drain": false,
+      "element": "physical",
+      "formula": "0",
+      "mpCost": 12,
+      "target": "all-allies",
+      "anim": "buff_glow",
+      "status": "atk_up",
+      "statusChance": 1,
+      "notes": "SUPPORT base. Party ATK up.",
+      "name": "Rally",
+      "em": "⬆️"
+    },
+    "strike": {
+      "type": "skill",
+      "effect": "damage",
+      "resource": "hp",
+      "drain": false,
+      "element": "physical",
+      "formula": "a.atk * 2.2 - b.def * 1.5 + 6",
+      "mpCost": 0,
+      "target": "one-enemy",
+      "anim": "slash",
+      "status": null,
+      "statusChance": 0,
+      "notes": "DPS base. Heavy melee (ATK).",
+      "name": "Strike",
+      "em": "🗡️"
+    },
+    "quick_slash": {
+      "type": "skill",
+      "effect": "damage",
+      "resource": "hp",
+      "drain": false,
+      "element": "physical",
+      "formula": "a.agi * 2 - b.def * 1.5 + 4",
+      "mpCost": 0,
+      "target": "one-enemy",
+      "anim": "slash",
+      "status": null,
+      "statusChance": 0,
+      "notes": "DPS base. Fast hit (AGI/finesse).",
+      "name": "Quick Slash",
+      "em": "⚡"
+    },
+    "fireball": {
+      "type": "spell",
+      "effect": "damage",
+      "resource": "hp",
+      "drain": false,
+      "element": "fire",
+      "formula": "a.arc * 3 - b.wil * 1.5 + 8",
+      "mpCost": 12,
+      "target": "one-enemy",
+      "anim": "fire_burst",
+      "status": "burn",
+      "statusChance": 0.4,
+      "notes": "Fire nuke (ARC). May Burn.",
+      "name": "Fireball",
+      "em": "🔥"
+    },
+    "ice_lance": {
+      "type": "spell",
+      "effect": "damage",
+      "resource": "hp",
+      "drain": false,
+      "element": "frost",
+      "formula": "a.arc * 2.8 - b.wil * 1.5 + 8",
+      "mpCost": 12,
+      "target": "one-enemy",
+      "anim": "frost_shard",
+      "status": "chill",
+      "statusChance": 0.5,
+      "notes": "Frost nuke (ARC). May Chill.",
+      "name": "Ice Lance",
+      "em": "❄️"
+    },
+    "vine_grasp": {
+      "type": "spell",
+      "effect": "damage",
+      "resource": "hp",
+      "drain": false,
+      "element": "nature",
+      "formula": "a.arc * 2.5 - b.wil * 1.5 + 6",
+      "mpCost": 14,
+      "target": "one-enemy",
+      "anim": "nature_coil",
+      "status": "root",
+      "statusChance": 0.5,
+      "notes": "Nature nuke (ARC). May Root.",
+      "name": "Vine Grasp",
+      "em": "🌿"
+    },
+    "void_rend": {
+      "type": "spell",
+      "effect": "damage",
+      "resource": "hp",
+      "drain": false,
+      "element": "void",
+      "formula": "a.arc * 3.2 - b.wil * 1.5 + 10",
+      "mpCost": 16,
+      "target": "one-enemy",
+      "anim": "void_tear",
+      "status": null,
+      "statusChance": 0,
+      "notes": "Heavy void nuke (ARC).",
+      "name": "Void Rend",
+      "em": "🟣"
+    },
+    "smite": {
+      "type": "spell",
+      "effect": "damage",
+      "resource": "hp",
+      "drain": false,
+      "element": "light",
+      "formula": "a.arc * 3 - b.wil * 1.5 + 8",
+      "mpCost": 14,
+      "target": "one-enemy",
+      "anim": "light_ray",
+      "status": null,
+      "statusChance": 0,
+      "notes": "Light nuke (ARC).",
+      "name": "Smite",
+      "em": "✨"
+    },
+    "arc_bolt": {
+      "type": "spell",
+      "effect": "damage",
+      "resource": "hp",
+      "drain": false,
+      "element": "arcana",
+      "formula": "a.arc * 2.8 - b.wil * 1.5 + 6",
+      "mpCost": 12,
+      "target": "one-enemy",
+      "anim": "arcana_zap",
+      "status": null,
+      "statusChance": 0,
+      "notes": "Arcana nuke (ARC).",
+      "name": "Arc Bolt",
+      "em": "🔮"
+    },
+    "mana_burn": {
+      "type": "spell",
+      "effect": "damage",
+      "resource": "mp",
+      "drain": true,
+      "element": "arcana",
+      "formula": "a.arc * 2 - b.wil * 1 + 4",
+      "mpCost": 8,
+      "target": "one-enemy",
+      "anim": "arcana_zap",
+      "status": null,
+      "statusChance": 0,
+      "notes": "Drains MP, restores caster MP.",
+      "name": "Mana Burn",
+      "em": "🔵"
+    },
+    "cleave": {
+      "type": "skill",
+      "effect": "damage",
+      "resource": "hp",
+      "drain": false,
+      "element": "physical",
+      "formula": "a.atk * 1.6 - b.def * 1.5 + 4",
+      "mpCost": 0,
+      "target": "all-enemies",
+      "anim": "slash",
+      "status": null,
+      "statusChance": 0,
+      "notes": "Granted by some weapons (+Skill trait).",
+      "name": "Cleave",
+      "em": "🪓"
+    },
+    "poison_spores": {
+      "type": "spell",
+      "effect": "damage",
+      "resource": "hp",
+      "drain": false,
+      "element": "nature",
+      "formula": "a.arc * 2 - b.wil * 1.5 + 6",
+      "mpCost": 14,
+      "target": "all-enemies",
+      "anim": "poison_tick",
+      "status": "poison",
+      "statusChance": 0.6,
+      "notes": "Enemy AoE; applies Poison.",
+      "name": "Poison Spores",
+      "em": "🟢"
+    },
+    "haste": {
+      "type": "spell",
+      "effect": "buff",
+      "element": "arcana",
+      "resource": "hp",
+      "mpCost": 10,
+      "formula": "0",
+      "target": "one-ally",
+      "status": "haste",
+      "statusChance": 1,
+      "em": "⏩",
+      "name": "Haste"
+    },
+    "protect": {
+      "type": "spell",
+      "effect": "buff",
+      "element": "light",
+      "resource": "hp",
+      "mpCost": 10,
+      "formula": "0",
+      "target": "one-ally",
+      "status": "protect",
+      "statusChance": 1,
+      "em": "🛡️",
+      "name": "Protect"
+    },
+    "shell": {
+      "type": "spell",
+      "effect": "buff",
+      "element": "arcana",
+      "resource": "hp",
+      "mpCost": 10,
+      "formula": "0",
+      "target": "one-ally",
+      "status": "shell",
+      "statusChance": 1,
+      "em": "🔮",
+      "name": "Shell"
+    },
+    "slow": {
+      "type": "spell",
+      "effect": "debuff",
+      "element": "frost",
+      "resource": "hp",
+      "mpCost": 10,
+      "formula": "0",
+      "target": "one-enemy",
+      "status": "slow",
+      "statusChance": 0.85,
+      "em": "🐌",
+      "name": "Slow"
+    },
+    "cd_temporal_rend": {
+      "type": "spell",
+      "effect": "damage",
+      "element": "arcana",
+      "resource": "hp",
+      "mpCost": 12,
+      "formula": "a.arc * 2.8 - b.wil * 1.5 + 8",
+      "target": "one-enemy",
+      "status": "slow",
+      "statusChance": 0.6,
+      "drain": false,
+      "name": "Temporal Rend",
+      "em": "⌛",
+      "mythReq": "chrono_drake",
+      "role": "dps"
+    },
+    "cd_time_slash": {
+      "type": "skill",
+      "effect": "damage",
+      "element": "physical",
+      "resource": "hp",
+      "mpCost": 8,
+      "formula": "a.agi * 2.4 - b.def * 1.5 + 6",
+      "target": "one-enemy",
+      "status": null,
+      "statusChance": 0,
+      "drain": false,
+      "name": "Time Slash",
+      "em": "🗡️",
+      "mythReq": "chrono_drake",
+      "role": "dps"
+    },
+    "cd_rewind": {
+      "type": "spell",
+      "effect": "heal",
+      "element": "arcana",
+      "resource": "hp",
+      "mpCost": 12,
+      "formula": "a.arc * 1.8 + 16",
+      "target": "one-ally",
+      "status": "regen",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Rewind",
+      "em": "↩️",
+      "mythReq": "chrono_drake",
+      "role": "support"
+    },
+    "cd_quicken": {
+      "type": "spell",
+      "effect": "buff",
+      "element": "arcana",
+      "resource": "hp",
+      "mpCost": 10,
+      "formula": "0",
+      "target": "one-ally",
+      "status": "haste",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Quicken",
+      "em": "⏩",
+      "mythReq": "chrono_drake",
+      "role": "support"
+    },
+    "cd_stasis_lock": {
+      "type": "spell",
+      "effect": "debuff",
+      "element": "arcana",
+      "resource": "hp",
+      "mpCost": 12,
+      "formula": "0",
+      "target": "one-enemy",
+      "status": "stop",
+      "statusChance": 0.75,
+      "drain": false,
+      "name": "Stasis Lock",
+      "em": "⏸️",
+      "mythReq": "chrono_drake",
+      "role": "tank"
+    },
+    "cd_temporal_guard": {
+      "type": "spell",
+      "effect": "buff",
+      "element": "arcana",
+      "resource": "hp",
+      "mpCost": 8,
+      "formula": "0",
+      "target": "self",
+      "status": "haste",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Temporal Guard",
+      "em": "🛡️",
+      "mythReq": "chrono_drake",
+      "role": "tank"
+    },
+    "chronostasis": {
+      "type": "spell",
+      "effect": "buff",
+      "element": "arcana",
+      "resource": "hp",
+      "mpCost": 0,
+      "formula": "0",
+      "target": "self",
+      "status": null,
+      "statusChance": 0,
+      "drain": false,
+      "name": "Chronostasis",
+      "em": "🕛",
+      "aegis": true,
+      "aegisKind": "timestop",
+      "mythReq": "chrono_drake",
+      "desc": "AEGIS: stop time — all foes freeze while you take 2 free turns."
+    },
+    "px_pyre_lance": {
+      "type": "spell",
+      "effect": "damage",
+      "element": "fire",
+      "resource": "hp",
+      "mpCost": 12,
+      "formula": "a.arc * 2.8 - b.wil * 1.5 + 8",
+      "target": "one-enemy",
+      "status": "burn",
+      "statusChance": 0.5,
+      "drain": false,
+      "name": "Pyre Lance",
+      "em": "🔥",
+      "mythReq": "phoenix",
+      "role": "dps"
+    },
+    "px_flame_burst": {
+      "type": "spell",
+      "effect": "damage",
+      "element": "fire",
+      "resource": "hp",
+      "mpCost": 16,
+      "formula": "a.arc * 1.9 - b.wil * 1.5 + 6",
+      "target": "all-enemies",
+      "status": "burn",
+      "statusChance": 0.35,
+      "drain": false,
+      "name": "Flame Burst",
+      "em": "💥",
+      "mythReq": "phoenix",
+      "role": "dps"
+    },
+    "px_cauterize": {
+      "type": "spell",
+      "effect": "heal",
+      "element": "fire",
+      "resource": "hp",
+      "mpCost": 10,
+      "formula": "a.arc * 1.8 + 16",
+      "target": "one-ally",
+      "status": null,
+      "statusChance": 0,
+      "drain": false,
+      "name": "Cauterize",
+      "em": "➕",
+      "mythReq": "phoenix",
+      "role": "support",
+      "cure": true
+    },
+    "px_warming_flame": {
+      "type": "spell",
+      "effect": "heal",
+      "element": "fire",
+      "resource": "hp",
+      "mpCost": 16,
+      "formula": "a.arc * 1.6 + 20",
+      "target": "all-allies",
+      "status": null,
+      "statusChance": 0,
+      "drain": false,
+      "name": "Warming Flame",
+      "em": "🕯️",
+      "mythReq": "phoenix",
+      "role": "support"
+    },
+    "px_ember_ward": {
+      "type": "spell",
+      "effect": "buff",
+      "element": "fire",
+      "resource": "hp",
+      "mpCost": 10,
+      "formula": "0",
+      "target": "one-ally",
+      "status": "protect",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Ember Ward",
+      "em": "🛡️",
+      "mythReq": "phoenix",
+      "role": "tank"
+    },
+    "px_flame_taunt": {
+      "type": "spell",
+      "effect": "debuff",
+      "element": "fire",
+      "resource": "hp",
+      "mpCost": 6,
+      "formula": "0",
+      "target": "one-enemy",
+      "status": "taunted",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Flame Taunt",
+      "em": "💢",
+      "mythReq": "phoenix",
+      "role": "tank"
+    },
+    "immortal_flame": {
+      "type": "spell",
+      "effect": "damage",
+      "element": "fire",
+      "resource": "hp",
+      "mpCost": 0,
+      "formula": "a.arc * 3.4 - b.wil * 1.5 + 18",
+      "target": "all-enemies",
+      "status": "burn",
+      "statusChance": 0.6,
+      "drain": false,
+      "name": "Immortal Flame",
+      "em": "🦅",
+      "aegis": true,
+      "aegisKind": "rebirth",
+      "mythReq": "phoenix",
+      "desc": "AEGIS: revive to full HP, purge debuffs, and erupt in a fire nova."
+    },
+    "vw_gravity_crush": {
+      "type": "spell",
+      "effect": "damage",
+      "element": "void",
+      "resource": "hp",
+      "mpCost": 12,
+      "formula": "a.arc * 2.8 - b.wil * 1.5 + 8",
+      "target": "one-enemy",
+      "status": "def_down",
+      "statusChance": 0.6,
+      "drain": false,
+      "name": "Gravity Crush",
+      "em": "🌑",
+      "mythReq": "void_wyrm",
+      "role": "dps"
+    },
+    "vw_null_blast": {
+      "type": "spell",
+      "effect": "damage",
+      "element": "void",
+      "resource": "hp",
+      "mpCost": 16,
+      "formula": "a.arc * 1.9 - b.wil * 1.5 + 6",
+      "target": "all-enemies",
+      "status": null,
+      "statusChance": 0,
+      "drain": false,
+      "name": "Null Blast",
+      "em": "🕳️",
+      "mythReq": "void_wyrm",
+      "role": "dps"
+    },
+    "vw_null_shield": {
+      "type": "spell",
+      "effect": "buff",
+      "element": "void",
+      "resource": "hp",
+      "mpCost": 10,
+      "formula": "0",
+      "target": "one-ally",
+      "status": "shell",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Null Shield",
+      "em": "🔮",
+      "mythReq": "void_wyrm",
+      "role": "support"
+    },
+    "vw_entropy_siphon": {
+      "type": "spell",
+      "effect": "damage",
+      "element": "void",
+      "resource": "hp",
+      "mpCost": 14,
+      "formula": "a.arc * 2.8 - b.wil * 1.5 + 8",
+      "target": "one-enemy",
+      "status": null,
+      "statusChance": 0,
+      "drain": true,
+      "name": "Entropy Siphon",
+      "em": "🌀",
+      "mythReq": "void_wyrm",
+      "role": "support"
+    },
+    "vw_void_taunt": {
+      "type": "spell",
+      "effect": "debuff",
+      "element": "void",
+      "resource": "hp",
+      "mpCost": 6,
+      "formula": "0",
+      "target": "one-enemy",
+      "status": "taunted",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Void Taunt",
+      "em": "💢",
+      "mythReq": "void_wyrm",
+      "role": "tank"
+    },
+    "vw_oblivion_guard": {
+      "type": "spell",
+      "effect": "buff",
+      "element": "void",
+      "resource": "hp",
+      "mpCost": 8,
+      "formula": "0",
+      "target": "self",
+      "status": "shell",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Oblivion Guard",
+      "em": "🛡️",
+      "mythReq": "void_wyrm",
+      "role": "tank"
+    },
+    "singularity": {
+      "type": "spell",
+      "effect": "damage",
+      "element": "void",
+      "resource": "hp",
+      "mpCost": 0,
+      "formula": "a.arc * 3.4 - b.wil * 1.5 + 18",
+      "target": "all-enemies",
+      "status": "def_down",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Singularity",
+      "em": "⚫",
+      "aegis": true,
+      "aegisKind": "nova",
+      "mythReq": "void_wyrm",
+      "desc": "AEGIS: a collapsing void crushes all foes and shreds their defense."
+    },
+    "gl_frost_fang": {
+      "type": "spell",
+      "effect": "damage",
+      "element": "frost",
+      "resource": "hp",
+      "mpCost": 12,
+      "formula": "a.arc * 2.8 - b.wil * 1.5 + 8",
+      "target": "one-enemy",
+      "status": "chill",
+      "statusChance": 0.6,
+      "drain": false,
+      "name": "Frost Fang",
+      "em": "❄️",
+      "mythReq": "glacial_leviathan",
+      "role": "dps"
+    },
+    "gl_glacial_spike": {
+      "type": "spell",
+      "effect": "damage",
+      "element": "frost",
+      "resource": "hp",
+      "mpCost": 12,
+      "formula": "a.arc * 2.8 - b.wil * 1.5 + 8",
+      "target": "one-enemy",
+      "status": "slow",
+      "statusChance": 0.5,
+      "drain": false,
+      "name": "Glacial Spike",
+      "em": "🧊",
+      "mythReq": "glacial_leviathan",
+      "role": "dps"
+    },
+    "gl_tidal_mend": {
+      "type": "spell",
+      "effect": "heal",
+      "element": "frost",
+      "resource": "hp",
+      "mpCost": 16,
+      "formula": "a.arc * 1.6 + 20",
+      "target": "all-allies",
+      "status": null,
+      "statusChance": 0,
+      "drain": false,
+      "name": "Tidal Mend",
+      "em": "🌊",
+      "mythReq": "glacial_leviathan",
+      "role": "support"
+    },
+    "gl_frost_barrier": {
+      "type": "spell",
+      "effect": "buff",
+      "element": "frost",
+      "resource": "hp",
+      "mpCost": 10,
+      "formula": "0",
+      "target": "one-ally",
+      "status": "protect",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Frost Barrier",
+      "em": "🛡️",
+      "mythReq": "glacial_leviathan",
+      "role": "support"
+    },
+    "gl_frozen_taunt": {
+      "type": "spell",
+      "effect": "debuff",
+      "element": "frost",
+      "resource": "hp",
+      "mpCost": 6,
+      "formula": "0",
+      "target": "one-enemy",
+      "status": "taunted",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Frozen Taunt",
+      "em": "💢",
+      "mythReq": "glacial_leviathan",
+      "role": "tank"
+    },
+    "gl_iceguard": {
+      "type": "spell",
+      "effect": "buff",
+      "element": "frost",
+      "resource": "hp",
+      "mpCost": 8,
+      "formula": "0",
+      "target": "self",
+      "status": "protect",
+      "statusChance": 1,
+      "drain": false,
+      "name": "Iceguard",
+      "em": "🛡️",
+      "mythReq": "glacial_leviathan",
+      "role": "tank"
+    },
+    "absolute_zero": {
+      "type": "spell",
+      "effect": "damage",
+      "element": "frost",
+      "resource": "hp",
+      "mpCost": 0,
+      "formula": "a.arc * 3.4 - b.wil * 1.5 + 18",
+      "target": "all-enemies",
+      "status": "sleep",
+      "statusChance": 0.5,
+      "drain": false,
+      "name": "Absolute Zero",
+      "em": "🐋",
+      "aegis": true,
+      "aegisKind": "nova",
+      "extraStatus": "slow",
+      "mythReq": "glacial_leviathan",
+      "desc": "AEGIS: the abyss freezes over — heavy frost, Slow, and a chance to freeze all foes."
+    }
+  },
+  "statuses": {
+    "burn": {
+      "name": "Burn",
+      "em": "🔥",
+      "kind": "debuff",
+      "effect": "dot",
+      "element": "fire",
+      "magnitude": 8,
+      "duration": 3,
+      "tick": "turn-start",
+      "anim": "burn_tick",
+      "desc": "Fire damage each turn."
+    },
+    "poison": {
+      "name": "Poison",
+      "em": "🟢",
+      "kind": "debuff",
+      "effect": "dot",
+      "element": "nature",
+      "magnitude": 6,
+      "duration": 4,
+      "tick": "turn-start",
+      "anim": "poison_tick",
+      "desc": "Nature damage each turn."
+    },
+    "chill": {
+      "name": "Chill",
+      "em": "❄️",
+      "kind": "debuff",
+      "effect": "stat",
+      "stat": "agi",
+      "magnitude": -0.3,
+      "duration": 3,
+      "anim": "frost_shard",
+      "desc": "-30% SPD."
+    },
+    "root": {
+      "name": "Root",
+      "em": "🌿",
+      "kind": "debuff",
+      "effect": "stun",
+      "magnitude": 1,
+      "duration": 1,
+      "anim": "nature_coil",
+      "desc": "Skip 1 turn."
+    },
+    "taunted": {
+      "name": "Taunted",
+      "em": "💢",
+      "kind": "debuff",
+      "effect": "taunt",
+      "magnitude": 1,
+      "duration": 2,
+      "anim": "buff_glow",
+      "desc": "Must attack the taunter."
+    },
+    "atk_up": {
+      "name": "ATK Up",
+      "em": "⬆️",
+      "kind": "buff",
+      "effect": "stat",
+      "stat": "atk",
+      "magnitude": 0.25,
+      "duration": 3,
+      "anim": "buff_glow",
+      "desc": "+25% STR."
+    },
+    "def_up": {
+      "name": "DEF Up",
+      "em": "🛡️",
+      "kind": "buff",
+      "effect": "stat",
+      "stat": "def",
+      "magnitude": 0.3,
+      "duration": 3,
+      "anim": "buff_glow",
+      "desc": "+30% DEF."
+    },
+    "def_down": {
+      "name": "DEF Down",
+      "em": "⬇️",
+      "kind": "debuff",
+      "effect": "stat",
+      "stat": "def",
+      "magnitude": -0.25,
+      "duration": 3,
+      "anim": "buff_glow",
+      "desc": "-25% DEF."
+    },
+    "regen": {
+      "name": "Regen",
+      "em": "💚",
+      "kind": "buff",
+      "effect": "regen",
+      "magnitude": 12,
+      "duration": 3,
+      "tick": "turn-start",
+      "anim": "heal_sparkle",
+      "desc": "Heal each turn."
+    },
+    "warden_bless": {
+      "name": "Warden's Bless",
+      "em": "🛡️",
+      "kind": "buff",
+      "effect": "stat",
+      "stat": "def",
+      "magnitude": 0.25,
+      "duration": 99,
+      "anim": "buff_glow",
+      "desc": "Enemy buff: +25% DEF."
+    },
+    "haste": {
+      "name": "Haste",
+      "em": "⏩",
+      "kind": "buff",
+      "effect": "haste",
+      "magnitude": 0.5,
+      "duration": 4,
+      "anim": "buff_glow",
+      "desc": "ATB fills 50% faster."
+    },
+    "slow": {
+      "name": "Slow",
+      "em": "🐌",
+      "kind": "debuff",
+      "effect": "slow",
+      "magnitude": 0.4,
+      "duration": 3,
+      "anim": "frost_shard",
+      "desc": "ATB fills 40% slower."
+    },
+    "protect": {
+      "name": "Protect",
+      "em": "🛡️",
+      "kind": "buff",
+      "effect": "protect",
+      "magnitude": 0.5,
+      "duration": 4,
+      "anim": "buff_glow",
+      "desc": "Physical damage taken -50%."
+    },
+    "shell": {
+      "name": "Shell",
+      "em": "🔮",
+      "kind": "buff",
+      "effect": "shell",
+      "magnitude": 0.5,
+      "duration": 4,
+      "anim": "buff_glow",
+      "desc": "Magic damage taken -50%."
+    },
+    "berserk": {
+      "name": "Berserk",
+      "em": "😡",
+      "kind": "debuff",
+      "effect": "berserk",
+      "magnitude": 0.5,
+      "duration": 3,
+      "anim": "buff_glow",
+      "desc": "+50% ATK but attacks blindly."
+    },
+    "blind": {
+      "name": "Blind",
+      "em": "🌑",
+      "kind": "debuff",
+      "effect": "blind",
+      "magnitude": 0.5,
+      "duration": 3,
+      "anim": "frost_shard",
+      "desc": "Physical damage dealt -50%."
+    },
+    "silence": {
+      "name": "Silence",
+      "em": "🤐",
+      "kind": "debuff",
+      "effect": "silence",
+      "magnitude": 1,
+      "duration": 3,
+      "anim": "frost_shard",
+      "desc": "Cannot cast spells."
+    },
+    "sleep": {
+      "name": "Sleep",
+      "em": "💤",
+      "kind": "debuff",
+      "effect": "sleep",
+      "magnitude": 1,
+      "duration": 3,
+      "anim": "frost_shard",
+      "desc": "Skips turns until struck."
+    }
+  },
+  "animations": {
+    "slash": {
+      "name": "Slash",
+      "type": "slash",
+      "color": "#ffffff",
+      "em": "",
+      "shake": 2,
+      "durationMs": 300
+    },
+    "fire_burst": {
+      "name": "Fire Burst",
+      "type": "flash",
+      "color": "#ff6600",
+      "em": "🔥",
+      "shake": 4,
+      "durationMs": 480
+    },
+    "frost_shard": {
+      "name": "Frost Shard",
+      "type": "projectile",
+      "color": "#4ad6ff",
+      "em": "❄️",
+      "shake": 3,
+      "durationMs": 450
+    },
+    "nature_coil": {
+      "name": "Nature Coil",
+      "type": "flash",
+      "color": "#6bff9b",
+      "em": "🌿",
+      "shake": 2,
+      "durationMs": 450
+    },
+    "void_tear": {
+      "name": "Void Tear",
+      "type": "flash",
+      "color": "#b14aff",
+      "em": "🟣",
+      "shake": 5,
+      "durationMs": 500
+    },
+    "light_ray": {
+      "name": "Light Ray",
+      "type": "projectile",
+      "color": "#ffe066",
+      "em": "✨",
+      "shake": 2,
+      "durationMs": 450
+    },
+    "arcana_zap": {
+      "name": "Arcana Zap",
+      "type": "projectile",
+      "color": "#ff5fd2",
+      "em": "🔮",
+      "shake": 3,
+      "durationMs": 450
+    },
+    "heal_sparkle": {
+      "name": "Heal Sparkle",
+      "type": "heal-sparkle",
+      "color": "#6bff9b",
+      "em": "💚",
+      "shake": 0,
+      "durationMs": 600
+    },
+    "buff_glow": {
+      "name": "Buff Glow",
+      "type": "flash",
+      "color": "#ffdd6b",
+      "em": "",
+      "shake": 0,
+      "durationMs": 400
+    },
+    "burn_tick": {
+      "name": "Burn Tick",
+      "type": "tick",
+      "color": "#ff6600",
+      "em": "🔥",
+      "shake": 0,
+      "durationMs": 300
+    },
+    "poison_tick": {
+      "name": "Poison Tick",
+      "type": "tick",
+      "color": "#6bff9b",
+      "em": "🟢",
+      "shake": 0,
+      "durationMs": 300
+    }
+  },
+  "combatEnemies": {
+    "sprite": {
+      "name": "SPRITE",
+      "em": "🕷️",
+      "element": "void",
+      "hp": 120,
+      "mp": 20,
+      "agi": 18,
+      "def": 8,
+      "resist": {
+        "fire": -25,
+        "void": 25
+      },
+      "xp": 40,
+      "gold": 15,
+      "skills": [
+        "strike",
+        "taunt"
+      ],
+      "pattern": "aggressive",
+      "drops": [
+        {
+          "item": "slime_glob",
+          "qty": [
+            1,
+            2
+          ],
+          "chance": 0.5
+        },
+        {
+          "item": "shadow_gem",
+          "qty": 1,
+          "chance": 0.05
+        }
+      ],
+      "lines": [
+        "* The SPRITE skitters in place.",
+        "* It is weaving something sticky.",
+        "* SPRITE is sizing you up."
+      ],
+      "atk": 14,
+      "arc": 8,
+      "wil": 6
+    },
+    "fungus": {
+      "name": "FUNGUS",
+      "em": "🍄",
+      "element": "nature",
+      "hp": 150,
+      "mp": 30,
+      "agi": 14,
+      "def": 8,
+      "resist": {
+        "fire": -25,
+        "nature": 40
+      },
+      "xp": 55,
+      "gold": 20,
+      "skills": [
+        "vine_grasp",
+        "poison_spores"
+      ],
+      "pattern": "caster",
+      "statusesOnSpawn": [
+        "warden_bless"
+      ],
+      "drops": [
+        {
+          "item": "ancient_sap",
+          "qty": 1,
+          "chance": 0.3
+        },
+        {
+          "item": "potion",
+          "qty": [
+            1,
+            2
+          ],
+          "chance": 0.4
+        }
+      ],
+      "lines": [
+        "* FUNGUS releases a cloud of spores.",
+        "* It smells damp and old.",
+        "* FUNGUS pulses with green light."
+      ],
+      "atk": 12,
+      "arc": 16,
+      "wil": 10
+    },
+    "rootling": {
+      "name": "ROOTLING",
+      "em": "🌿",
+      "element": "nature",
+      "hp": 135,
+      "mp": 10,
+      "agi": 10,
+      "def": 10,
+      "resist": {
+        "fire": -25,
+        "nature": 40
+      },
+      "xp": 45,
+      "gold": 12,
+      "skills": [
+        "strike",
+        "vine_grasp"
+      ],
+      "pattern": "defensive",
+      "statusesOnSpawn": [
+        "warden_bless"
+      ],
+      "drops": [
+        {
+          "item": "root_fiber",
+          "qty": [
+            2,
+            4
+          ],
+          "chance": 0.6
+        }
+      ],
+      "lines": [
+        "* The ROOTLING burrows nervously.",
+        "* Tiny roots probe the ground.",
+        "* ROOTLING wants to go home."
+      ],
+      "atk": 12,
+      "arc": 6,
+      "wil": 6
+    },
+    "fungal_lord": {
+      "name": "FUNGAL LORD",
+      "em": "🍄",
+      "element": "nature",
+      "hp": 900,
+      "mp": 120,
+      "agi": 13,
+      "def": 16,
+      "resist": {
+        "fire": -30,
+        "nature": 50,
+        "frost": 25
+      },
+      "boss": true,
+      "xp": 400,
+      "gold": 250,
+      "skills": [
+        "vine_grasp",
+        "rally",
+        "mend",
+        "haste",
+        "cleave"
+      ],
+      "pattern": "boss",
+      "phases": [
+        {
+          "at": 0.5,
+          "grants": [
+            "atk_up"
+          ],
+          "line": "* THE FUNGAL LORD ERUPTS WITH SPORES!"
+        }
+      ],
+      "drops": [
+        {
+          "item": "ancient_sap",
+          "qty": [
+            2,
+            3
+          ],
+          "chance": 1
+        },
+        {
+          "item": "shadow_gem",
+          "qty": 1,
+          "chance": 0.25
+        }
+      ],
+      "lines": [
+        "* THE FUNGAL LORD towers over you.",
+        "* The whole hollow breathes with it.",
+        "* It regards you as an infection."
+      ],
+      "atk": 24,
+      "arc": 24,
+      "wil": 14
+    }
+  },
+  "dungeons": [
+    {
+      "id": "whispering_hollow",
+      "name": "The Whispering Hollow",
+      "kind": "dungeon",
+      "element": "nature",
+      "minLevel": 1,
+      "bg": "forest",
+      "desc": "A damp wood where the trees mutter your name.",
+      "waves": [
+        {
+          "name": "Overgrown Entrance",
+          "enemies": [
+            "sprite",
+            "fungus"
+          ]
+        },
+        {
+          "name": "Tangled Depths",
+          "enemies": [
+            "fungus",
+            "sprite",
+            "rootling"
+          ]
+        },
+        {
+          "name": "Heart of the Hollow",
+          "boss": true,
+          "enemies": [
+            "fungal_lord"
+          ]
+        }
+      ],
+      "clearReward": {
+        "coins": 500,
+        "xp": 300,
+        "items": [
+          {
+            "item": "shadow_gem",
+            "qty": 1
+          }
+        ]
+      }
+    }
+  ],
+  "_statModel": {
+    "stats": [
+      "stm",
+      "agi",
+      "def",
+      "wil",
+      "atk",
+      "arc"
+    ],
+    "meaning": {
+      "stm": "Stamina (HP pool)",
+      "agi": "Agility (turn speed + finesse scaling)",
+      "def": "Defense (physical mitigation)",
+      "wil": "Willpower (magic defense)",
+      "atk": "Attack (physical attack)",
+      "arc": "Arcane (magic attack)"
+    },
+    "base": {
+      "stm": 80,
+      "agi": 14,
+      "def": 6,
+      "wil": 8,
+      "atk": 12,
+      "arc": 5
+    },
+    "hpRule": "mhp = stm (Stamina is the HP pool).",
+    "mpRule": "mmp = arc * 8 (Arcana is the mana stat, like INT). Multiplier tunable.",
+    "spdRule": "turn speed / ATB = agi (Agility).",
+    "dmgRule": "Formula is an RPG-Maker JS expression string. a = caster, b = target. Stats: atk, arc(magic atk), def, wil(magic def), agi, stm; pools hp/mp/mhp/mmp; plus RPGM aliases mat=arc, mdf=wil, spd=agi. Engine evaluates it for raw damage/heal, then applies element resist, Protect/Shell/Blind, def_up/def_down/Brace, and +/-10% variance. Example physical: 'a.atk * 2.2 - b.def * 1.5 + 6'  Example magic: 'a.arc * 3 - b.wil * 1.5 + 8'  Heal (no b term): 'a.arc * 1.8 + 18'.",
+    "magicDefStat": "wil"
+  }
+}
