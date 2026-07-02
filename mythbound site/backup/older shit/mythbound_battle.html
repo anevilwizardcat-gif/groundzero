@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MYTHBOUND — Battle</title>
+<script src="mythbound_shared.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:2px solid #fff;background:#000;flex-shrink:0;}
+.logo{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;}
+.nav-links{display:flex;gap:5px;}
+.nb{background:#000;border:2px solid #444;color:#444;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.nb:hover,.nb.on{border-color:#fff;color:#fff;}
+.nb.wip{border-color:#222;color:#333;cursor:default;}
+.nb.myth{border-color:#555;color:#555;}
+body{background:#000;color:#fff;font-family:'VT323',monospace;font-size:18px;}
+.root{display:flex;flex-direction:column;width:100%;max-width:900px;margin:0 auto;flex:1;}
+.wave-bar{font-family:'Press Start 2P',monospace;font-size:8px;color:#ffdd6b;letter-spacing:1px;text-align:center;padding:6px 0 4px;border-bottom:1px solid #1a1a2a;}
+
+.field{background:#060810;border-bottom:2px solid #fff;position:relative;display:flex;justify-content:center;align-items:center;padding:10px 20px;gap:40px;overflow:hidden;height:230px;}
+.f-side{display:flex;gap:14px;align-items:center;}
+.vs-lbl{font-family:'Press Start 2P',monospace;font-size:6px;color:#1e1e30;letter-spacing:3px;flex-shrink:0;}
+
+.comb{display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;}
+.spr{font-size:40px;line-height:1;transition:filter .3s;}
+.spr.rdy{filter:drop-shadow(0 0 8px #ffdd6b);}
+.spr.aegis{filter:drop-shadow(0 0 10px #cc44ff);}
+.spr.dead{opacity:.15;filter:grayscale(1);}
+.sname{font-family:'Press Start 2P',monospace;font-size:5px;color:#555;letter-spacing:.5px;}
+.sname.you{color:#ffdd6b;}
+.sbuffs{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;max-width:60px;}
+.sbuff{font-family:'Press Start 2P',monospace;font-size:4px;padding:1px 3px;border-radius:1px;}
+.sbuff.surge{background:#221400;color:#ffdd6b;border:1px solid #ffdd6b;}
+.sbuff.brace{background:#001020;color:#6bb5ff;border:1px solid #6bb5ff;}
+.sbuff.venom{background:#001800;color:#44ff66;border:1px solid #44ff66;}
+.sbuff.ablaze{background:#200800;color:#ff7722;border:1px solid #ff7722;}
+.sbuff.taunted{background:#1a0000;color:#ff4455;border:1px solid #ff4455;}
+.sbuff.momentum{background:#180e00;color:#ffaa44;border:1px solid #ffaa44;}
+
+.ehp-row{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.ehp-bar{width:48px;height:5px;background:#1a1a1a;border-radius:2px;overflow:hidden;}
+.ehp-fill{height:100%;transition:width .25s;border-radius:2px;}
+.ebless{font-family:'Press Start 2P',monospace;font-size:4px;color:#cc44ff;}
+.ehp-txt{font-size:13px;color:#aaa;}
+
+/* UNDERTALE TEXTBOX — rendered INSIDE the field, absolutely positioned per enemy */
+.utbox{
+  position:absolute;
+  background:#000;
+  border:2px solid #fff;
+  padding:6px 10px;
+  font-family:'Press Start 2P',monospace;
+  font-size:6px;
+  white-space:nowrap;
+  color:#fff;
+  pointer-events:none;
+  z-index:60;
+  line-height:1.8;
+  letter-spacing:.5px;
+  display:none;
+}
+.utbox::after{
+  content:'';
+  position:absolute;
+  top:100%;left:50%;
+  transform:translateX(-50%);
+  border:6px solid transparent;
+  border-top-color:#fff;
+}
+
+.dfloat{position:absolute;font-family:'Press Start 2P',monospace;pointer-events:none;animation:fltup 1.1s ease-out forwards;z-index:50;}
+.dfloat.de{color:#ff4455;font-size:12px;}
+.dfloat.dp{color:#fff;font-size:10px;}
+.dfloat.heal{color:#6bff9b;font-size:11px;}
+@keyframes fltup{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-50px);}}
+
+#log{height:68px;overflow-y:auto;padding:5px 14px;border-bottom:2px solid #fff;background:#000;display:flex;flex-direction:column;gap:1px;}
+.le{font-size:16px;line-height:1.4;}
+.le.d{color:#ff6666;}.le.h{color:#6bff9b;}.le.b{color:#cc77ff;}.le.s{color:#888;}.le.big{color:#ffdd6b;font-family:'Press Start 2P',monospace;font-size:8px;padding:3px 0;}
+
+.hud{display:flex;flex-direction:row;background:#000;border-top:2px solid #fff;}
+
+.act-col{width:124px;flex-shrink:0;border-right:2px solid #fff;display:flex;flex-direction:column;}
+.act-hdr{font-family:'Press Start 2P',monospace;font-size:6px;padding:7px 10px;border-bottom:1px solid #222;color:#444;letter-spacing:.5px;flex-shrink:0;}
+.act-hdr.on{color:#ffdd6b;}
+.act-btn{display:flex;align-items:center;gap:6px;padding:9px 11px;background:#000;border:none;border-bottom:1px solid #111;font-family:'Press Start 2P',monospace;font-size:6px;color:#fff;cursor:pointer;width:100%;letter-spacing:.4px;transition:background .1s;}
+.act-btn:hover:not([disabled]){background:#111;}
+.act-btn:disabled{color:#2a2a2a;cursor:not-allowed;}
+.act-btn .arr{color:#ffdd6b;font-size:9px;opacity:0;line-height:1;}
+.act-btn:not([disabled]):hover .arr{opacity:1;}
+.act-btn.abil{color:#ffdd6b;}
+.act-btn.aeg{color:#cc44ff;}
+.act-btn.aeg.rdy{animation:aep .7s infinite;}
+@keyframes aep{0%,100%{color:#cc44ff;}50%{color:#fff;}}
+
+.mid{flex:1;min-width:0;display:flex;flex-direction:column;border-right:1px solid #222;position:relative;overflow:hidden;}
+.party-stack{display:flex;flex-direction:column;height:100%;}
+.pm{display:flex;flex-direction:column;flex:1;border-bottom:1px solid #111;padding:5px 10px;min-height:0;}
+.pm:last-child{border-bottom:none;}
+.pm.yt{background:#0c0900;}
+.pm.dead{opacity:.3;}
+.pm-top{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
+.pm-em{font-size:19px;line-height:1;}
+.pm-nm{font-family:'Press Start 2P',monospace;font-size:6px;letter-spacing:.3px;white-space:nowrap;}
+.pm-nm.you{color:#ffdd6b;}
+.pm-role{font-size:12px;color:#3a3a3a;margin-left:2px;}
+.pm-hp{font-size:17px;color:#ccc;margin-left:auto;flex-shrink:0;white-space:nowrap;}
+.pm-bars{display:flex;flex-direction:column;gap:3px;}
+.brow{display:flex;align-items:center;gap:4px;}
+.blbl{font-family:'Press Start 2P',monospace;font-size:4px;color:#333;width:14px;flex-shrink:0;}
+.bbg{width:120px;flex-shrink:0;height:7px;background:#111;border:1px solid #1a1a1a;border-radius:2px;overflow:hidden;}
+.bf{height:100%;border-radius:2px;transition:width .2s;}
+.bf.atb{background:#ffdd6b;}
+@keyframes lbdim{0%{background-position:0% 50%;}100%{background-position:200% 50%;}}
+@keyframes lbsat{0%{background-position:0% 50%;}100%{background-position:200% 50%;}}
+.bf.lb-dim{background:linear-gradient(90deg,#c8a0b4,#a8a8cc,#a0c0b8,#a8c8a0,#c0b8a0,#c8a0b4);background-size:200% 100%;animation:lbdim 2.8s linear infinite;}
+.bf.lb-full{background:linear-gradient(90deg,#ff0044,#ff8800,#ffff00,#00ff88,#00aaff,#cc00ff,#ff0044);background-size:200% 100%;animation:lbsat 1.3s linear infinite;box-shadow:0 0 5px rgba(255,180,255,.5);}
+
+.sub-panel{display:none;flex-direction:column;height:100%;overflow:hidden;}
+.sub-panel.show{display:flex;}
+.sub-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#ffdd6b;padding:7px 12px;border-bottom:1px solid #222;flex-shrink:0;letter-spacing:.5px;}
+.sub-list{flex:1;overflow-y:auto;}
+.si{padding:8px 13px;border-bottom:1px solid #111;cursor:pointer;font-size:16px;display:flex;align-items:center;gap:8px;transition:background .1s;}
+.si:hover{background:#111;}
+.si .si-nm{font-family:'Press Start 2P',monospace;font-size:5px;letter-spacing:.3px;}
+.si .si-sb{font-size:13px;color:#555;margin-top:1px;}
+.si .si-co{font-size:13px;color:#ffdd6b;flex-shrink:0;margin-left:auto;}
+.si.myth{border-left:2px solid #ffdd6b;}
+.si.dis{opacity:.28;cursor:not-allowed;}
+.si.dis:hover{background:transparent;}
+.si.canc{color:#444;font-family:'Press Start 2P',monospace;font-size:5px;padding:8px 13px;cursor:pointer;}
+.si.canc:hover{color:#888;background:#0a0a0a;}
+.bag-grid{display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden;}
+.bs{padding:9px;border-right:1px solid #111;border-bottom:1px solid #111;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;transition:background .1s;}
+.bs:nth-child(even){border-right:none;}.bs:nth-child(n+5){border-bottom:none;}
+.bs:hover:not(.emp){background:#111;}.bs.emp{opacity:.2;cursor:default;}
+.bs .be{font-size:22px;}.bs .bn{font-family:'Press Start 2P',monospace;font-size:4px;color:#ccc;text-align:center;}
+.bs .bd{font-size:12px;color:#444;text-align:center;line-height:1.2;}.bs .bq{font-size:13px;color:#333;}
+
+.chat-col{width:180px;flex-shrink:0;display:flex;flex-direction:column;}
+.chat-hdr{font-family:'Press Start 2P',monospace;font-size:6px;color:#ffdd6b;padding:7px 10px;border-bottom:1px solid #222;flex-shrink:0;}
+.chat-msgs{flex:1;overflow-y:auto;padding:5px 9px;display:flex;flex-direction:column;gap:3px;min-height:80px;}
+.cmsg{font-size:13px;line-height:1.4;}
+.cmsg.you{color:#ffdd6b;}.cmsg.ally{color:#bbb;}.cmsg.sys{color:#333;}
+.chat-inp-row{display:flex;border-top:1px solid #222;flex-shrink:0;}
+.chat-inp{flex:1;background:#000;border:none;color:#fff;font-family:'VT323',monospace;font-size:15px;padding:5px 7px;outline:none;}
+.chat-send{background:#000;border:none;border-left:1px solid #222;color:#444;font-family:'Press Start 2P',monospace;font-size:5px;padding:0 7px;cursor:pointer;}
+.chat-send:hover{color:#fff;}
+</style></head>
+<body style="display:flex;flex-direction:column;height:100vh;overflow:hidden;">
+<nav>
+  <div class="logo">MYTHBOUND</div>
+  <div class="nav-links" id="main-nav"></div>
+</nav>
+<div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
+
+
+<div class="root">
+  <div class="wave-bar">⚔ WAVE 3 / 10 — Deeproot Hollow</div>
+  <div class="field" id="field">
+    <div class="f-side" id="p-side"></div>
+    <div class="vs-lbl">VS</div>
+    <div class="f-side" id="e-side"></div>
+  </div>
+  <div id="log"></div>
+  <div class="hud">
+    <div class="act-col">
+      <div class="act-hdr" id="act-hdr">WAITING...</div>
+      <button class="act-btn" id="btn-atk" onclick="pAct('attack')"><span class="arr">▶</span>ATTACK</button>
+      <button class="act-btn abil" id="btn-abi" onclick="pAct('ability')"><span class="arr">▶</span>ABILITY</button>
+      <button class="act-btn" id="btn-def" onclick="pAct('defend')"><span class="arr">▶</span>DEFEND</button>
+      <button class="act-btn" id="btn-itm" onclick="pAct('items')"><span class="arr">▶</span>ITEMS</button>
+      <button class="act-btn" id="btn-row" onclick="pAct('row')"><span class="arr">▶</span>ROW</button>
+      <button class="act-btn aeg" id="btn-aeg" onclick="pAct('aegis')"><span class="arr">▶</span>✦ AEGIS</button>
+    </div>
+    <div class="mid">
+      <div class="party-stack" id="party-stack"></div>
+      <div class="sub-panel" id="sub-target">
+        <div class="sub-hdr" id="sub-target-hdr">SELECT TARGET</div>
+        <div class="sub-list" id="sub-target-list"></div>
+      </div>
+      <div class="sub-panel" id="sub-abil">
+        <div class="sub-hdr">RAVEN — ABILITY</div>
+        <div class="sub-list" id="sub-abil-list"></div>
+      </div>
+      <div class="sub-panel" id="sub-bag">
+        <div class="sub-hdr">RAVEN'S BAG</div>
+        <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+          <div class="bag-grid" id="bag-grid"></div>
+          <div class="si canc" onclick="showHUD()">CANCEL</div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-col">
+      <div class="chat-hdr">PARTY CHAT</div>
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="chat-inp-row">
+        <input class="chat-inp" id="chat-in" placeholder="say something..." maxlength="55">
+        <button class="chat-send" onclick="sendChat()">SAY</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── AUDIO: one dedicated AudioContext, booping only while typewriter runs ──
+let _audioCtx = null;
+function getACtx() {
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  }
+  return _audioCtx;
+}
+
+let _boopTimer = null;   // setInterval handle
+let _booping   = false;
+
+function startBooping() {
+  if (_booping) return;
+  _booping = true;
+  const ctx = getACtx();
+  if (!ctx) return;
+  _boopTimer = setInterval(() => {
+    try {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'square';
+      o.frequency.value = 660 + Math.random() * 200;
+      g.gain.setValueAtTime(0.04, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+      o.start(); o.stop(ctx.currentTime + 0.05);
+    } catch(e) {}
+  }, 55);
+}
+
+function stopBooping() {
+  _booping = false;
+  if (_boopTimer !== null) { clearInterval(_boopTimer); _boopTimer = null; }
+}
+
+// ── BUBBLE SYSTEM ──
+// One bubble per enemy, positioned absolutely inside .field
+// Global cooldown map: per-enemy, 15-20s after bubble finishes
+const BUBBLE_COOLDOWN_MS = 15000 + Math.random() * 5000; // 15–20s, refreshed per use
+const bubbleLastFinished = {};   // eid -> timestamp when last bubble fully finished
+let   bubbleActive = {};         // eid -> true if currently typing
+
+const ELINES = {
+  sprite: [
+    "ouch! i needed that!",
+    "MY WEBS!!",
+    "that was my best leg!",
+    "eight legs, zero coping skills",
+    "ow ow ow ow ow ow ow ow",
+    "you'll regret that!",
+    "i was having such a great day."
+  ],
+  fungus: [
+    "ouch! my cordyceps!",
+    "my spores!! my beautiful spores!",
+    "do you know how long these caps took?",
+    "i am MOSTLY harmless",
+    "you monster. i am a mushroom.",
+    "spore and let spore!!",
+    "mold remembers."
+  ],
+  rootling: [
+    "ouch! i needed that toe!",
+    "my leaves were so young...",
+    "*rustles in absolute distress*",
+    "i just want to photosynthesize",
+    "touch grass they said. it will be fun they said.",
+    "that hurt and i felt it in my ROOT SYSTEM",
+    "i am NOT a houseplant!!"
+  ],
+};
+const bUsed = { sprite: new Set(), fungus: new Set(), rootling: new Set() };
+
+function getLine(id) {
+  const L = ELINES[id] || ['...'];
+  const avail = L.filter((_, i) => !bUsed[id]?.has(i));
+  const pool = avail.length ? avail : L;
+  if (!avail.length && bUsed[id]) bUsed[id].clear();
+  const idx = L.indexOf(pool[Math.floor(Math.random() * pool.length)]);
+  bUsed[id]?.add(idx);
+  return L[idx];
+}
+
+function canShowBubble(eid) {
+  if (bubbleActive[eid]) return false;
+  const last = bubbleLastFinished[eid] || 0;
+  return (Date.now() - last) >= BUBBLE_COOLDOWN_MS;
+}
+
+// Position a .utbox element above a given enemy combatant inside .field
+function positionBubble(boxEl, eid) {
+  const field = document.getElementById('field');
+  const eSide = document.getElementById('e-side');
+  const comb  = eSide.querySelector(`[data-eid="${eid}"]`);
+  if (!comb || !field) return false;
+  const fr = field.getBoundingClientRect();
+  const cr = comb.getBoundingClientRect();
+  // Center of combatant in field-relative coords
+  const cx = cr.left - fr.left + cr.width / 2;
+  const cy = cr.top  - fr.top;
+  boxEl.style.left = (cx - boxEl.offsetWidth / 2) + 'px';
+  boxEl.style.top  = Math.max(4, cy - 70) + 'px';
+  // Clamp to field width
+  const leftPx = parseFloat(boxEl.style.left);
+  const maxLeft = fr.width - boxEl.offsetWidth - 4;
+  boxEl.style.left = Math.max(4, Math.min(leftPx, maxLeft)) + 'px';
+  return true;
+}
+
+function showBubble(eid, txt) {
+  if (!canShowBubble(eid)) return;
+  bubbleActive[eid] = true;
+
+  const field = document.getElementById('field');
+  // Remove any existing box for this enemy
+  const old = document.getElementById('utbox-' + eid);
+  if (old) old.remove();
+
+  const box = document.createElement('div');
+  box.className = 'utbox';
+  box.id = 'utbox-' + eid;
+  box.style.display = 'block';
+  box.textContent = '';
+  field.appendChild(box);
+
+  // Wait one frame so offsetWidth is available for clamping
+  requestAnimationFrame(() => {
+    box.textContent = txt; // temporarily set text to measure width
+    const measured = box.offsetWidth;
+    box.textContent = '';
+    box.style.minWidth = measured + 'px';
+    positionBubble(box, eid);
+
+    // Now typewrite
+    startBooping();
+    let i = 0;
+    function nextChar() {
+      if (i < txt.length) {
+        box.textContent += txt[i++];
+        setTimeout(nextChar, 52);
+      } else {
+        // Done typing — stop boop, schedule removal
+        stopBooping();
+        setTimeout(() => {
+          box.remove();
+          bubbleActive[eid] = false;
+          bubbleLastFinished[eid] = Date.now();
+        }, 2600);
+      }
+    }
+    nextChar();
+  });
+}
+
+// ── GAME STATE ──
+const BAG_ITEMS = [
+  {id:'potion', em:'🧪', name:'POTION',   desc:'Heal 40 HP',      qty:3, effect:'heal',  val:40},
+  {id:'ether',  em:'💧', name:'ETHER',    desc:'Restore 30 MP',   qty:2, effect:'mp',    val:30},
+  {id:'antid',  em:'💊', name:'ANTIDOTE', desc:'Cure Venom',      qty:2, effect:'cure',  status:'Venom'},
+  {id:'elixir', em:'⚗️', name:'ELIXIR',   desc:'Full HP+MP',      qty:1, effect:'elixir'},
+  {id:'bomb',   em:'💣', name:'BOMB',     desc:'60 dmg, 1 enemy', qty:2, effect:'bomb',  val:60},
+];
+
+const G = {
+  party: [
+    {id:MB.PLAYER.id, name:MB.PLAYER.name, em:MB.PLAYER.em, role:MB.PLAYER.role, myth:MB.PLAYER.myth, hp:MB.PLAYER.hp,mhp:MB.PLAYER.mhp,mp:MB.PLAYER.mp,mmp:MB.PLAYER.mmp, atk:MB.PLAYER.atk,def:MB.PLAYER.def,spd:MB.PLAYER.spd, atb:0,lb:0,status:[],row:MB.PLAYER.row,alive:true,aegisActive:false,aegisUsed:false, bag:BAG_ITEMS.map(x=>({...x}))},
+    {id:'ribbit',name:'RIBBIT', em:'🐸',   role:'Mender',     myth:null,      hp:95, mhp:95, mp:100,mmp:100,atb:0,spd:13,atk:11,def:9, lb:0,status:[],row:'back', alive:true,aegisActive:false,aegisUsed:false, bag:[]},
+    {id:'foxpaw',name:'FOXPAW', em:'🦊',   role:'Guardian',   myth:'Griffin', hp:130,mhp:130,mp:55, mmp:55, atb:0,spd:12,atk:16,def:20,lb:0,status:[],row:'front',alive:true,aegisActive:false,aegisUsed:false, bag:[]},
+    {id:'mill',  name:'MILL',   em:'🌑',   role:'Strategist', myth:null,      hp:90, mhp:90, mp:110,mmp:110,atb:0,spd:13,atk:10,def:11,lb:0,status:[],row:'back', alive:true,aegisActive:false,aegisUsed:false, bag:[]},
+    {id:'apex',  name:'APEX',   em:'🦅',   role:'Magi',       myth:null,      hp:105,mhp:105,mp:90, mmp:90, atb:0,spd:12,atk:19,def:10,lb:0,status:[],row:'back', alive:true,aegisActive:false,aegisUsed:false, bag:[]},
+  ],
+  enemies: [
+    {id:'sprite',  name:'SPRITE',  em:'🕷️', hp:65,mhp:65,atb:0,spd:18,atk:14,def:8,bdef:8,status:["Warden's Bless"],alive:true},
+    {id:'fungus',  name:'FUNGUS',  em:'🍄', hp:80,mhp:80,atb:0,spd:14,atk:18,def:8,bdef:8,status:["Warden's Bless"],alive:true},
+    {id:'rootling',name:'ROOTLING',em:'🌿', hp:75,mhp:75,atb:0,spd:12,atk:12,def:8,bdef:8,status:["Warden's Bless"],alive:true},
+  ],
+  yourTurn:false, over:false, victory:false,
+  aiThr:0, eThr:0, statT:0, pendCb:null,
+};
+G.enemies.forEach(e => e.def = e.bdef + 15);
+G.party.forEach((c, i) => c.atb = i * 8);
+let lastT = null;
+
+// ── HELPERS ──
+function hpCol(r) { return r>.5?'#6bff9b':r>.25?'#ffdd6b':'#ff4455'; }
+const SMAP = {
+  'Surge':    {cls:'surge',   l:'SRG'},
+  'Brace':    {cls:'brace',   l:'BRC'},
+  'Venom':    {cls:'venom',   l:'VEN'},
+  'Ablaze':   {cls:'ablaze',  l:'ABZ'},
+  'Taunted':  {cls:'taunted', l:'TNT'},
+  'Momentum': {cls:'momentum',l:'MOM'},
+};
+
+function log(txt, t='s') {
+  const el = document.createElement('div');
+  el.className = 'le ' + t;
+  el.textContent = txt;
+  const L = document.getElementById('log');
+  L.appendChild(el); L.scrollTop = L.scrollHeight;
+  while (L.children.length > 60) L.removeChild(L.firstChild);
+}
+function chatMsg(who, txt, type='ally') {
+  const el = document.createElement('div');
+  el.className = 'cmsg ' + type;
+  el.textContent = type==='sys' ? txt : who + ': ' + txt;
+  const C = document.getElementById('chat-msgs');
+  C.appendChild(el); C.scrollTop = C.scrollHeight;
+  while (C.children.length > 35) C.removeChild(C.firstChild);
+}
+function sendChat() {
+  const i = document.getElementById('chat-in');
+  if (!i.value.trim()) return;
+  chatMsg('RAVEN', i.value, 'you'); i.value = '';
+}
+setTimeout(() => {
+  const ci = document.getElementById('chat-in');
+  if (ci) ci.addEventListener('keypress', e => { if (e.key==='Enter') sendChat(); });
+}, 200);
+
+// ── FLOAT DAMAGE ──
+function floatDmg(side, idx, txt, type) {
+  const container = document.getElementById(side==='e' ? 'e-side' : 'p-side');
+  const combs = container.querySelectorAll('.comb');
+  if (!combs[idx]) return;
+  const cr = combs[idx].getBoundingClientRect();
+  const fr = document.getElementById('field').getBoundingClientRect();
+  const el = document.createElement('div');
+  el.className = 'dfloat ' + type;
+  el.textContent = txt;
+  el.style.left = (cr.left - fr.left + cr.width/2 - 16) + 'px';
+  el.style.top  = (cr.top  - fr.top  + 6) + 'px';
+  document.getElementById('field').appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
+// ── DRAW ──
+function drawField() {
+  document.getElementById('p-side').innerHTML = G.party.map(c => `
+    <div class="comb" data-pid="${c.id}">
+      <div class="spr ${!c.alive?'dead':c.aegisActive?'aegis':G.yourTurn&&c.id==='raven'?'rdy':''}">${c.em}</div>
+      <div class="sname ${c.id==='raven'?'you':''}">${c.name}</div>
+      <div class="sbuffs">${c.status.map(s=>SMAP[s]?`<span class="sbuff ${SMAP[s].cls}">${SMAP[s].l}</span>`:'').join('')}</div>
+    </div>`).join('');
+
+  document.getElementById('e-side').innerHTML = G.enemies.map(e => `
+    <div class="comb" data-eid="${e.id}" style="flex-direction:column-reverse;gap:5px;">
+      <div class="ehp-row">
+        ${e.status.includes("Warden's Bless") ? '<div class="ebless">BLESS+</div>' : ''}
+        <div class="ehp-bar"><div class="ehp-fill" style="width:${Math.max(0,e.hp/e.mhp*100)}%;background:${hpCol(e.hp/e.mhp)}"></div></div>
+        <div class="ehp-txt">${e.alive ? e.hp+'/'+e.mhp : '☠'}</div>
+      </div>
+      <div class="spr ${!e.alive?'dead':''}">${e.em}</div>
+      <div class="sname">${e.name}</div>
+    </div>`).join('');
+}
+
+function drawHUD() {
+  const rv = G.party.find(p => p.id==='raven');
+  const aegisRdy = rv && rv.lb>=100 && !rv.aegisActive && !rv.aegisUsed;
+  const on = G.yourTurn && !G.over;
+
+  const hdr = document.getElementById('act-hdr');
+  hdr.textContent = G.over ? (G.victory?'VICTORY!':'DEFEAT...') : on ? 'RAVEN — ACT' : 'WAITING...';
+  hdr.className = 'act-hdr' + (on?' on':'');
+
+  ['btn-atk','btn-abi','btn-def','btn-itm','btn-row'].forEach(id => document.getElementById(id).disabled = !on);
+  const aeg = document.getElementById('btn-aeg');
+  aeg.disabled = !(on && aegisRdy);
+  aeg.className = 'act-btn aeg' + (aegisRdy&&on?' rdy':'');
+
+  document.getElementById('party-stack').innerHTML = G.party.map(c => {
+    const hc = hpCol(c.hp/c.mhp);
+    const lbFull = c.lb >= 100;
+    return `<div class="pm ${!c.alive?'dead':G.yourTurn&&c.id==='raven'?'yt':''}">
+      <div class="pm-top">
+        <div class="pm-em">${c.em}</div>
+        <div style="flex:1;min-width:0;">
+          <span class="pm-nm ${c.id==='raven'?'you':''}">${c.name}</span><span class="pm-role"> ${c.role}</span>
+        </div>
+        <div class="pm-hp">${c.alive ? c.hp+'/'+c.mhp : 'KO'}</div>
+      </div>
+      <div class="pm-bars">
+        <div class="brow"><div class="blbl">HP</div><div class="bbg"><div class="bf" style="width:${Math.max(0,c.hp/c.mhp*100)}%;background:${hc}"></div></div></div>
+        <div class="brow"><div class="blbl">ATB</div><div class="bbg"><div class="bf atb" style="width:${c.atb}%"></div></div></div>
+        <div class="brow"><div class="blbl">LB</div><div class="bbg"><div class="bf ${lbFull?'lb-full':'lb-dim'}" style="width:${c.lb}%"></div></div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── HUD SWITCHING ──
+function showHUD() {
+  document.getElementById('party-stack').style.display = 'flex';
+  ['sub-target','sub-abil','sub-bag'].forEach(id => document.getElementById(id).classList.remove('show'));
+  G.pendCb = null;
+}
+function showSub(id) {
+  document.getElementById('party-stack').style.display = 'none';
+  ['sub-target','sub-abil','sub-bag'].forEach(s => document.getElementById(s).classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+}
+
+// ── PLAYER ACTIONS ──
+function pAct(action) {
+  if (!G.yourTurn || G.over) return;
+  const rv = G.party.find(p => p.id==='raven');
+  if (!rv || !rv.alive) return;
+  if (action==='attack') {
+    openTgtPick('ATTACK', eid => {
+      const t = G.enemies.find(e => e.id===eid && e.alive); if (!t) return;
+      const d = calcDmg(rv, t, 1);
+      dmgE(rv, t, d); log('RAVEN attacks '+t.name+' for '+d+'!', 'd'); endTurn();
+    });
+  } else if (action==='ability') { openAbilPick(rv); }
+  else if (action==='defend') {
+    if (!rv.status.includes('Brace')) rv.status.push('Brace');
+    log('RAVEN braces! Next hit -50%.', 's'); endTurn();
+  } else if (action==='items') { openBag(rv); }
+  else if (action==='row') {
+    rv.row = rv.row==='front'?'back':'front';
+    log('RAVEN moved to '+rv.row+' row.', 's'); endTurn();
+  } else if (action==='aegis') {
+    if (rv.lb<100 || rv.aegisActive || rv.aegisUsed) return;
+    rv.lb=0; rv.aegisActive=true; rv.aegisUsed=true;
+    const sa=rv.atk; rv.atk=Math.floor(rv.atk*2.2);
+    log('RAVEN — AEGIS! Phoenix form! +120% ATK for 10s!', 'big');
+    setTimeout(()=>{ rv.atk=sa; rv.aegisActive=false; log('AEGIS fades.','s'); }, 10000);
+    endTurn();
+  }
+}
+function endTurn() { showHUD(); G.party.find(p=>p.id==='raven').atb=0; G.yourTurn=false; }
+
+function openTgtPick(label, cb) {
+  G.pendCb = cb;
+  const alive = G.enemies.filter(e => e.alive);
+  document.getElementById('sub-target-hdr').textContent = label+': SELECT TARGET';
+  document.getElementById('sub-target-list').innerHTML =
+    alive.map((e,i) => `<div class="si" onclick="pickTgt('${e.id}')">
+      <span>${e.em}</span>
+      <div><div class="si-nm">${String.fromCharCode(65+i)}. ${e.name}</div>
+      <div class="si-sb">${e.hp}/${e.mhp} HP${e.status.includes("Warden's Bless")?' · <span style="color:#cc44ff">BLESSED</span>':''}</div></div>
+    </div>`).join('') +
+    `<div class="si canc" onclick="showHUD()">CANCEL</div>`;
+  showSub('sub-target');
+}
+function pickTgt(eid) { const cb=G.pendCb; showHUD(); if(cb) cb(eid); }
+
+function openAbilPick(rv) {
+  const abils = [
+    {id:'rend',      name:'REND',         cost:10, desc:'Single ×1.8 dmg',   mult:1.8},
+    {id:'cleave',    name:'CLEAVE',        cost:15, desc:'All enemies ×0.9',  aoe:true,  mult:0.9},
+    {id:'momentum',  name:'MOMENTUM',      cost:8,  desc:'Self +30% next hit',self:true},
+    {id:'blaze',     name:'BLAZE STRIKE',  cost:22, desc:'×1.6 + Ablaze',     mult:1.6, status:'Ablaze', myth:true},
+    {id:'ascension', name:'ASCENSION',     cost:25, desc:'All ×2.2, -30% HP', aoe:true, mult:2.2, selfHarm:true, myth:true},
+  ];
+  document.getElementById('sub-abil-list').innerHTML =
+    abils.map(a => {
+      const ok = rv.mp >= a.cost;
+      return `<div class="si ${a.myth?'myth':''} ${!ok?'dis':''}" onclick="${ok?`pickAbil('${a.id}')`:''}" >
+        <span style="color:${a.myth?'#ffdd6b':'#444'};font-size:13px">${a.myth?'✦':'▶'}</span>
+        <div><div class="si-nm" style="${a.myth?'color:#ffdd6b':''}">${a.name}</div><div class="si-sb">${a.desc}</div></div>
+        <div class="si-co">${a.cost}MP</div>
+      </div>`;
+    }).join('') + `<div class="si canc" onclick="showHUD()">CANCEL</div>`;
+  showSub('sub-abil');
+}
+function pickAbil(id) {
+  showHUD();
+  const rv = G.party.find(p=>p.id==='raven');
+  const defs = {
+    rend:      {cost:10,mult:1.8},
+    cleave:    {cost:15,mult:0.9,aoe:true},
+    momentum:  {cost:8,self:true},
+    blaze:     {cost:22,mult:1.6,status:'Ablaze'},
+    ascension: {cost:25,mult:2.2,aoe:true,selfHarm:true},
+  };
+  const ab = defs[id]; if (!ab||rv.mp<ab.cost) return;
+  rv.mp -= ab.cost;
+  if (ab.self) { if(!rv.status.includes('Momentum')) rv.status.push('Momentum'); log('RAVEN: MOMENTUM! +30%.','b'); endTurn(); return; }
+  if (ab.selfHarm) { const h=Math.floor(rv.mhp*.3); rv.hp=Math.max(1,rv.hp-h); floatDmg('p',0,'-'+h,'dp'); log('RAVEN: ASCENSION! -'+h+' HP for power!','d'); }
+  if (ab.aoe) {
+    G.enemies.filter(e=>e.alive).forEach(e=>{ const d=calcDmg(rv,e,ab.mult); dmgE(rv,e,d); log(id.toUpperCase()+' hits '+e.name+' for '+d+'!','d'); if(ab.status&&e.alive&&!e.status.includes(ab.status)) e.status.push(ab.status); });
+    endTurn();
+  } else {
+    openTgtPick(id.toUpperCase(), eid=>{
+      const t=G.enemies.find(e=>e.id===eid&&e.alive); if(!t) return;
+      const d=calcDmg(rv,t,ab.mult); dmgE(rv,t,d);
+      log('RAVEN: '+id.toUpperCase()+'! '+t.name+' -'+d+(ab.status?' + '+ab.status:'')+'!','d');
+      if(ab.status&&t.alive&&!t.status.includes(ab.status)) t.status.push(ab.status);
+      endTurn();
+    });
+  }
+}
+
+function openBag(rv) {
+  const slots = [...rv.bag, ...Array(Math.max(0,5-rv.bag.length)).fill(null)].slice(0,5);
+  document.getElementById('bag-grid').innerHTML = slots.map((item,i) =>
+    item&&item.qty>0
+    ? `<div class="bs" onclick="useBag(${i})"><div class="be">${item.em}</div><div class="bn">${item.name}</div><div class="bd">${item.desc}</div><div class="bq">×${item.qty}</div></div>`
+    : `<div class="bs emp"><div class="be" style="font-size:18px;color:#222">—</div><div class="bn" style="color:#222">EMPTY</div></div>`
+  ).join('');
+  showSub('sub-bag');
+}
+function useBag(i) {
+  const rv = G.party.find(p=>p.id==='raven');
+  const item = rv.bag[i]; if(!item||item.qty<=0) return;
+  if (item.effect==='bomb') {
+    showHUD(); openTgtPick('BOMB', eid=>{
+      const t=G.enemies.find(e=>e.id===eid&&e.alive); if(!t) return;
+      dmgE(rv,t,item.val); log('RAVEN throws BOMB! '+t.name+' -'+item.val+'!','d');
+      item.qty--; if(item.qty<=0) rv.bag[i]=null; endTurn();
+    }); return;
+  }
+  item.qty--;
+  if (item.effect==='heal')   { rv.hp=Math.min(rv.mhp,rv.hp+item.val); floatDmg('p',0,'+'+item.val,'heal'); log('RAVEN: '+item.name+'! +'+item.val+' HP','h'); }
+  else if (item.effect==='mp')    { rv.mp=Math.min(rv.mmp,rv.mp+item.val); log('RAVEN: '+item.name+'! +'+item.val+' MP','b'); }
+  else if (item.effect==='cure')  { rv.status=rv.status.filter(s=>s!==item.status); log('RAVEN: '+item.name+'! '+item.status+' cured!','h'); }
+  else if (item.effect==='elixir'){ rv.hp=rv.mhp; rv.mp=rv.mmp; floatDmg('p',0,'FULL!','heal'); log('RAVEN: ELIXIR! Full HP+MP!','big'); }
+  if (item.qty<=0) rv.bag[i]=null;
+  showHUD(); endTurn();
+}
+
+// ── COMBAT ──
+function calcDmg(atk, def, mult=1) {
+  const b = atk.status.includes('Momentum') ? 1.3 : 1;
+  return Math.max(1, Math.floor(atk.atk * mult * b) - def.def + Math.floor(Math.random()*5) - 2);
+}
+function dmgE(attacker, target, dmg) {
+  const idx = G.enemies.indexOf(target);
+  target.hp = Math.max(0, target.hp - dmg);
+  attacker.lb = Math.min(100, attacker.lb + 8);
+  floatDmg('e', idx, dmg+'', 'de');
+  if (target.hp<=0) { target.hp=0; target.alive=false; log(target.name+' defeated!','big'); }
+  checkEnd();
+}
+function dmgP(attacker, target, dmg) {
+  const idx = G.party.indexOf(target);
+  if (target.status.includes('Brace')) { dmg=Math.floor(dmg*.5); target.status=target.status.filter(s=>s!=='Brace'); }
+  target.hp = Math.max(0, target.hp - dmg);
+  target.lb = Math.min(100, target.lb + 10);
+  floatDmg('p', idx, '-'+dmg, 'dp');
+  if (target.hp<=0) { target.hp=0; target.alive=false; log(target.name+' knocked out!','big'); }
+  checkEnd();
+}
+
+// ── AI ──
+function aiAct(member) {
+  const ae = G.enemies.filter(e=>e.alive); if(!ae.length) return;
+  const ap = G.party.filter(p=>p.alive);
+  if (member.role==='Mender') {
+    const hurt = ap.filter(p=>p.hp<p.mhp*.6).sort((a,b)=>a.hp-b.hp);
+    if (hurt.length) {
+      const h=28+Math.floor(Math.random()*14), idx=G.party.indexOf(hurt[0]);
+      hurt[0].hp=Math.min(hurt[0].mhp,hurt[0].hp+h);
+      floatDmg('p',idx,'+'+h,'heal');
+      log(member.name+' heals '+hurt[0].name+' for '+h+'!','h');
+      if(Math.random()<.25) chatMsg(member.name,'heal up!','ally'); return;
+    }
+    if (ae.some(e=>e.status.includes("Warden's Bless"))&&member.mp>=20) {
+      member.mp-=20;
+      ae.forEach(e=>{ if(e.status.includes("Warden's Bless")){ e.status=e.status.filter(s=>s!=="Warden's Bless"); e.def=e.bdef; }});
+      log(member.name+" PURGE! Warden's Bless stripped!",'b');
+      chatMsg(member.name,'purge done — go hard!','ally'); return;
+    }
+  }
+  if (member.role==='Strategist'&&member.mp>=14&&Math.random()<.3) {
+    const ns=ap.filter(p=>!p.status.includes('Surge'));
+    if(ns.length){ const t=ns[Math.floor(Math.random()*ns.length)]; t.status.push('Surge'); log(member.name+' SURGE → '+t.name+'!','b'); member.mp-=14; return; }
+  }
+  if (member.role==='Guardian'&&!member.status.includes('Taunted')&&Math.random()<.2) {
+    ap.forEach(p=>p.status=p.status.filter(s=>s!=='Taunted'));
+    member.status.push('Taunted');
+    log(member.name+' TAUNT — enemies focus '+member.name+'!','b'); return;
+  }
+  const t=ae[Math.floor(Math.random()*ae.length)];
+  const d=calcDmg(member,t,member.role==='Magi'?1.3:1);
+  dmgE(member,t,d); log(member.name+' attacks '+t.name+' for '+d+'!','d');
+  member.lb=Math.min(100,member.lb+7);
+}
+
+function enemyAct(enemy) {
+  const taunted = G.party.find(p=>p.alive&&p.status.includes('Taunted'));
+  const front   = G.party.filter(p=>p.alive&&p.row==='front');
+  const all     = G.party.filter(p=>p.alive);
+  const pool    = taunted ? [taunted] : front.length ? front : all;
+  if (!pool.length) return;
+  const t = pool[Math.floor(Math.random()*pool.length)];
+
+  // ~45% chance of a speech bubble, only if cooldown allows
+  if (Math.random() < 0.45) {
+    showBubble(enemy.id, getLine(enemy.id));
+  }
+
+  if (enemy.id==='fungus'&&Math.random()<.2) {
+    const d=Math.max(1,Math.floor(enemy.atk*.65)-t.def);
+    dmgP(enemy,t,d); if(!t.status.includes('Venom')) t.status.push('Venom');
+    log('FUNGUS: Spore Cloud! '+t.name+' -'+d+' + Venom!','d');
+  } else {
+    const d=Math.max(1,enemy.atk-t.def+Math.floor(Math.random()*4)-2);
+    dmgP(enemy,t,d); log(enemy.name+' attacks '+t.name+' for '+d+'!','d');
+  }
+}
+
+function checkEnd() {
+  if (G.over) return;
+  if (G.enemies.every(e=>!e.alive)) { G.over=true; G.victory=true; log('WAVE 3 CLEARED! +800 XP +300 Doubloons!','big'); }
+  else if (G.party.every(p=>!p.alive)) { G.over=true; log('PARTY WIPED...','big'); }
+}
+
+// ── LOOP ──
+function tick(t) {
+  if (lastT===null) lastT=t;
+  const dt = Math.min((t-lastT)/1000, .06); lastT=t;
+  if (!G.over) {
+    G.party.forEach(c=>{ if(!c.alive) return; const s=c.status.includes('Surge')?1.6:1; c.atb=Math.min(100,c.atb+c.spd*1.7*dt*s); });
+    G.enemies.forEach(e=>{ if(!e.alive) return; e.atb=Math.min(100,e.atb+e.spd*1.7*dt); });
+    const rv=G.party.find(p=>p.id==='raven');
+    if (!G.yourTurn&&rv&&rv.alive&&rv.atb>=100) { rv.atb=100; G.yourTurn=true; }
+    if (t-G.aiThr>1150) { const rd=G.party.filter(c=>c.id!=='raven'&&c.alive&&c.atb>=100); if(rd.length){ G.aiThr=t; const a=rd[0]; a.atb=0; aiAct(a); } }
+    if (t-G.eThr>1350)  { const rd=G.enemies.filter(e=>e.alive&&e.atb>=100); if(rd.length){ G.eThr=t; const e=rd[0]; e.atb=0; enemyAct(e); } }
+    G.statT+=dt;
+    if (G.statT>=3.5) {
+      G.statT=0;
+      G.party.forEach(c=>{ if(!c.alive) return; if(c.status.includes('Venom')){ const d=4; c.hp=Math.max(0,c.hp-d); floatDmg('p',G.party.indexOf(c),'-'+d,'dp'); log(c.name+' -'+d+' Venom','d'); if(c.hp<=0){c.hp=0;c.alive=false;log(c.name+' fell to Venom!','big');} } });
+      G.enemies.forEach(e=>{ if(!e.alive) return; if(e.status.includes('Ablaze')){ const d=6; e.hp=Math.max(0,e.hp-d); floatDmg('e',G.enemies.indexOf(e),d+'','de'); log(e.name+' -'+d+' Ablaze','d'); if(e.hp<=0){e.hp=0;e.alive=false;log(e.name+' burned!','big');} } });
+      checkEnd();
+    }
+  }
+  drawField(); drawHUD();
+  requestAnimationFrame(tick);
+}
+
+setTimeout(()=>{
+  log("Deeproot Hollow — Wave 3 of 10",'big');
+  log("Warden's Bless active on all enemies (+15 DEF). RIBBIT will PURGE.",'b');
+  log("Your turn, RAVEN!",'s');
+  chatMsg('RIBBIT','standing by to purge','ally');
+  chatMsg('FOXPAW','taunt incoming','ally');
+  G.yourTurn=true;
+  drawField(); drawHUD();
+  requestAnimationFrame(tick);
+},100);
+
+if (!MB.requireAuth()) throw new Error("not signed in");
+MB.injectUltimateCSS();
+MB.renderNav('main-nav','battle');
+</script>
+</div>
+</body>
+</html>

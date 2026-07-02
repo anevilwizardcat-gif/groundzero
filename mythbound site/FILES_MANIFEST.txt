@@ -1,0 +1,55 @@
+MYTHBOUND — Complete File Set
+==============================
+
+15 source files ready to download:
+
+CORE:
+  • mythbound_shared.js          — Shared data layer, MB namespace, persistence
+  • server.js                     — Local dev server (node server.js)
+
+PAGES (game screens):
+  • mythbound_auth.html           — Login/register
+  • mythbound_hub.html            — Chat hub, friends, social
+  • mythbound_games.html          — Game navigator/launcher
+  • mythbound_inventory.html      — Gear + bag
+  • mythbound_fishing_lobby.html  — Fishing minigame (multiplayer)
+  • mythbound_mining.html         — Mining minigame ✨ UPDATED
+  • mythbound_battle.html         — Combat (ATB)
+  • mythbound_auction.html        — Player market
+  • mythbound_mail.html           — In-game mail
+
+ADMIN TOOLS:
+  • mythbound_admin_data.html     — Data editor (items, rocks, enemies, etc.) ✨ UPDATED
+  • mythbound_admin_minigames.html — Fishing config live tuner
+
+DATA:
+  • mythbound_data.json           — Game data (items, economy, rocks, enemies) ✨ UPDATED
+  • mythbound_ah.json             — Auction house persistence (server-maintained)
+
+✨ = Updated in this session
+
+CHANGES SUMMARY:
+================
+
+mythbound_mining.html:
+  — Game now reads rocks/enemies LIVE from MB.ROCKS/MB.MINE_ENEMIES (data file)
+  — Rename slime in editor → appears in game on next spawn
+  — Drop reveal shows real item names & icons (not display strings)
+  — Null-drop safety (can clear drop tables without crash)
+  — White background removed
+
+mythbound_admin_data.html:
+  — ENEMIES tab fully working: +NEW creates enemies, DELETE works
+  — Enemy editor now has SHAPE selector (SLIME/GOLEM)
+
+mythbound_data.json:
+  — Rock drop tables populated (copper/iron/silver/mithril) with real item IDs
+  — Enemy drops untouched (respects your customizations)
+  — All other data (items, economy, myths, etc.) identical
+
+SETUP:
+======
+1. Drop all files in your mythbound/ folder
+2. Run: node server.js
+3. Open: http://localhost:3000
+4. Test mining: rename "HATE SLIME" in /admin, SAVE ALL, game reloads

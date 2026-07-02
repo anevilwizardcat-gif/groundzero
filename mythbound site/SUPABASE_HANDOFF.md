@@ -6,12 +6,12 @@
 
 ## WHO YOU ARE / WHAT THIS PROJECT IS
 
-You are continuing **MYTHBOUND** — a browser-based multiplayer RPG built by **Raven**, a solo developer. Raven works across two machines: a **Windows 11 PC** (primary) and a **SteamDeck** (Linux, used at work). **Never assume a specific OS** — keep setup/commands cross-platform, and provide both Windows and Linux variants when it matters. Aesthetic: Runescape/WoW mechanics fused with an Undertale/Deltarune visual style. Testing always uses three browser profiles simultaneously to simulate multiple accounts.
+You are continuing **MYTHBOUND** — a browser-based multiplayer RPG built by **Raven**, a solo developer on a SteamDeck (Konsole). Aesthetic: Runescape/WoW mechanics fused with an Undertale/Deltarune visual style. Testing always uses three browser profiles simultaneously to simulate multiple accounts.
 
 **Stack:**
 - Pure HTML/CSS/JS — no framework, no bundler, no TypeScript
 - Local dev: `node server.js` → `http://localhost:3000`
-- Files live in the `mythbound site/` folder of a public GitHub repo (`groundzero`), cloned to whichever machine Raven is on — no fixed OS path
+- Files live at `~/Downloads/mythboundwebsite/v2/`
 - Production target: **Netlify** (static) + **Supabase** (auth, DB, realtime)
 
 Raven's workflow: replace file → `Ctrl+C` → `node server.js` → `Ctrl+Shift+R` (hard-refresh).

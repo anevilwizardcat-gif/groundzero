@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MYTHBOUND &mdash; Mail</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<script src="mythbound_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:'VT323',monospace;font-size:18px;display:flex;flex-direction:column;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:2px solid #fff;background:#000;flex-shrink:0;}
+.logo{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;}
+.nav-links{display:flex;gap:5px;}
+.nb{background:#000;border:2px solid #444;color:#444;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.nb:hover,.nb.on{border-color:#fff;color:#fff;}
+.nb.wip{border-color:#222;color:#333;cursor:default;}
+.pbar{display:flex;align-items:center;gap:14px;padding:8px 18px;border-bottom:1px solid #222;flex-shrink:0;}
+.pav{width:34px;height:34px;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.pname{font-family:'Press Start 2P',monospace;font-size:9px;}
+.pinfo{font-size:14px;color:#555;margin-top:2px;}
+.coins{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:9px;}
+.body{flex:1;display:flex;overflow:hidden;min-height:0;}
+.mbox{width:280px;flex-shrink:0;border-right:2px solid #222;display:flex;flex-direction:column;overflow:hidden;}
+.mbox-tabs{display:flex;border-bottom:1px solid #222;flex-shrink:0;}
+.mtab{flex:1;padding:10px 8px;font-family:'Press Start 2P',monospace;font-size:6px;color:#444;cursor:pointer;text-align:center;border-bottom:2px solid transparent;}
+.mtab:hover{color:#888;}.mtab.on{color:#fff;border-bottom-color:#fff;}
+.mbox-list{flex:1;overflow-y:auto;}
+.mitem{padding:12px 14px;border-bottom:1px solid #111;cursor:pointer;transition:background .1s;display:flex;flex-direction:column;gap:4px;}
+.mitem:hover{background:#0a0a0a;}.mitem.on{background:#111;border-left:2px solid #fff;}
+.mitem.system{border-left:3px solid #ffdd6b;}.mitem.system.on{border-left:3px solid #fff;}
+.mitem.ah{border-left:3px solid #6bff9b;}
+.mi-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.mi-from{font-family:'Press Start 2P',monospace;font-size:6px;color:#888;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mi-from.stag{color:#ffdd6b;}.mi-from.atag{color:#6bff9b;}
+.mi-time{font-size:12px;color:#333;white-space:nowrap;flex-shrink:0;}
+.mi-subject{font-size:15px;color:#555;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mi-subject.unread{color:#fff;}
+.mi-tags{display:flex;gap:5px;flex-wrap:wrap;}
+.mi-tag{font-family:'Press Start 2P',monospace;font-size:5px;padding:2px 5px;border:1px solid;}
+.mi-tag.tc{border-color:#ffdd6b;color:#ffdd6b;}.mi-tag.ti{border-color:#6bb5ff;color:#6bb5ff;}
+.mi-tag.ts{border-color:#ffdd6b;color:#ffdd6b;}.mi-tag.ta{border-color:#6bff9b;color:#6bff9b;}
+.empty-box{padding:40px 20px;text-align:center;font-family:'Press Start 2P',monospace;font-size:7px;color:#222;line-height:3;}
+.mreader{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:2px solid #222;}
+.mreader-empty{flex:1;display:flex;align-items:center;justify-content:center;font-family:'Press Start 2P',monospace;font-size:8px;color:#222;text-align:center;line-height:3;}
+.mreader-header{padding:16px 20px;border-bottom:1px solid #222;flex-shrink:0;}
+.mr-subject{font-family:'Press Start 2P',monospace;font-size:10px;color:#fff;margin-bottom:10px;line-height:1.7;}
+.mr-meta{display:flex;gap:24px;flex-wrap:wrap;}
+.mr-meta-row{display:flex;flex-direction:column;gap:3px;}
+.mr-label{font-family:'Press Start 2P',monospace;font-size:6px;color:#333;}
+.mr-val{font-size:16px;color:#aaa;}
+.mreader.is-system .mreader-header{background:#0a0800;}
+.mreader.is-system .mr-body-text{color:#ffe0a0;}
+.mr-body-text{font-size:20px;color:#ccc;line-height:1.7;white-space:pre-wrap;word-break:break-word;}
+.mr-attach{padding:14px 20px;border-top:1px solid #222;flex-shrink:0;}
+.mr-attach-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#555;margin-bottom:10px;}
+.attach-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.aslot{width:80px;background:#000;border:2px solid #1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;padding:6px;}
+.aslot.ib-common{border-color:#555;}.aslot.ib-uncommon{border-color:#3a7a50;}.aslot.ib-rare{border-color:#3a6a99;}
+.aslot.ib-epic{border-color:#7a3399;}.aslot.ib-legendary{border-color:#998832;}
+.aslot.ib-ultimate{padding:2px;background:linear-gradient(90deg,#f00,#f80,#ff0,#0f8,#0cf,#84f,#f08,#f00);background-size:200% auto;animation:mb-rainbow-bg 2.4s linear infinite;border:none;}
+.aslot.ib-ultimate > .aslot-inner{background:#000;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px;}
+.aslot-name{font-family:'Press Start 2P',monospace;font-size:5px;text-align:center;padding:0 3px;line-height:1.6;color:#888;word-break:break-word;}
+.aslot-qty{position:absolute;bottom:3px;right:4px;font-family:'Press Start 2P',monospace;font-size:5px;color:#666;}
+.take-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#000;border:2px solid #fff;color:#fff;padding:7px 14px;cursor:pointer;display:block;margin-top:8px;}
+.take-btn:hover{background:#fff;color:#000;}
+.mr-coins-row{font-family:'Press Start 2P',monospace;font-size:8px;color:#ffdd6b;margin-bottom:6px;}
+.mr-actions-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+.mreader-actions{padding:10px 20px;border-top:1px solid #111;display:flex;gap:8px;flex-shrink:0;}
+.mab{font-family:'Press Start 2P',monospace;font-size:6px;background:#000;border:2px solid #333;color:#555;padding:7px 12px;cursor:pointer;}
+.mab:hover{border-color:#fff;color:#fff;}
+.mab.del:hover{border-color:#ff4444;color:#ff4444;}
+.mab.rep{border-color:#6bb5ff;color:#6bb5ff;}
+.compose{width:320px;flex-shrink:0;display:flex;flex-direction:column;overflow:hidden;}
+.compose-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;padding:12px 16px;border-bottom:1px solid #222;}
+.compose-body{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px;}
+.cf{display:flex;flex-direction:column;gap:5px;}
+.cf-label{font-family:'Press Start 2P',monospace;font-size:6px;color:#444;}
+.cf-input{background:#000;border:2px solid #333;color:#fff;font-family:'VT323',monospace;font-size:20px;padding:7px 10px;outline:none;width:100%;}
+.cf-input:focus{border-color:#fff;}.cf-input::placeholder{color:#333;}
+.cf-textarea{background:#000;border:2px solid #333;color:#fff;font-family:'VT323',monospace;font-size:20px;padding:7px 10px;outline:none;width:100%;resize:none;min-height:100px;}
+.cf-textarea:focus{border-color:#fff;}.cf-textarea::placeholder{color:#333;}
+.cf-coins{display:flex;align-items:center;gap:8px;}
+.cf-coins input{background:#000;border:2px solid #333;color:#ffdd6b;font-family:'Press Start 2P',monospace;font-size:9px;padding:7px 10px;outline:none;width:100%;-moz-appearance:textfield;}
+.cf-coins input:focus{border-color:#ffdd6b;}.cf-coins input::-webkit-inner-spin-button{display:none;}
+.cf-coins-lbl{font-size:16px;color:#ffdd6b;white-space:nowrap;}
+.compose-attach-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;}
+.caslot{aspect-ratio:1;background:#000;border:2px dashed #1a1a1a;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;font-size:10px;color:#222;}
+.caslot:hover{border-color:#555;color:#444;}.caslot.filled{border-style:solid;}
+.caslot.ib-common{border-color:#555;}.caslot.ib-uncommon{border-color:#3a7a50;}.caslot.ib-rare{border-color:#3a6a99;}
+.caslot.ib-epic{border-color:#7a3399;}.caslot.ib-legendary{border-color:#998832;}
+.caslot-x{position:absolute;top:1px;right:3px;font-size:10px;color:#444;cursor:pointer;z-index:2;}
+.caslot-x:hover{color:#fff;}
+.compose-footer{padding:12px 16px;border-top:1px solid #222;flex-shrink:0;}
+.send-btn{width:100%;font-family:'Press Start 2P',monospace;font-size:8px;background:#000;border:2px solid #fff;color:#fff;padding:12px;cursor:pointer;}
+.send-btn:hover{background:#fff;color:#000;}
+.send-cost{font-family:'Press Start 2P',monospace;font-size:6px;color:#333;text-align:center;margin-top:7px;line-height:2;}
+/* Bag picker */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;align-items:center;justify-content:center;}
+.overlay.show{display:flex;}
+.bag-picker{background:#000;border:2px solid #fff;width:500px;max-height:80vh;display:flex;flex-direction:column;}
+.bp-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #222;flex-shrink:0;}
+.bp-title{font-family:'Press Start 2P',monospace;font-size:8px;}
+.bp-x{background:#000;border:2px solid #444;color:#666;padding:5px 9px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.bp-x:hover{border-color:#fff;color:#fff;}
+.bp-note{font-size:14px;color:#555;padding:8px 16px;border-bottom:1px solid #111;flex-shrink:0;}
+.bp-grid{flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;}
+.bp-item{aspect-ratio:1;background:#000;border:2px solid #222;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:5px;transition:border-color .1s;}
+.bp-item:hover{border-color:#fff;}
+.bp-item.ib-common{border-color:#555;}.bp-item.ib-uncommon{border-color:#3a7a50;}.bp-item.ib-rare{border-color:#3a6a99;}
+.bp-item.ib-epic{border-color:#7a3399;}.bp-item.ib-legendary{border-color:#998832;}
+.bp-item-name{font-family:'Press Start 2P',monospace;font-size:5px;text-align:center;line-height:1.7;color:#888;word-break:break-word;}
+.bp-item.selected{border-color:#fff;background:#0a0a0a;}
+/* Slot upgrade modal */
+.slot-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:300;align-items:center;justify-content:center;}
+.slot-modal-overlay.show{display:flex;}
+.slot-modal{background:#000;border:2px solid #fff;padding:24px 28px;width:340px;}
+.slot-modal-title{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;margin-bottom:16px;}
+.slot-modal-body{font-size:18px;color:#888;line-height:1.7;margin-bottom:20px;}
+.slot-modal-cost{font-family:'Press Start 2P',monospace;font-size:9px;color:#ffdd6b;margin-bottom:20px;}
+.slot-modal-btns{display:flex;gap:10px;}
+.slot-modal-btns button{flex:1;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;background:#000;border:2px solid #fff;color:#fff;}
+.slot-modal-btns button:hover{background:#fff;color:#000;}
+.slot-modal-btns .cancel{border-color:#444;color:#555;}
+.slot-modal-btns .cancel:hover{background:#111;color:#888;}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#000;border:2px solid #fff;color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px 18px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;line-height:2;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">MYTHBOUND</div>
+  <div class="nav-links" id="main-nav"></div>
+</nav>
+<div class="pbar">
+  <div class="pav" id="p-av"></div>
+  <div><div class="pname" id="p-name"></div><div class="pinfo" id="p-info"></div></div>
+  <div class="coins" id="p-coins"></div>
+</div>
+<div class="body">
+  <div class="mbox">
+    <div class="mbox-tabs">
+      <div class="mtab on" onclick="setMailTab(this,'inbox')">INBOX</div>
+      <div class="mtab" onclick="setMailTab(this,'sent')">SENT</div>
+    </div>
+    <div class="mbox-list" id="mbox-list"></div>
+  </div>
+  <div class="mreader" id="mreader">
+    <div class="mreader-empty" id="reader-empty">&#9658; SELECT A MAIL<br>TO READ IT</div>
+    <div id="reader-content" style="display:none;flex:1;flex-direction:column;overflow:hidden;">
+      <div class="mreader-header" id="reader-header"></div>
+      <div style="flex:1;overflow-y:auto;padding:20px;"><div class="mr-body-text" id="reader-body"></div></div>
+      <div class="mr-attach" id="reader-attach" style="display:none;"></div>
+      <div class="mreader-actions">
+        <button class="mab rep" onclick="replyTo()">&#9658; REPLY</button>
+        <button class="mab del" onclick="deleteMail()">DELETE</button>
+      </div>
+    </div>
+  </div>
+  <div class="compose">
+    <div class="compose-hdr">&#9658; NEW MAIL</div>
+    <div class="compose-body">
+      <div class="cf"><div class="cf-label">TO</div><input class="cf-input" id="c-to" placeholder="Player name..." maxlength="32"></div>
+      <div class="cf"><div class="cf-label">SUBJECT</div><input class="cf-input" id="c-subject" placeholder="Subject..." maxlength="60"></div>
+      <div class="cf"><div class="cf-label">MESSAGE</div><textarea class="cf-textarea" id="c-body" placeholder="Write your message..." maxlength="2000" rows="5"></textarea></div>
+      <div class="cf">
+        <div class="cf-label">DOUBLOONS</div>
+        <div class="cf-coins"><input type="number" id="c-coins" min="0" max="999999" placeholder="0" oninput="validateCoins()"><span class="cf-coins-lbl">&#127529;</span></div>
+      </div>
+      <div class="cf">
+        <div class="cf-label">ATTACHMENTS (max 10, no soulbound)</div>
+        <div class="compose-attach-grid" id="attach-grid"></div>
+      </div>
+    </div>
+    <div class="compose-footer">
+      <button class="send-btn" onclick="sendMail()">&#9658; SEND MAIL</button>
+      <div class="send-cost" id="send-cost">TEST MODE: instant delivery &middot; Free to send</div>
+    </div>
+  </div>
+</div>
+<!-- Bag Picker -->
+<div class="overlay" id="bag-overlay">
+  <div class="bag-picker">
+    <div class="bp-hdr"><div class="bp-title">SELECT ITEM</div><button class="bp-x" onclick="closeBagPicker()">&#10005; CLOSE</button></div>
+    <div class="bp-note">Non-equipped, non-soulbound items only.</div>
+    <div class="bp-grid" id="bp-grid"></div>
+  </div>
+</div>
+<!-- Slot Upgrade Modal -->
+<div class="slot-modal-overlay" id="slot-modal">
+  <div class="slot-modal">
+    <div class="slot-modal-title">UNLOCK BAG SLOT?</div>
+    <div class="slot-modal-body" id="slot-modal-body"></div>
+    <div class="slot-modal-cost" id="slot-modal-cost"></div>
+    <div class="slot-modal-btns">
+      <button class="cancel" onclick="closeSlotModal()">&#10005; CANCEL</button>
+      <button id="slot-confirm-btn" onclick="confirmSlotUpgrade()">&#9658; CONFIRM</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+if (!MB.requireAuth()) throw new Error('not signed in');
+MB.injectUltimateCSS();
+MB.renderNav('main-nav','mail');
+(function(){
+  const p=MB.PLAYER;
+  document.getElementById('p-av').textContent=p.em||'?';
+  document.getElementById('p-name').textContent=p.name||'';
+  document.getElementById('p-info').textContent='Lv.'+(p.level||1)+' '+(p.role||'Adventurer');
+  document.getElementById('p-coins').textContent=(p.coins||0).toLocaleString()+' \uD83E\uDE99';
+})();
+
+// ── MAIL STORE ────────────────────────────────────────────────
+function loadMail(){
+  try{const r=localStorage.getItem(MB.mailKey());return r?JSON.parse(r):seedMail();}
+  catch(e){return seedMail();}
+}
+function saveMail(m){try{localStorage.setItem(MB.mailKey(),JSON.stringify(m));}catch(e){}}
+
+function seedMail(){
+  const now=Date.now(),name=MB.PLAYER.name||'ADVENTURER';
+  const mails=[
+    {id:'sys_001',from:'MYTHBOUND',type:'system',subject:'Welcome to MYTHBOUND!',
+     body:'Welcome, adventurer.\n\nYour journey begins here. Gather resources, master your craft, and forge bonds with fellow players.\n\nThe world is watching.\n\n\u2014 The MYTHBOUND Team',
+     coins:100,attachments:[],sent_at:now-7200000,arrives_at:now-7200000,read:false,taken:false,deleted:false},
+    {id:'sys_002',from:'MYTHBOUND',type:'system',subject:'Patch Notes \u2014 Update 0.1',
+     body:'\u25b8 Mining minigame now live\n\u25b8 Fishing minigame now live\n\u25b8 Inventory system active\n\u25b8 Mail system launched\n\u25b8 Economy foundations in place\n\nMore content coming soon. Thank you for testing!\n\n\u2014 The MYTHBOUND Team',
+     coins:0,attachments:[],sent_at:now-3600000,arrives_at:now-3600000,read:true,taken:false,deleted:false},
+  ];
+  if(name==='RAVEN'){
+    mails.push(
+      {id:'ah_001',from:'AUCTION HOUSE',type:'ah',subject:'Your listing has sold',
+       body:'Your listing for Speckled Trout \u00d7 3 has sold for 240 \uD83E\uDE99.\n\nFunds have been deposited to your mailbox.',
+       coins:240,attachments:[],sent_at:now-600000,arrives_at:now-600000,read:false,taken:false,deleted:false},
+      {id:'player_001',from:'FOXPAW',to:'RAVEN',type:'player',
+       subject:'Here\u2019s that ore I owed you',
+       body:'Hey Raven,\n\nDropping off that iron ore I promised. Threw in some potions too.\n\nStay safe.\n\u2014 Foxpaw',
+       coins:150,attachments:[{itemId:'iron_ore',qty:8},{itemId:'potion',qty:3},{itemId:'slime_glob',qty:1}],
+       sent_at:now-7200000,arrives_at:now-7200000,read:false,taken:false,takenItems:{},coinsTaken:false,deleted:false},
+      {id:'player_002',from:'RAVEN',to:'FOXPAW',type:'sent',
+       subject:'Re: Here\u2019s that ore I owed you',
+       body:'Much appreciated. I\u2019ll return the favour once I hit Mining Lv.20.',
+       coins:0,attachments:[],sent_at:now-3600000,arrives_at:now-3600000,read:true,taken:false,deleted:false}
+    );
+  }
+  saveMail(mails);
+  return mails;
+}
+
+let MAILS=loadMail(),activeTab='inbox',activeMail=null,attachSlots=Array(10).fill(null),pickingSlot=-1;
+
+function mailArrived(m){return Date.now()>=m.arrives_at;}
+function formatTime(ts){
+  const d=Date.now()-ts;
+  if(d<60000)return 'just now';
+  if(d<3600000)return Math.floor(d/60000)+'m ago';
+  if(d<86400000)return Math.floor(d/3600000)+'h ago';
+  return Math.floor(d/86400000)+'d ago';
+}
+function timeUntil(ts){
+  const d=ts-Date.now();if(d<=0)return 'arrived';
+  const m=Math.ceil(d/60000);return m<60?m+'min':Math.ceil(d/3600000)+'h';
+}
+
+function renderMailList(){
+  const list=document.getElementById('mbox-list');
+  const visible=MAILS.filter(m=>{
+    if(m.deleted)return false;
+    return activeTab==='sent'?m.type==='sent':m.type!=='sent';
+  });
+  if(!visible.length){list.innerHTML='<div class="empty-box">NO MAIL</div>';return;}
+  list.innerHTML='';
+  visible.forEach(m=>{
+    const arrived=mailArrived(m),unread=!m.read&&arrived;
+    const el=document.createElement('div');
+    const typeClass=m.type==='system'?' system':m.type==='ah'?' ah':'';
+    const activeClass=activeMail&&activeMail.id===m.id?' on':'';
+    el.className='mitem'+typeClass+activeClass+(unread?' unread':'');
+    el.onclick=()=>openMail(m.id);
+    // Top row
+    const top=document.createElement('div'); top.className='mi-top';
+    const from=document.createElement('span');
+    from.className='mi-from'+(m.type==='system'?' stag':m.type==='ah'?' atag':'');
+    from.textContent=activeTab==='sent'?'\u2192 '+(m.to||''):m.from;
+    const timeEl=document.createElement('span');
+    timeEl.className='mi-time';
+    timeEl.textContent=!arrived?'\u23f3 '+timeUntil(m.arrives_at):formatTime(m.sent_at);
+    if(!arrived)timeEl.style.cssText='color:#555;font-family:\'Press Start 2P\',monospace;font-size:5px;';
+    top.appendChild(from); top.appendChild(timeEl); el.appendChild(top);
+    // Subject
+    const sub=document.createElement('div');
+    sub.className='mi-subject'+(unread?' unread':'');
+    sub.textContent=(!arrived?'[PENDING] ':'')+m.subject;
+    el.appendChild(sub);
+    // Tags
+    const tags=document.createElement('div'); tags.className='mi-tags';
+    if(m.type==='system'){const t=document.createElement('span');t.className='mi-tag ts';t.textContent='SYSTEM';tags.appendChild(t);}
+    if(m.type==='ah'){const t=document.createElement('span');t.className='mi-tag ta';t.textContent='AUCTION';tags.appendChild(t);}
+    if(m.coins>0&&!m.coinsTaken){const t=document.createElement('span');t.className='mi-tag tc';t.textContent=m.coins.toLocaleString()+' \uD83E\uDE99';tags.appendChild(t);}
+    if(m.attachments&&m.attachments.length&&!m.taken){const t=document.createElement('span');t.className='mi-tag ti';t.textContent=m.attachments.length+' ITEMS';tags.appendChild(t);}
+    if(tags.children.length)el.appendChild(tags);
+    list.appendChild(el);
+  });
+}
+
+function openMail(id){
+  const m=MAILS.find(x=>x.id===id);if(!m)return;
+  if(!mailArrived(m)){toast('Mail in transit \u2014 '+timeUntil(m.arrives_at));return;}
+  activeMail=m;
+  if(!m.read){m.read=true;saveMail(MAILS);}
+  const reader=document.getElementById('mreader');
+  reader.className='mreader'+(m.type==='system'?' is-system':'');
+  // Header
+  const fromColor=m.type==='system'?'#ffdd6b':m.type==='ah'?'#6bff9b':'#aaa';
+  const hdr=document.getElementById('reader-header');
+  hdr.innerHTML='';
+  const subj=document.createElement('div');subj.className='mr-subject';subj.textContent=m.subject;hdr.appendChild(subj);
+  const meta=document.createElement('div');meta.className='mr-meta';
+  [['\u25b8 FROM',m.from,fromColor],[m.to?'\u25b8 TO':null,m.to,'#aaa'],['\u25b8 SENT',new Date(m.sent_at).toLocaleString(),'#aaa']].forEach(([lbl,val,col])=>{
+    if(!lbl)return;
+    const row=document.createElement('div');row.className='mr-meta-row';
+    const l=document.createElement('div');l.className='mr-label';l.textContent=lbl;
+    const v=document.createElement('div');v.className='mr-val';v.textContent=val;v.style.color=col;
+    row.appendChild(l);row.appendChild(v);meta.appendChild(row);
+  });
+  hdr.appendChild(meta);
+  // Body
+  document.getElementById('reader-body').textContent=m.body;
+  // Attachments
+  const attachEl=document.getElementById('reader-attach');
+  attachEl.innerHTML='';
+  const hasItems=m.attachments&&m.attachments.length>0;
+  const hasCoins=m.coins>0;
+  if(hasItems||hasCoins){
+    attachEl.style.display='block';
+    const hd=document.createElement('div');hd.className='mr-attach-hdr';
+    hd.textContent='\u25b8 ATTACHMENTS'+(m.taken?' \u2014 ALL TAKEN':'');
+    attachEl.appendChild(hd);
+    // Item grid
+    if(hasItems){
+      const grid=document.createElement('div');grid.className='attach-grid';
+      m.attachments.forEach((a,idx)=>{
+        const itemDef=MB.ITEMS[a.itemId]||{name:a.itemId,rarity:'common'};
+        const rar=itemDef.rarity||'common';
+        const took=m.takenItems&&m.takenItems[idx];
+        if(rar==='ultimate'){
+          const wrapper=document.createElement('div');
+          wrapper.className='aslot ib-ultimate';
+          wrapper.style.opacity=took?'0.35':'1';
+          wrapper.title=itemDef.name+(took?' (taken)':'');
+          const inner=document.createElement('div');inner.className='aslot-inner';
+          inner.innerHTML='<div style="width:36px;height:36px;image-rendering:pixelated;">'+MB.renderItemIconSVG(a.itemId,36)+'</div>';
+          const nm=document.createElement('div');nm.className='aslot-name mb-ult-text';nm.textContent=itemDef.name;inner.appendChild(nm);
+          if(a.qty>1){const q=document.createElement('div');q.className='aslot-qty';q.textContent='\u00d7'+a.qty;inner.appendChild(q);}
+          if(!took&&!m.taken){const btn=document.createElement('button');btn.textContent='TAKE';btn.style.cssText="font-family:'Press Start 2P',monospace;font-size:5px;background:#000;border:1px solid #fff;color:#fff;cursor:pointer;padding:2px 4px;margin-top:2px;";btn.onclick=()=>takeItem(m.id,idx);inner.appendChild(btn);}
+          wrapper.appendChild(inner);grid.appendChild(wrapper);
+        } else {
+          const el=document.createElement('div');
+          el.className='aslot ib-'+rar;
+          el.style.opacity=took?'0.35':'1';
+          el.title=itemDef.name+(took?' (taken)':'');
+          el.innerHTML='<div style="width:36px;height:36px;image-rendering:pixelated;">'+MB.renderItemIconSVG(a.itemId,36)+'</div>';
+          const nm=document.createElement('div');nm.className='aslot-name';nm.textContent=itemDef.name;el.appendChild(nm);
+          if(a.qty>1){const q=document.createElement('div');q.className='aslot-qty';q.textContent='\u00d7'+a.qty;el.appendChild(q);}
+          if(!took&&!m.taken){const btn=document.createElement('button');btn.textContent='TAKE';btn.style.cssText="font-family:'Press Start 2P',monospace;font-size:5px;background:#000;border:1px solid #fff;color:#fff;cursor:pointer;padding:2px 4px;margin-top:2px;";btn.onclick=()=>takeItem(m.id,idx);el.appendChild(btn);}
+          grid.appendChild(el);
+        }
+      });
+      attachEl.appendChild(grid);
+    }
+    // Coins
+    if(hasCoins){
+      const cr=document.createElement('div');cr.className='mr-coins-row';
+      cr.style.opacity=m.coinsTaken?'0.35':'1';
+      cr.textContent=m.coins.toLocaleString()+' \uD83E\uDE99 Doubloons attached';
+      attachEl.appendChild(cr);
+    }
+    // Action buttons
+    const allItemsDone=!hasItems||m.attachments.every((_,i)=>m.takenItems&&m.takenItems[i]);
+    if(!m.taken){
+      const actRow=document.createElement('div');actRow.className='mr-actions-row';
+      if(hasCoins&&!m.coinsTaken){const cb=document.createElement('button');cb.className='take-btn';cb.textContent='\u25b8 TAKE COINS';cb.onclick=()=>takeCoins(m.id);actRow.appendChild(cb);}
+      if(!(allItemsDone&&(!hasCoins||m.coinsTaken))){const ab=document.createElement('button');ab.className='take-btn';ab.textContent='\u25b8 TAKE ALL';ab.onclick=()=>takeAll(m.id);actRow.appendChild(ab);}
+      if(actRow.children.length)attachEl.appendChild(actRow);
+    }
+  } else {
+    attachEl.style.display='none';
+  }
+  document.getElementById('reader-empty').style.display='none';
+  const rc=document.getElementById('reader-content');
+  rc.style.display='flex';rc.style.flexDirection='column';rc.style.overflow='hidden';rc.style.flex='1';
+  renderMailList();
+}
+
+function takeItem(id,idx){
+  const m=MAILS.find(x=>x.id===id);if(!m)return;
+  if(!m.takenItems)m.takenItems={};if(m.takenItems[idx])return;
+  const a=m.attachments[idx];
+  MB.addToInventory(a.itemId,a.qty||1);
+  m.takenItems[idx]=true;checkFullyTaken(m);saveMail(MAILS);openMail(id);
+  toast('Took '+(a.qty>1?a.qty+'\u00d7 ':'')+( MB.ITEMS[a.itemId]?MB.ITEMS[a.itemId].name:a.itemId));
+}
+function takeCoins(id){
+  const m=MAILS.find(x=>x.id===id);if(!m||m.coinsTaken)return;
+  MB.addCoins(m.coins);
+  document.getElementById('p-coins').textContent=MB.PLAYER.coins.toLocaleString()+' \uD83E\uDE99';
+  m.coinsTaken=true;checkFullyTaken(m);saveMail(MAILS);openMail(id);
+  toast('Took '+m.coins.toLocaleString()+' \uD83E\uDE99');
+}
+function takeAll(id){
+  const m=MAILS.find(x=>x.id===id);if(!m)return;
+  if(!m.takenItems)m.takenItems={};
+  let ti=0,tc=0;
+  if(m.attachments)m.attachments.forEach((a,i)=>{if(!m.takenItems[i]){MB.addToInventory(a.itemId,a.qty||1);m.takenItems[i]=true;ti++;}});
+  if(m.coins>0&&!m.coinsTaken){MB.addCoins(m.coins);m.coinsTaken=true;tc=m.coins;}
+  document.getElementById('p-coins').textContent=MB.PLAYER.coins.toLocaleString()+' \uD83E\uDE99';
+  checkFullyTaken(m);saveMail(MAILS);openMail(id);
+  const parts=[];if(ti)parts.push(ti+' item(s)');if(tc)parts.push(tc.toLocaleString()+' \uD83E\uDE99');
+  toast('Took '+(parts.join(' and ')||'nothing new'));
+}
+function checkFullyTaken(m){
+  const ai=!m.attachments||!m.attachments.length||m.attachments.every((_,i)=>m.takenItems&&m.takenItems[i]);
+  if(ai&&(!m.coins||m.coinsTaken))m.taken=true;
+}
+function replyTo(){
+  if(!activeMail)return;
+  document.getElementById('c-to').value=activeMail.type==='system'||activeMail.type==='ah'?'':activeMail.from;
+  document.getElementById('c-subject').value=activeMail.subject.startsWith('Re:')?activeMail.subject:'Re: '+activeMail.subject;
+  document.getElementById('c-body').focus();
+}
+function deleteMail(){
+  if(!activeMail)return;
+  if(activeMail.type!=='sent'&&!activeMail.taken&&(activeMail.coins>0||(activeMail.attachments&&activeMail.attachments.length>0)))
+    if(!confirm('Uncollected attachments will be lost. Delete anyway?'))return;
+  activeMail.deleted=true;saveMail(MAILS);activeMail=null;
+  document.getElementById('reader-empty').style.display='flex';
+  document.getElementById('reader-content').style.display='none';
+  renderMailList();toast('Mail deleted.');
+}
+function setMailTab(el,tab){
+  document.querySelectorAll('.mtab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');activeTab=tab;activeMail=null;
+  document.getElementById('reader-empty').style.display='flex';
+  document.getElementById('reader-content').style.display='none';
+  renderMailList();
+}
+
+// Compose attach
+function renderAttachSlots(){
+  const grid=document.getElementById('attach-grid');grid.innerHTML='';
+  attachSlots.forEach((item,i)=>{
+    const el=document.createElement('div');
+    if(!item){el.className='caslot';el.textContent='+';el.onclick=()=>openBagPicker(i);}
+    else{
+      el.className='caslot filled ib-'+(item.rarity||'common');
+      el.onclick=()=>openBagPicker(i);
+      el.innerHTML='<div style="width:32px;height:32px;image-rendering:pixelated;">'+MB.renderItemIconSVG(item.id,32)+'</div>';
+      const x=document.createElement('span');x.className='caslot-x';x.textContent='\u00d7';
+      x.onclick=(e)=>{e.stopPropagation();attachSlots[i]=null;renderAttachSlots();};
+      el.appendChild(x);
+    }
+    grid.appendChild(el);
+  });
+}
+function openBagPicker(slotIndex){
+  pickingSlot=slotIndex;
+  const eqIds=Object.values(MB.PLAYER.equipped||{}).filter(Boolean).map(i=>i.id);
+  const attached=attachSlots.filter((s,i)=>s&&i!==slotIndex).map(s=>s.id);
+  const bag=(MB.PLAYER.bag||[]).filter(item=>!item.soulbound&&!item.mythBound&&!eqIds.includes(item.id));
+  const grid=document.getElementById('bp-grid');grid.innerHTML='';
+  if(!bag.length){const e=document.createElement('div');e.className='bp-empty';e.style.gridColumn='1/-1';e.textContent='NO ELIGIBLE ITEMS';grid.appendChild(e);}
+  else bag.forEach(item=>{
+    const used=attached.includes(item.id);
+    const el=document.createElement('div');el.className='bp-item ib-'+(item.rarity||'common')+(used?' selected':'');
+    el.innerHTML='<div style="width:36px;height:36px;image-rendering:pixelated;">'+MB.renderItemIconSVG(item.id,36)+'</div>';
+    const nm=document.createElement('div');nm.className='bp-item-name';nm.textContent=item.name;el.appendChild(nm);
+    if((item.qty||1)>1){const q=document.createElement('div');q.style.cssText="font-family:'Press Start 2P',monospace;font-size:5px;color:#555";q.textContent='\u00d7'+item.qty;el.appendChild(q);}
+    if(!used)el.onclick=()=>pickItem(item.id);
+    grid.appendChild(el);
+  });
+  document.getElementById('bag-overlay').classList.add('show');
+}
+function pickItem(itemId){
+  const item=(MB.PLAYER.bag||[]).find(i=>i.id===itemId);if(!item||pickingSlot<0)return;
+  const maxQty=item.qty||1;
+  if(maxQty>1){
+    const input=prompt('How many '+item.name+'? (max '+maxQty+')','1');
+    if(input===null)return;
+    const qty=Math.min(maxQty,Math.max(1,parseInt(input)||1));
+    attachSlots[pickingSlot]=Object.assign({},item,{qty});
+  } else attachSlots[pickingSlot]=Object.assign({},item,{qty:1});
+  closeBagPicker();renderAttachSlots();
+}
+function closeBagPicker(){document.getElementById('bag-overlay').classList.remove('show');pickingSlot=-1;}
+
+function validateCoins(){
+  const inp=document.getElementById('c-coins');let val=parseInt(inp.value)||0;
+  if(val>MB.PLAYER.coins){val=MB.PLAYER.coins;inp.value=val;}
+  if(val<0){val=0;inp.value=0;}
+  document.getElementById('send-cost').textContent=val>0
+    ?'TEST MODE: instant \u00b7 Sending '+val.toLocaleString()+' \uD83E\uDE99'
+    :'TEST MODE: instant delivery \u00b7 Free to send';
+}
+function sendMail(){
+  const to=document.getElementById('c-to').value.trim().toUpperCase();
+  const subject=document.getElementById('c-subject').value.trim();
+  const body=document.getElementById('c-body').value.trim();
+  const coins=parseInt(document.getElementById('c-coins').value)||0;
+  const attached=attachSlots.filter(Boolean);
+  if(!to){toast('Enter a recipient.');return;}
+  if(!subject){toast('Enter a subject.');return;}
+  if(!body){toast('Write a message.');return;}
+  if(coins>MB.PLAYER.coins){toast('Not enough Doubloons.');return;}
+  const now=Date.now();
+  const mail={id:'msg_'+now,from:MB.PLAYER.name,to,subject,body,type:'sent',coins,
+    attachments:attached.map(i=>({itemId:i.id,qty:i.qty||1})),
+    sent_at:now,arrives_at:now,read:true,taken:false,deleted:false};
+  if(coins>0)MB.addCoins(-coins);
+  attached.forEach(item=>MB.removeFromInventory(item.id,item.qty||1));
+  document.getElementById('p-coins').textContent=MB.PLAYER.coins.toLocaleString()+' \uD83E\uDE99';
+  MAILS.unshift(mail);
+  if(to===MB.PLAYER.name.toUpperCase()){
+    MAILS.unshift(Object.assign({},mail,{id:mail.id+'_inbox',type:'player',from:MB.PLAYER.name,read:false}));
+  }
+  saveMail(MAILS);
+  document.getElementById('c-to').value='';document.getElementById('c-subject').value='';
+  document.getElementById('c-body').value='';document.getElementById('c-coins').value='';
+  attachSlots=Array(10).fill(null);renderAttachSlots();
+  document.getElementById('send-cost').textContent='TEST MODE: instant delivery \u00b7 Free to send';
+  toast('Mail sent to '+to+'!');
+  setMailTab(document.querySelector('.mtab:last-child'),'sent');
+}
+MB.sendSystemMail=function(subject,body,coins,attachments){
+  const now=Date.now();
+  const mail={id:'sys_'+now,from:'MYTHBOUND',to:MB.PLAYER.name,subject,body,type:'system',
+    coins:coins||0,attachments:attachments||[],sent_at:now,arrives_at:now,read:false,taken:false,deleted:false};
+  MAILS.unshift(mail);saveMail(MAILS);renderMailList();toast('\uD83D\uDCEC New system mail!');
+};
+document.getElementById('bag-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('bag-overlay'))closeBagPicker();});
+renderMailList();renderAttachSlots();
+</script>
+</body>
+</html>

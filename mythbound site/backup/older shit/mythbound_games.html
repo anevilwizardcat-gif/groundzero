@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MYTHBOUND — Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<script src="mythbound_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;background:#000;color:#fff;font-family:'VT323',monospace;overflow:hidden;}
+body{display:flex;flex-direction:column;}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:2px solid #fff;background:#000;flex-shrink:0;}
+.logo{font-family:'Press Start 2P',monospace;font-size:9px;}
+.nav-links{display:flex;gap:5px;}
+.nb{background:#000;border:2px solid #444;color:#444;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.nb:hover,.nb.on{border-color:#fff;color:#fff;}
+.nb.myth{color:#cc44ff;border-color:#cc44ff;}
+.nb.wip{color:#555;border-color:#333;cursor:default;}
+
+/* player bar */
+.pbar{display:flex;align-items:center;gap:12px;padding:7px 18px;border-bottom:2px solid #333;background:#000;flex-shrink:0;}
+.pav{width:32px;height:32px;background:#000;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.pname{font-family:'Press Start 2P',monospace;font-size:8px;}
+.pinfo{font-size:13px;color:#666;margin-top:2px;}
+.coins{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:8px;}
+
+/* main layout */
+.body{flex:1;display:flex;overflow:hidden;min-height:0;}
+
+/* LEFT: category sidebar */
+.cat-sidebar{width:180px;border-right:2px solid #222;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.cat-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#555;padding:14px 14px 8px;letter-spacing:1px;border-bottom:1px solid #222;}
+.cat-item{padding:12px 14px;font-size:14px;color:#555;cursor:pointer;border-bottom:1px solid #111;display:flex;align-items:center;gap:8px;}
+.cat-item:hover{color:#fff;background:#0a0a0a;}
+.cat-item.on{color:#fff;border-left:2px solid #fff;}
+.cat-item .ci-em{font-size:16px;width:20px;text-align:center;}
+.cat-item .ci-lbl{flex:1;}
+.cat-item .ci-wip{font-family:'Press Start 2P',monospace;font-size:6px;color:#555;letter-spacing:0px;}
+
+/* CENTER: game cards */
+.game-grid{flex:1;padding:20px;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;align-content:start;}
+
+.gcard{background:#050505;border:1.5px solid #222;padding:0;cursor:pointer;transition:border-color .1s;display:flex;flex-direction:column;}
+.gcard:hover{border-color:#fff;}
+.gcard.wip{cursor:default;opacity:.5;}
+.gcard.wip:hover{border-color:#222;}
+.gcard-header{padding:16px;border-bottom:1px solid #111;display:flex;align-items:center;gap:12px;}
+.gc-em{font-size:28px;width:36px;text-align:center;}
+.gc-title{font-family:'Press Start 2P',monospace;font-size:8px;line-height:1.6;}
+.gc-sub{font-size:13px;color:#555;margin-top:3px;}
+.gcard-body{padding:12px 16px;flex:1;}
+.gc-desc{font-size:14px;color:#888;line-height:1.5;margin-bottom:10px;}
+.gc-drops{display:flex;flex-direction:column;gap:3px;}
+.gc-drop{font-size:12px;display:flex;align-items:center;gap:6px;}
+.gc-dot{width:8px;height:8px;flex-shrink:0;}
+.gcard-footer{padding:10px 16px;border-top:1px solid #111;display:flex;align-items:center;justify-content:space-between;}
+.gc-prof{font-family:'Press Start 2P',monospace;font-size:6px;color:#555;}
+.gc-play{font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;background:#000;border:1.5px solid #fff;padding:5px 10px;cursor:pointer;}
+.gc-play:hover{background:#fff;color:#000;}
+.wip-badge{font-family:'Press Start 2P',monospace;font-size:6px;color:#555;border:1px solid #333;padding:4px 8px;}
+
+/* RIGHT: daily/quests sidebar */
+.right-panel{width:220px;border-left:2px solid #222;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;}
+.rp-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#555;padding:14px 14px 8px;letter-spacing:1px;border-bottom:1px solid #222;}
+.rp-bonus{padding:14px;border-bottom:1px solid #111;}
+.rp-bonus-val{font-family:'Press Start 2P',monospace;font-size:12px;color:#ffdd6b;margin-bottom:4px;}
+.rp-bonus-lbl{font-size:12px;color:#555;}
+.rp-quest{padding:12px 14px;border-bottom:1px solid #111;}
+.rq-title{font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;margin-bottom:5px;line-height:1.5;}
+.rq-prog{font-size:12px;color:#666;margin-bottom:5px;}
+.rq-bar{height:4px;background:#111;margin-bottom:5px;}
+.rq-fill{height:4px;background:#6bff9b;}
+.rq-rew{font-size:12px;color:#ffdd6b;}
+.rq-done .rq-title{color:#555;text-decoration:line-through;}
+.rq-done .rq-fill{background:#333;}
+
+/* energy bar */
+.energy-row{display:flex;align-items:center;gap:10px;padding:8px 18px;border-bottom:1px solid #111;font-size:13px;}
+.energy-bar{flex:1;height:6px;background:#111;}
+.energy-fill{height:6px;background:#ffdd6b;transition:width .3s;}
+.energy-lbl{font-family:'Press Start 2P',monospace;font-size:6px;color:#555;white-space:nowrap;}
+.energy-val{color:#fff;white-space:nowrap;min-width:60px;text-align:right;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">MYTHBOUND</div>
+  <div class="nav-links" id="main-nav"></div>
+</nav>
+
+<div class="pbar" id="player-bar"></div>
+
+<div class="energy-row">
+  <span class="energy-lbl">ENERGY</span>
+  <div class="energy-bar"><div class="energy-fill" id="energy-fill" style="width:80%"></div></div>
+  <span class="energy-val" id="energy-val">800/1000</span>
+</div>
+
+<div class="body">
+
+  <!-- LEFT: categories -->
+  <div class="cat-sidebar">
+    <div class="cat-hdr">▸ CATEGORY</div>
+    <div class="cat-item on" onclick="setCategory('all',this)"><span class="ci-em">🎮</span><span class="ci-lbl">All Games</span></div>
+    <div class="cat-item" onclick="setCategory('gathering',this)"><span class="ci-em">⛏️</span><span class="ci-lbl">Gathering</span></div>
+    <div class="cat-item" onclick="setCategory('crafting',this)"><span class="ci-em">🔨</span><span class="ci-lbl">Crafting</span></div>
+    <div class="cat-item" onclick="setCategory('combat',this)"><span class="ci-em">⚔️</span><span class="ci-lbl">Combat</span></div>
+    <div class="cat-item" onclick="setCategory('social',this)"><span class="ci-em">🏛️</span><span class="ci-lbl">Social / Hub</span></div>
+  </div>
+
+  <!-- CENTER: cards -->
+  <div class="game-grid" id="game-grid"></div>
+
+  <!-- RIGHT: daily panel -->
+  <div class="right-panel">
+    <div class="rp-hdr">▸ DAILY BONUS</div>
+    <div class="rp-bonus">
+      <div class="rp-bonus-val" id="daily-bonus">× 1.5</div>
+      <div class="rp-bonus-lbl">Drop boost active<br>Resets at midnight</div>
+    </div>
+    <div class="rp-hdr" style="margin-top:4px;">▸ DAILY QUESTS</div>
+    <div id="quest-list"></div>
+  </div>
+
+</div>
+
+<script>
+if (!MB.requireAuth()) throw new Error("not signed in");
+MB.injectUltimateCSS();
+MB.renderNav('main-nav', 'games');
+
+// ── PLAYER BAR ───────────────────────────────────────────────
+(function() {
+  const p = MB.PLAYER;
+  document.getElementById('player-bar').innerHTML = `
+    <div class="pav">${p.em}</div>
+    <div><div class="pname">${p.name}</div><div class="pinfo">Lv.${p.level} ${p.role}</div></div>
+    <div class="coins" style="margin-left:auto;">${p.coins.toLocaleString()} 🪙</div>
+  `;
+  const pct = Math.round(p.energy / p.energyMax * 100);
+  document.getElementById('energy-fill').style.width = pct + '%';
+  document.getElementById('energy-val').textContent = p.energy + '/' + p.energyMax;
+})();
+
+// ── GAME DATA ────────────────────────────────────────────────
+const GAMES = [
+  // GATHERING
+  { id:'fishing',   cat:'gathering', em:'🎣', title:'FISHING',         sub:'Gathering · Fishing Lv.'+MB.PLAYER.professions.fishing.level,
+    desc:'Cast your line and reel in fish, mythic sea creatures, and rare materials. Invite friends to your pond.',
+    drops:['🐟 Fish (common→epic)','🧪 Alchemy ingredients','🎣 Rare sea myths'],
+    prof:'fishing', xp:true, ready:true },
+  { id:'mining',    cat:'gathering', em:'⛏️', title:'MINING',          sub:'Gathering · Mining Lv.'+MB.PLAYER.professions.mining.level,
+    desc:'Mine ore veins and fight cave enemies. Tier unlocks at Lv.20/40/60/80.',
+    drops:['🟤 Copper / Iron / Silver','🔵 Mithril Ore (Lv.80+)','🔮 Geode (legendary <1%)'],
+    prof:'mining', xp:true, ready:true },
+  { id:'herbalism', cat:'gathering', em:'🌿', title:'HERBALISM',       sub:'Gathering · Lv.1',
+    desc:'Forage herbs and roots across the world map. Reagents for Alchemy and Cooking.',
+    drops:['🌱 Common herbs','🍄 Rare fungi','🌸 Mythic blossoms'],
+    prof:'herbalism', xp:true, ready:false },
+  { id:'hunting',   cat:'gathering', em:'🏹', title:'HUNTING',         sub:'Gathering · Lv.1',
+    desc:'Track and hunt creatures for leather, meat, and rare trophy drops.',
+    drops:['🥩 Meat (Cooking input)','🦴 Bones (Leatherwork)','👁 Creature eyes (rare)'],
+    prof:'hunting', xp:true, ready:false },
+  // CRAFTING
+  { id:'blacksmithing', cat:'crafting', em:'🔨', title:'BLACKSMITHING', sub:'Craft · Lv.'+MB.PLAYER.craftLevel,
+    desc:'Forge weapons, armor, and tools from ore. Your current craft.',
+    drops:['⚔️ Weapons','🛡️ Armor','🔧 Tools & ingots'],
+    prof:'blacksmithing', xp:true, ready:false },
+  { id:'alchemy',   cat:'crafting', em:'⚗️', title:'ALCHEMY',         sub:'Craft (locked — one craft per player)',
+    desc:'Brew potions, buffs, and multipliers from rare fish, herbs, and minerals.',
+    drops:['🧪 Potions','💊 Antidotes','⚗️ Buff flasks'],
+    prof:'alchemy', xp:false, ready:false, locked:true },
+  { id:'cooking',   cat:'crafting', em:'🍳', title:'COOKING',         sub:'Craft (locked — one craft per player)',
+    desc:'Cook food buffs from fish and meat. The backbone of long dungeon runs.',
+    drops:['🍖 Buff food','🍲 Energy restorers','🎂 Party recipes'],
+    prof:'cooking', xp:false, ready:false, locked:true },
+  { id:'leatherworking', cat:'crafting', em:'🧵', title:'LEATHERWORKING', sub:'Craft (locked — one craft per player)',
+    desc:'Craft armor, bags, and cosmetics from hunting drops.',
+    drops:['🦺 Light armor','🎒 Bag upgrades','👜 Cosmetics'],
+    prof:'leatherworking', xp:false, ready:false, locked:true },
+  // COMBAT
+  { id:'battle',    cat:'combat', em:'⚔️', title:'BATTLE',            sub:'ATB Combat System',
+    desc:'Turn-based battles with ATB gauges. Fight monsters, earn XP and drops. FF7-style.',
+    drops:['💎 Equipment drops','🪙 Coin rewards','📜 Rare crafting mats'],
+    prof:null, xp:false, ready:true },
+  { id:'dungeon',   cat:'combat', em:'🏰', title:'DUNGEON FINDER',    sub:'Party · Up to 4 players',
+    desc:'Queue for instanced dungeons. Requires a party. Boss at the end always drops gear.',
+    drops:['🗝️ Dungeon keys','⚔️ Rare equipment','📦 Chest loot'],
+    prof:null, xp:false, ready:false },
+  { id:'raid',      cat:'combat', em:'⚡', title:'RAID FINDER',        sub:'Raid · Up to 8 players',
+    desc:'High-difficulty raids. The only source of Myth Heart drops.',
+    drops:['💜 Myth Heart (ultra-rare)','🔥 Myth Bindings','🌟 Prestige materials'],
+    prof:null, xp:false, ready:false },
+  // SOCIAL
+  { id:'hub',       cat:'social', em:'💬', title:'CHAT HUB',           sub:'Social · Players Online',
+    desc:'Trade, chat, and link items. The social center of MYTHBOUND.',
+    drops:[], prof:null, xp:false, ready:true },
+];
+
+const RARITY_COLORS = { common:'#999', uncommon:'#6bff9b', rare:'#6bb5ff', epic:'#c455e8', legendary:'#ffdd6b' };
+
+let activeCategory = 'all';
+
+function setCategory(cat, el) {
+  activeCategory = cat;
+  document.querySelectorAll('.cat-item').forEach(e => e.classList.remove('on'));
+  el.classList.add('on');
+  renderCards();
+}
+
+function renderCards() {
+  const grid = document.getElementById('game-grid');
+  const filtered = activeCategory === 'all' ? GAMES : GAMES.filter(g => g.cat === activeCategory);
+  grid.innerHTML = filtered.map(g => {
+    const wip = !g.ready;
+    const locked = g.locked;
+    const dropsHtml = g.drops.length ? g.drops.map(d =>
+      `<div class="gc-drop">${d}</div>`
+    ).join('') : '<div class="gc-drop" style="color:#333;">No item drops</div>';
+
+    const footer = wip || locked
+      ? `<div class="gc-prof">${g.prof ? g.prof.toUpperCase() : ''}</div><div class="wip-badge">🚧 WIP</div>`
+      : `<div class="gc-prof">${g.prof ? g.prof.toUpperCase()+' XP' : 'NO PROF XP'}</div>
+         <button class="gc-play" onclick="launchGame('${g.id}')">▸ PLAY</button>`;
+
+    return `<div class="gcard${wip||locked?' wip':''}">
+      <div class="gcard-header">
+        <div class="gc-em">${g.em}</div>
+        <div><div class="gc-title">${g.title}</div><div class="gc-sub">${g.sub}</div></div>
+      </div>
+      <div class="gcard-body">
+        <div class="gc-desc">${g.desc}</div>
+        <div class="gc-drops">${dropsHtml}</div>
+      </div>
+      <div class="gcard-footer">${footer}</div>
+    </div>`;
+  }).join('');
+}
+
+function launchGame(id) {
+  if (id === 'hub') { MB.nav('hub'); return; }
+  if (MB.PAGES[id]) { MB.nav(id); return; }
+  // fallback for unbuilt pages
+  alert('▸ ' + id.toUpperCase() + '\n\nComing soon.');
+}
+
+// ── DAILY QUESTS ─────────────────────────────────────────────
+const QUESTS = [
+  { title:'CATCH 5 FISH',        desc:'Fishing',  prog:3, goal:5,  reward:'+150 Fishing XP',  done:false },
+  { title:'MINE 10 ROCKS',       desc:'Mining',   prog:10,goal:10, reward:'+200 Mining XP',   done:true  },
+  { title:'WIN A BATTLE',        desc:'Combat',   prog:0, goal:1,  reward:'120 🪙',            done:false },
+  { title:'VISIT THE HUB',       desc:'Social',   prog:1, goal:1,  reward:'+50 XP all profs', done:true  },
+];
+
+function renderQuests() {
+  document.getElementById('quest-list').innerHTML = QUESTS.map(q => {
+    const pct = Math.round(q.prog / q.goal * 100);
+    return `<div class="rp-quest ${q.done?'rq-done':''}">
+      <div class="rq-title">${q.done?'✓ ':''}${q.title}</div>
+      <div class="rq-prog">${q.desc} — ${q.prog}/${q.goal}</div>
+      <div class="rq-bar"><div class="rq-fill" style="width:${pct}%"></div></div>
+      <div class="rq-rew">▸ ${q.reward}</div>
+    </div>`;
+  }).join('');
+}
+
+renderCards();
+renderQuests();
+</script>
+</body>
+</html>

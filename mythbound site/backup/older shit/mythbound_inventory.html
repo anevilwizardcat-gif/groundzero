@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MYTHBOUND — Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<script src="mythbound_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:'VT323',monospace;font-size:18px;display:flex;flex-direction:column;}
+
+/* ── CANONICAL NAV (matches hub exactly) ── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:2px solid #fff;background:#000;flex-shrink:0;}
+.logo{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;}
+.nav-links{display:flex;gap:5px;}
+.nb{background:#000;border:2px solid #444;color:#444;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.nb:hover,.nb.on{border-color:#fff;color:#fff;background:#111;}
+.nb.myth{border-color:#555;color:#555;}
+.nb.wip{border-color:#222;color:#333;cursor:default;}
+
+/* ── PLAYER BAR ── */
+.pbar{display:flex;align-items:center;gap:14px;padding:8px 18px;border-bottom:1px solid #222;background:#000;flex-shrink:0;}
+.pav{width:36px;height:36px;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.pname{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;}
+.pinfo{font-size:15px;color:#555;margin-top:3px;}
+.coins{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;}
+
+/* ── LAYOUT ── */
+.body{display:flex;flex:1;overflow:hidden;min-height:0;}
+
+/* ── LEFT: CHARACTER / EQUIP ── */
+.cpanel{width:280px;flex-shrink:0;border-right:2px solid #222;display:flex;flex-direction:column;background:#000;overflow:hidden;}
+.cpanel-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;padding:11px 16px;border-bottom:1px solid #222;letter-spacing:1px;}
+.equip-area{flex:1;min-height:0;display:flex;align-items:stretch;padding:10px 8px;gap:6px;}
+.slot-col{width:88px;flex-shrink:0;display:flex;flex-direction:column;gap:6px;}
+.sil-col{flex:1;display:flex;align-items:center;justify-content:center;min-width:0;}
+.sil-col svg{opacity:.08;max-height:100%;width:auto;}
+
+/* GEAR SLOT */
+.gslot{width:100%;flex:1;min-height:60px;background:#000;border:2px solid #1a1a1a;
+       display:flex;flex-direction:column;align-items:center;justify-content:center;
+       gap:3px;cursor:pointer;transition:border-color .1s;padding:4px 3px;text-align:center;position:relative;}
+.gslot:hover{border-color:#555;}
+.gslot.filled{border-color:#333;}
+.gslot.filled:hover{border-color:#fff;}
+/* rarity border on equipped items */
+.gslot.rar-common{border-color:#555;}
+.gslot.rar-uncommon{border-color:#3a7a50;}
+.gslot.rar-rare{border-color:#3a6a99;}
+.gslot.rar-epic{border-color:#7a3399;}
+.gslot.rar-legendary{border-color:#998832;}
+.gslot.rar-ultimate{padding:2px;background:linear-gradient(90deg,#ff0000,#ff8800,#ffff00,#00ff88,#00ccff,#8844ff,#ff0088,#ff0000);background-size:200% auto;animation:mb-rainbow-bg 2.4s linear infinite;}
+.gslot.rar-ultimate > .gslot-inner{background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;width:100%;height:100%;padding:4px;}
+.gslot.filtering{border-color:#fff !important;}
+.gslot.myth-slot{border-color:#222;}
+.gslot.myth-slot.filled{border-color:#444;}
+.gslot.myth-locked{opacity:.25;cursor:default;}
+.gslot.myth-locked:hover{border-color:#1a1a1a;}
+.gs-em{line-height:0;display:flex;align-items:center;justify-content:center;}
+.gs-nm{font-family:'Press Start 2P',monospace;font-size:6px;line-height:1.7;padding:0 3px;word-break:break-word;}
+.gs-lbl{font-family:'Press Start 2P',monospace;font-size:5px;color:#2a2a2a;letter-spacing:.3px;}
+
+/* ── STATS ── */
+.stats-bar{border-top:1px solid #222;padding:10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:7px;flex-shrink:0;}
+.sc{display:flex;flex-direction:column;gap:2px;}
+.sc-lbl{font-family:'Press Start 2P',monospace;font-size:6px;color:#333;}
+.sc-val{font-family:'Press Start 2P',monospace;font-size:11px;color:#fff;}
+.sc-val.gold{color:#ffdd6b;}
+
+/* ── INVENTORY PANEL ── */
+.ipanel{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.itabs{display:flex;border-bottom:1px solid #222;flex-shrink:0;}
+.itab{padding:11px 16px;font-family:'Press Start 2P',monospace;font-size:7px;color:#444;
+      cursor:pointer;border-bottom:2px solid transparent;transition:all .1s;white-space:nowrap;}
+.itab:hover{color:#888;}
+.itab.on{color:#fff;border-bottom-color:#fff;}
+
+.filter-banner{display:none;align-items:center;justify-content:space-between;
+               padding:8px 16px;background:#111;border-bottom:1px solid #333;flex-shrink:0;}
+.filter-banner.show{display:flex;}
+.filter-banner-txt{font-family:'Press Start 2P',monospace;font-size:7px;color:#fff;}
+.filter-clear{background:#000;border:2px solid #444;color:#aaa;padding:5px 10px;
+              font-family:'Press Start 2P',monospace;font-size:6px;cursor:pointer;}
+.filter-clear:hover{border-color:#fff;color:#fff;}
+
+.toolbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #222;flex-shrink:0;}
+.isearch{background:#000;border:2px solid #333;color:#fff;font-family:'VT323',monospace;
+         font-size:20px;padding:6px 12px;outline:none;flex:1;}
+.isearch:focus{border-color:#fff;}
+.fbtn{background:#000;border:2px solid #333;color:#555;padding:6px 12px;
+      font-family:'Press Start 2P',monospace;font-size:6px;cursor:pointer;white-space:nowrap;}
+.fbtn:hover{border-color:#888;color:#fff;}
+.fbtn.on{border-color:#fff;color:#fff;background:#111;}
+.slot-ctr{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:7px;color:#555;}
+.slot-ctr span{color:#fff;}
+
+/* ── BAG GRID ── */
+.igrid{flex:1;overflow-y:auto;padding:14px;
+       display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));
+       gap:10px;align-content:start;}
+
+/* item cell — border IS the rarity color */
+.icell{aspect-ratio:1;background:#000;border:2px solid #1a1a1a;
+       display:flex;flex-direction:column;align-items:center;justify-content:center;
+       gap:5px;cursor:pointer;transition:opacity .1s;position:relative;padding:6px;}
+.icell:hover{opacity:.75;}
+/* rarity border classes */
+.ib-common{border-color:#555;}
+.ib-uncommon{border-color:#3a7a50;}
+.ib-rare{border-color:#3a6a99;}
+.ib-epic{border-color:#7a3399;}
+.ib-legendary{border-color:#998832;}
+/* ultimate: animated rainbow border via padding trick */
+.ib-ultimate{padding:2px;background:linear-gradient(90deg,#ff0000,#ff8800,#ffff00,#00ff88,#00ccff,#8844ff,#ff0088,#ff0000);background-size:200% auto;animation:mb-rainbow-bg 2.4s linear infinite;border:none;}
+.ib-ultimate > .icell-inner{background:#000;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px;}
+
+.ic-em{line-height:0;display:flex;align-items:center;justify-content:center;}
+.ic-name{font-family:'Press Start 2P',monospace;font-size:8px;text-align:center;padding:0 4px;line-height:1.8;color:#888;}
+.ic-qty{position:absolute;bottom:4px;right:5px;font-family:'Press Start 2P',monospace;font-size:6px;color:#666;}
+.empty-slot{aspect-ratio:1;background:#000;border:1px dashed #1a1a1a;
+            display:flex;align-items:center;justify-content:center;color:#1a1a1a;font-size:22px;}
+.locked-slot{aspect-ratio:1;background:#000;border:1px dashed #111;
+             display:flex;flex-direction:column;align-items:center;justify-content:center;
+             gap:4px;cursor:pointer;transition:border-color .1s;}
+.locked-slot:hover{border-color:#333;}
+.locked-lbl{font-family:'Press Start 2P',monospace;font-size:5px;color:#222;text-align:center;line-height:2;}
+
+/* ── MODAL ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:center;justify-content:center;}
+.overlay.show{display:flex;}
+.modal{background:#000;border:2px solid #fff;padding:20px 22px;width:340px;max-height:90vh;overflow-y:auto;}
+.modal.ult-modal{padding:2px;background:linear-gradient(90deg,#f00,#f80,#ff0,#0f8,#0cf,#84f,#f08,#f00);background-size:200% auto;animation:mb-rainbow-bg 2.4s linear infinite;border:none;}
+.modal.ult-modal > .modal-inner{background:#000;padding:20px 22px;width:100%;max-height:90vh;overflow-y:auto;}
+.modal-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;gap:10px;}
+.modal-name{font-family:'Press Start 2P',monospace;font-size:9px;line-height:1.8;}
+.modal-x{background:#000;border:2px solid #444;color:#666;padding:6px 10px;
+          font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.modal-x:hover{color:#fff;border-color:#fff;}
+.modal-em{display:flex;justify-content:center;margin-bottom:12px;}
+.modal-rar{font-family:'Press Start 2P',monospace;font-size:7px;margin-bottom:10px;line-height:1.7;}
+.modal-desc{font-size:18px;color:#888;line-height:1.6;margin-bottom:12px;}
+.modal-stats{background:#000;border:1px solid #222;padding:10px 14px;margin-bottom:12px;}
+.mstat{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:18px;border-bottom:1px solid #0d0d0d;}
+.mstat:last-child{border-bottom:none;}
+.mstat-k{color:#555;font-size:16px;}
+.mstat-v{font-family:'Press Start 2P',monospace;font-size:9px;}
+.modal-effect{border:1px solid #333;padding:9px 12px;margin-bottom:12px;font-size:18px;color:#ffdd6b;line-height:1.6;}
+.modal-elem{font-family:'Press Start 2P',monospace;font-size:7px;margin-bottom:12px;}
+.modal-sb{font-family:'Press Start 2P',monospace;font-size:6px;color:#888;margin-bottom:12px;line-height:2;}
+.modal-warn{font-size:16px;color:#ffaa44;margin-bottom:12px;line-height:1.6;padding:8px 12px;border:1px solid #443300;}
+.modal-acts{display:flex;gap:8px;flex-wrap:wrap;}
+.mab{padding:10px 16px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;transition:all .1s;border:2px solid;}
+.mab.equip{border-color:#fff;color:#fff;background:#000;}.mab.equip:hover{background:#fff;color:#000;}
+.mab.unequip{border-color:#555;color:#777;background:#000;}.mab.unequip:hover{border-color:#fff;color:#fff;}
+.mab.use{border-color:#6bff9b;color:#6bff9b;background:#000;}.mab.use:hover{background:#6bff9b;color:#000;}
+.mab.sell{border-color:#333;color:#555;background:#000;}.mab.sell:hover{border-color:#888;color:#999;}
+.mab.off{border-color:#1a1a1a;color:#2a2a2a;background:#000;cursor:not-allowed;}
+
+.upgrade-info{font-family:'Press Start 2P',monospace;font-size:7px;color:#444;margin-top:10px;text-align:center;line-height:2;}
+.upgrade-info span{color:#fff;}
+
+/* ── TOAST ── */
+
+/* ── MYTH BINDING OVERLAY ── */
+.myth-overlay{display:none;position:fixed;inset:0;background:#000;z-index:500;
+  align-items:center;justify-content:center;flex-direction:column;}
+.myth-overlay.show{display:flex;}
+.myth-stage{position:relative;width:220px;height:220px;display:flex;align-items:center;justify-content:center;}
+.myth-sprite{width:120px;height:120px;image-rendering:pixelated;transition:transform .3s;}
+.myth-glow{position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle,rgba(170,0,255,.4) 0%,transparent 70%);
+  animation:myth-pulse 1.2s ease-in-out infinite;}
+.myth-ring{position:absolute;inset:-20px;border-radius:50%;
+  border:2px solid rgba(170,0,255,.3);
+  animation:myth-spin 3s linear infinite;}
+@keyframes myth-pulse{0%,100%{transform:scale(1);opacity:.6;}50%{transform:scale(1.15);opacity:1;}}
+@keyframes myth-spin{to{transform:rotate(360deg);}}
+@keyframes myth-flash{0%{opacity:0;}40%{opacity:1;}100%{opacity:0;}}
+@keyframes myth-reveal{0%{transform:scale(0.3) rotate(-10deg);opacity:0;}
+  60%{transform:scale(1.15) rotate(3deg);}100%{transform:scale(1) rotate(0deg);opacity:1;}}
+.myth-flash-el{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:600;}
+.myth-flash-el.go{animation:myth-flash .6s ease-out forwards;}
+.myth-label{font-family:'Press Start 2P',monospace;font-size:8px;color:#fff;
+  text-align:center;margin-top:18px;letter-spacing:1px;opacity:0;transition:opacity .5s;}
+.myth-label.show{opacity:1;}
+.myth-sublabel{font-family:'Press Start 2P',monospace;font-size:6px;color:#888;
+  text-align:center;margin-top:8px;opacity:0;transition:opacity .5s .3s;line-height:2;}
+.myth-sublabel.show{opacity:1;}
+.myth-continue{font-family:'Press Start 2P',monospace;font-size:7px;background:#000;
+  border:2px solid #fff;color:#fff;padding:10px 20px;cursor:pointer;margin-top:24px;
+  opacity:0;transition:opacity .5s .6s;}
+.myth-continue.show{opacity:1;}
+
+
+/* Slot upgrade modal */
+.slot-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:300;align-items:center;justify-content:center;}
+.slot-modal-overlay.show{display:flex;}
+.slot-modal{background:#000;border:2px solid #fff;padding:24px 28px;width:340px;}
+.slot-modal-title{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;margin-bottom:16px;}
+.slot-modal-body{font-size:18px;color:#888;line-height:1.7;margin-bottom:14px;}
+.slot-modal-cost{font-family:'Press Start 2P',monospace;font-size:9px;color:#ffdd6b;margin-bottom:20px;}
+.slot-modal-btns{display:flex;gap:10px;}
+.slot-modal-btns button{flex:1;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;background:#000;border:2px solid #fff;color:#fff;}
+.slot-modal-btns button:hover{background:#fff;color:#000;}
+.slot-modal-btns .cancel{border-color:#444;color:#555;}
+.slot-modal-btns .cancel:hover{background:#111;color:#888;}
+.toast{position:fixed;bottom:18px;right:18px;background:#000;border:2px solid #fff;
+       color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px 16px;
+       z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;max-width:300px;line-height:2;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">MYTHBOUND</div>
+  <div class="nav-links" id="main-nav"></div>
+</nav>
+
+<div class="pbar">
+  <div class="pav" id="p-av">🐦‍⬛</div>
+  <div>
+    <div class="pname" id="p-name">RAVEN</div>
+    <div class="pinfo" id="p-info">Lv.12 Striker · Phoenix Mythbound</div>
+  </div>
+  <div class="coins" id="p-coins">4,820 🪙</div>
+</div>
+
+<div class="body">
+
+  <!-- CHARACTER / EQUIP PANEL -->
+  <div class="cpanel">
+    <div class="cpanel-hdr">▸ EQUIPMENT</div>
+    <div class="equip-area">
+      <div class="slot-col" id="left-col"></div>
+      <div class="sil-col">
+        <svg viewBox="0 0 120 230" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="60" cy="26" rx="21" ry="22" fill="#fff"/>
+          <polygon points="60,34 71,40 60,46" fill="#fff"/>
+          <path d="M30 68 Q22 98 20 158 L42 158 L42 128 Q60 138 78 128 L78 158 L100 158 Q98 98 90 68 Q75 55 60 53 Q45 55 30 68Z" fill="#fff"/>
+          <path d="M30 68 Q12 88 10 118 L24 120 Q26 98 38 84Z" fill="#fff"/>
+          <path d="M90 68 Q108 88 110 118 L96 120 Q94 98 82 84Z" fill="#fff"/>
+          <rect x="36" y="156" width="20" height="48" rx="6" fill="#fff"/>
+          <rect x="64" y="156" width="20" height="48" rx="6" fill="#fff"/>
+          <rect x="30" y="196" width="27" height="13" rx="4" fill="#fff"/>
+          <rect x="63" y="196" width="27" height="13" rx="4" fill="#fff"/>
+        </svg>
+      </div>
+      <div class="slot-col" id="right-col"></div>
+    </div>
+    <div class="stats-bar" id="stats-bar"></div>
+  </div>
+
+  <!-- INVENTORY PANEL -->
+  <div class="ipanel">
+    <div class="itabs">
+      <div class="itab on"  onclick="setTab(this,'all')">ALL</div>
+      <div class="itab" onclick="setTab(this,'equipment')">GEAR</div>
+      <div class="itab" onclick="setTab(this,'consumable')">ITEMS</div>
+      <div class="itab" onclick="setTab(this,'material')">MATERIALS</div>
+      <div class="itab" onclick="setTab(this,'key')">KEY</div>
+    </div>
+
+    <div class="filter-banner" id="filter-banner">
+      <div class="filter-banner-txt" id="filter-txt">SHOWING: HELM SLOT</div>
+      <button class="filter-clear" onclick="clearSlotFilter()">✕ CLEAR FILTER</button>
+    </div>
+
+    <div class="toolbar">
+      <input class="isearch" id="search" placeholder="Search items..." oninput="render()">
+      <button class="fbtn on" onclick="setSort(this,'rarity')">Rarity</button>
+      <button class="fbtn" onclick="setSort(this,'name')">Name</button>
+      <button class="fbtn" onclick="setSort(this,'type')">Type</button>
+      <div class="slot-ctr" id="slot-ctr"></div>
+    </div>
+
+    <div class="igrid" id="igrid"></div>
+  </div>
+
+</div>
+
+<!-- ITEM MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal-box"></div>
+</div>
+
+<!-- MYTH BINDING -->
+<div class="myth-overlay" id="myth-overlay">
+  <div class="myth-stage">
+    <div class="myth-glow" id="myth-glow"></div>
+    <div class="myth-ring" id="myth-ring"></div>
+    <div class="myth-sprite" id="myth-sprite"></div>
+  </div>
+  <div class="myth-label" id="myth-label"></div>
+  <div class="myth-sublabel" id="myth-sublabel"></div>
+  <button class="myth-continue" id="myth-continue" onclick="closeMythOverlay()">▸ CONTINUE</button>
+</div>
+<div class="myth-flash-el" id="myth-flash"></div>
+
+<!-- Bag Slot Upgrade Modal -->
+<div class="slot-modal-overlay" id="slot-modal">
+  <div class="slot-modal">
+    <div class="slot-modal-title">UNLOCK BAG SLOT?</div>
+    <div class="slot-modal-body" id="slot-modal-body"></div>
+    <div class="slot-modal-cost" id="slot-modal-cost"></div>
+    <div class="slot-modal-btns">
+      <button class="cancel" onclick="closeSlotModal()">&#10005; CANCEL</button>
+      <button id="slot-confirm-btn" onclick="confirmSlotUpgrade()">&#9658; CONFIRM</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const RORD = MB.RORD;
+const RCOL = MB.RC;
+
+const EL_LABELS={fire:'🔥 Fire',frost:'❄️ Frost',nature:'🌿 Nature',void:'🌀 Void',light:'✨ Light',arcana:'💫 Arcana',physical:'⚔️ Physical'};
+const EL_COLS={fire:'#ff7733',frost:'#88ddff',nature:'#66ee88',void:'#cc44ff',light:'#ffffaa',arcana:'#88aaff',physical:'#aaa'};
+
+const SLOT_DEFS=[
+  {id:'helm',   label:'HELM',      em:'⛑️',  col:'left'},
+  {id:'chest',  label:'CHEST',     em:'🦺',  col:'left'},
+  {id:'legs',   label:'LEGS',      em:'👖',  col:'left'},
+  {id:'boots',  label:'BOOTS',     em:'🥾',  col:'left'},
+  {id:'trinket',label:'TRINKET',   em:'💠',  col:'left'},
+  {id:'main',   label:'MAIN HAND', em:'⚔️',  col:'right'},
+  {id:'off',    label:'OFF HAND',  em:'🛡️',  col:'right'},
+  {id:'ring',   label:'RING',      em:'💍',  col:'right'},
+  {id:'myth',   label:'MYTH',      em:'✦',   col:'right', isMythSlot:true},
+];
+
+const STAT_FULL={stm:'Stamina',agi:'Agility',def:'Defense',wil:'Willpower',atk:'Attack',arc:'Arcane'};
+
+function upgradeCost(n){return Math.floor(500*Math.pow(2,n));}
+
+// ── DEFAULT BAG (used only on first load, before any saves) ──
+const DEFAULT_BAG = [
+    {id:'iron_crown',   name:'Iron Crown',    emoji:'⛑️',rarity:'rare',    type:'equipment',slot:'helm',    stats:{def:8,stm:20}, element:'physical',sell:180,desc:'A battered crown taken from a dungeon guardian.'},
+    {id:'ashen_vest',   name:'Ashen Vest',    emoji:'🦺',rarity:'uncommon',type:'equipment',slot:'chest',   stats:{def:5,stm:15}, element:'physical',sell:90, desc:'Leather hardened in volcanic ash.'},
+    {id:'void_blade',   name:'Void Blade',    emoji:'⚔️',rarity:'epic',   type:'equipment',slot:'main',    stats:{atk:18,agi:2}, element:'void',    sell:400,desc:'Forged from compressed darkness. Whispers when drawn.'},
+    {id:'iron_shield',  name:'Iron Shield',   emoji:'🛡️',rarity:'common',  type:'equipment',slot:'off',     stats:{def:6,stm:10}, element:'physical',sell:80, desc:'Heavy and dependable.'},
+    {id:'silver_ring',  name:'Silver Ring',   emoji:'💍',rarity:'uncommon',type:'equipment',slot:'ring',    stats:{wil:12,agi:1}, element:'arcana',  sell:110,desc:'Faintly magical. Hums when held.'},
+    {id:'ember_boots',  name:'Ember Boots',   emoji:'🥾',rarity:'rare',    type:'equipment',slot:'boots',   stats:{agi:4,atk:3},  element:'fire',    sell:160,desc:'Warm to the touch. Forged in volcanic stone.'},
+    {id:'sage_legs',    name:'Sage Legguards',emoji:'👖',rarity:'uncommon',type:'equipment',slot:'legs',    stats:{wil:8,stm:12}, element:'nature',  sell:95, desc:'Woven from enchanted bark-fiber.'},
+    {id:'crystal_trinket',name:'Crystal Shard',emoji:'💠',rarity:'epic',  type:'equipment',slot:'trinket', stats:{arc:14,wil:6}, element:'arcana',  sell:350,desc:'A fragment of a shattered mana crystal.'},
+    {id:'potion',       name:'Potion',        emoji:'🧪',rarity:'common',  type:'consumable',effect:'Heal 40 Stamina',   sell:20, desc:'A basic healing potion.',qty:8},
+    {id:'ether',        name:'Ether',         emoji:'💧',rarity:'common',  type:'consumable',effect:'Restore 30 MP',    sell:20, desc:'Restores magical energy.',qty:3},
+    {id:'elixir',       name:'Elixir',        emoji:'⚗️',rarity:'rare',   type:'consumable',effect:'Full Stamina + MP',sell:200,desc:'Save it for when it counts.',qty:1},
+    {id:'antidote',     name:'Antidote',      emoji:'💊',rarity:'common',  type:'consumable',effect:'Cure Venom',       sell:15, desc:'Purges toxins.',qty:4},
+    {id:'bomb',         name:'Bomb',          emoji:'💣',rarity:'uncommon',type:'consumable',effect:'60 Physical dmg', sell:60, desc:'Light fuse. Step back.',qty:5},
+    {id:'root_fiber',   name:'Root Fiber',    emoji:'🪢',rarity:'common',  type:'material',sell:8,  desc:'Used in leatherwork.',qty:24},
+    {id:'ancient_sap',  name:'Ancient Sap',   emoji:'🫙',rarity:'rare',   type:'material',sell:120,desc:'Alchemical reagent.',qty:3},
+    {id:'shadow_gem',   name:'Shadow Gem',    emoji:'💎',rarity:'epic',   type:'material',sell:500,desc:'Sought by enchanters.',qty:1},
+    {id:'copper_ore',   name:'Copper Ore',    emoji:'🟤',rarity:'common',  type:'material',sell:10, desc:'Smelts into copper ingots.',qty:31},
+    {id:'mithril_ore',  name:'Mithril Ore',   emoji:'🔵',rarity:'rare',   type:'material',sell:300,desc:'Found only in deep veins.',qty:2},
+    {id:'deeproot_key', name:'Deeproot Key',  emoji:'🗝️',rarity:'uncommon',type:'key',sell:0,desc:'Unlocks the Sealed Chamber.',qty:1},
+    {id:'myth_heart',   name:'Myth Heart',    emoji:'💜',rarity:'ultimate',type:'key',sell:0,desc:'Used for myth binding. Soulbound — cannot trade or sell.',qty:1,soulbound:true,usable:true},];
+
+// Build default equipped from actual player myth — never hardcode Phoenix
+function buildDefaultEquipped() {
+  const myth = MB.PLAYER.myth;
+  const mythId = MB.PLAYER.mythId;
+  if (!myth) return {};
+  // Look up their myth heart item
+  const heartId = 'myth_heart_' + (mythId || myth.toLowerCase().replace(/\s+/g,'_'));
+  const heartDef = MB.ITEMS[heartId];
+  if (heartDef) return { myth: Object.assign({}, heartDef, { id: heartId }) };
+  // Fallback for older accounts bound before the heart system
+  return {
+    myth: { id: heartId, name: myth + ' Heart', emoji: '💜', rarity: 'ultimate',
+            type:'key', slot:'myth', soulbound:true, mythBound:true,
+            desc: 'The bound heart of the ' + myth + '.' }
+  };
+}
+const DEFAULT_EQUIPPED = buildDefaultEquipped();
+
+// G reads live from MB.PLAYER which was already loaded from localStorage
+const G={
+  get coins(){ return MB.PLAYER.coins; },
+  set coins(v){ MB.PLAYER.coins=v; MB.savePlayer(); },
+  bagSlots: MB.PLAYER.bagSlots  || 20,
+  slotsUnlocked: MB.PLAYER.slotsUnlocked || 0,
+  lockedSlots: MB.PLAYER.lockedSlots !== undefined ? MB.PLAYER.lockedSlots : 4,
+  tab:'all',
+  sort:'rarity',
+  slotFilter:null,
+  get equipped(){
+    const eq = MB.PLAYER.equipped || {};
+    // If player is mythbound but myth slot is empty, populate it
+    if (MB.PLAYER.myth && !eq.myth) {
+      const fresh = buildDefaultEquipped();
+      if (fresh.myth) {
+        eq.myth = fresh.myth;
+        MB.PLAYER.equipped = eq;
+        MB.savePlayer();
+      }
+    }
+    return eq;
+  },
+  set equipped(v){ MB.PLAYER.equipped=v; },
+  get bag(){
+    const raw = (MB.PLAYER.bag && MB.PLAYER.bag.length) ? MB.PLAYER.bag : DEFAULT_BAG;
+    // Hydrate every item from MB.ITEMS so data editor changes take effect immediately
+    return raw.map(item => {
+      const def = MB.ITEMS[item.id];
+      if (!def) return item; // unknown — return as-is
+      return Object.assign({}, def, { id: item.id, qty: item.qty || 1 });
+    });
+  },
+  set bag(v){ MB.PLAYER.bag=v; },
+};
+
+// Sync bag/equipped upgrades back to MB.PLAYER on mutations
+
+
+// Only set default equipped items if no saved data exists
+if (!MB.PLAYER.equipped || Object.keys(MB.PLAYER.equipped).length <= 1) {
+  G.equipped.helm  = G.bag.find(i=>i.id==='iron_crown');
+  G.equipped.chest = G.bag.find(i=>i.id==='ashen_vest');
+  G.equipped.main  = G.bag.find(i=>i.id==='void_blade');
+  MB.PLAYER.equipped = G.equipped;
+  MB.savePlayer();
+}
+
+// ── RARITY HELPERS ───────────────────────────────────────────
+function rarBorderClass(rar){ return 'ib-'+rar; }
+function rarSlotClass(rar){ return 'rar-'+rar; }
+function rarTextStyle(rar){
+  if(rar==='ultimate') return '';  // handled by mb-ult-text class
+  return 'color:'+( {common:'#999',uncommon:'#6bff9b',rare:'#6bb5ff',epic:'#c455e8',legendary:'#ffdd6b'}[rar]||'#fff' )+';';
+}
+function rarTextClass(rar){ return rar==='ultimate'?'mb-ult-text':''; }
+
+// ── PLAYER BAR ───────────────────────────────────────────────
+(function(){
+  const p=MB.PLAYER;
+  document.getElementById('p-av').textContent=p.em;
+  document.getElementById('p-name').textContent=p.name;
+  document.getElementById('p-info').textContent='Lv.'+p.level+' '+p.role+(p.myth?' · '+p.myth+' Mythbound':'');
+  document.getElementById('p-coins').textContent=p.coins.toLocaleString()+' 🪙';
+})();
+
+// ── SLOT HELPERS ─────────────────────────────────────────────
+function eqIds(){ return new Set(Object.values(G.equipped).filter(Boolean).map(i=>i.id)); }
+function usedSlots(){ return G.bag.filter(i=>!eqIds().has(i.id)).length + Object.values(G.equipped).filter(Boolean).length; }
+
+function calcStats(){
+  const base={stm:80,agi:14,def:6,wil:8,atk:12,arc:5};
+  Object.values(G.equipped).filter(Boolean).forEach(it=>{
+    if(!it.stats)return;
+    Object.entries(it.stats).forEach(([k,v])=>{base[k]=(base[k]||0)+v;});
+  });
+  return base;
+}
+
+function visibleBag(){
+  const ids=eqIds();
+  let list=G.bag.filter(i=>!ids.has(i.id));
+  if(G.slotFilter) list=list.filter(i=>i.slot===G.slotFilter);
+  else if(G.tab!=='all') list=list.filter(i=>i.type===G.tab);
+  const q=(document.getElementById('search').value||'').toLowerCase().trim();
+  if(q) list=list.filter(i=>i.name.toLowerCase().includes(q));
+  list.sort((a,b)=>{
+    if(G.sort==='rarity') return(RORD[b.rarity]||0)-(RORD[a.rarity]||0);
+    if(G.sort==='name')   return a.name.localeCompare(b.name);
+    if(G.sort==='type')   return a.type.localeCompare(b.type);
+    return 0;
+  });
+  return list;
+}
+
+function render(){renderSlots();renderStats();renderBag();}
+
+// ── RENDER SLOTS ─────────────────────────────────────────────
+function renderSlots(){
+  const L=document.getElementById('left-col');
+  const R=document.getElementById('right-col');
+  L.innerHTML='';R.innerHTML='';
+  SLOT_DEFS.forEach(def=>{
+    const it=G.equipped[def.id]||null;
+    const div=document.createElement('div');
+    const isFiltering=G.slotFilter===def.id;
+    const filterCls=isFiltering?' filtering':'';
+
+    if(def.isMythSlot){
+      if(it){
+        // ultimate myth slot — rainbow border wrapper
+        div.className='gslot myth-slot filled rar-ultimate'+filterCls;
+        div.onclick=()=>openModal(it.id,true);
+        div.innerHTML=`<div class="gslot-inner"><div class="gs-em">${MB.renderItemIconSVG(it.id, 28)}</div><div class="gs-nm mb-ult-text">${it.name}</div></div>`;
+      } else {
+        div.className='gslot myth-slot myth-locked'+filterCls;
+        div.innerHTML=`<div class="gs-em" style="font-size:16px;opacity:.3">🔒</div><div class="gs-lbl">MYTH SLOT</div>`;
+      }
+    } else if(it){
+      div.className='gslot filled '+rarSlotClass(it.rarity)+filterCls;
+      div.onclick=()=>openModal(it.id,true);
+      const nameStyle=rarTextStyle(it.rarity);
+      const nameCls=rarTextClass(it.rarity);
+      div.innerHTML=`<div class="gs-em">${MB.renderItemIconSVG(it.id, 28)}</div><div class="gs-nm ${nameCls}" style="${nameStyle}">${it.name}</div>`;
+    } else {
+      div.className='gslot'+filterCls;
+      div.onclick=()=>toggleSlotFilter(def.id,def.label);
+      div.innerHTML=`<div class="gs-em" style="opacity:.15;font-size:18px">${def.em}</div><div class="gs-lbl">${def.label}</div>`;
+    }
+    (def.col==='left'?L:R).appendChild(div);
+  });
+}
+
+function toggleSlotFilter(slotId,label){
+  if(G.slotFilter===slotId){clearSlotFilter();return;}
+  G.slotFilter=slotId;
+  document.getElementById('filter-banner').classList.add('show');
+  document.getElementById('filter-txt').textContent='SHOWING ITEMS FOR: '+label+' SLOT';
+  render();
+}
+function clearSlotFilter(){
+  G.slotFilter=null;
+  document.getElementById('filter-banner').classList.remove('show');
+  render();
+}
+
+// ── RENDER STATS ─────────────────────────────────────────────
+function renderStats(){
+  const s=calcStats();
+  const ilvl=Object.values(G.equipped).filter(i=>i&&i.stats).length*8;
+  const keys=[['STM','stm'],['AGI','agi'],['DEF','def'],['WIL','wil'],['ATK','atk'],['ARC','arc']];
+  document.getElementById('stats-bar').innerHTML=
+    keys.map(([l,k])=>`<div class="sc"><div class="sc-lbl">${l}</div><div class="sc-val">${s[k]||0}</div></div>`).join('')+
+    `<div class="sc"><div class="sc-lbl">ILVL</div><div class="sc-val gold">${ilvl}</div></div>`;
+}
+
+// ── RENDER BAG ───────────────────────────────────────────────
+function renderBag(){
+  const items=visibleBag();
+  const used=usedSlots();
+  document.getElementById('slot-ctr').innerHTML=`<span>${used}</span> / ${G.bagSlots} SLOTS`;
+
+  let html='';
+  items.forEach(it=>{
+    if(it.rarity==='ultimate'){
+      // rainbow border wrapper cell
+      html+=`<div class="icell ib-ultimate" onclick="openModal('${it.id}',false)">
+        <div class="icell-inner">
+          <div class="ic-em">${MB.renderItemIconSVG(it.id, 40)}</div>
+          <div class="ic-name mb-ult-text">${it.name}</div>
+          ${(it.qty||1)>1?`<div class="ic-qty">×${it.qty}</div>`:''}
+        </div>
+      </div>`;
+    } else {
+      html+=`<div class="icell ${rarBorderClass(it.rarity)}" onclick="openModal('${it.id}',false)">
+        <div class="ic-em">${MB.renderItemIconSVG(it.id, 40)}</div>
+        <div class="ic-name" style="${rarTextStyle(it.rarity)}">${it.name}</div>
+        ${(it.qty||1)>1?`<div class="ic-qty">×${it.qty}</div>`:''}
+      </div>`;
+    }
+  });
+
+  if(!G.slotFilter){
+    const empty=Math.max(0,G.bagSlots-items.length);
+    for(let i=0;i<empty;i++) html+=`<div class="empty-slot">·</div>`;
+    const cost=upgradeCost(G.slotsUnlocked);
+    for(let i=0;i<G.lockedSlots;i++){
+      html+=`<div class="locked-slot" onclick="promptUpgrade()">
+        <div style="font-size:20px;opacity:.15">🔒</div>
+        <div class="locked-lbl">UNLOCK<br><span style="color:#333">${cost.toLocaleString()}🪙</span></div>
+      </div>`;
+    }
+  } else if(!items.length){
+    html+=`<div style="grid-column:1/-1;padding:40px;text-align:center;font-family:'Press Start 2P',monospace;font-size:7px;color:#333;line-height:2.5;">NO ITEMS FOR THIS SLOT</div>`;
+  }
+  document.getElementById('igrid').innerHTML=html;
+}
+
+function promptUpgrade(){
+  const cost=upgradeCost(G.slotsUnlocked);
+  if(G.coins<cost){toast('Need '+cost.toLocaleString()+' 🪩 to unlock next slot.');return;}
+  const next=upgradeCost(G.slotsUnlocked+1);
+  document.getElementById('slot-modal-body').textContent='Unlock 1 additional bag slot? This cannot be undone.';
+  document.getElementById('slot-modal-cost').textContent=cost.toLocaleString()+' 🪩 Doubloons';
+  document.getElementById('slot-modal').classList.add('show');
+  document.getElementById('slot-confirm-btn')._cost=cost;
+  document.getElementById('slot-confirm-btn')._next=next;
+}
+function confirmSlotUpgrade(){
+  const btn=document.getElementById('slot-confirm-btn');
+  const cost=btn._cost,next=btn._next;if(!cost)return;
+  G.coins-=cost;G.bagSlots++;G.slotsUnlocked++;G.lockedSlots=Math.max(0,G.lockedSlots-1);
+  document.getElementById('p-coins').textContent=G.coins.toLocaleString()+' 🪩';
+  MB.PLAYER.bagSlots=G.bagSlots;MB.PLAYER.slotsUnlocked=G.slotsUnlocked;MB.PLAYER.lockedSlots=G.lockedSlots;MB.savePlayer();
+  closeSlotModal();toast('Slot unlocked! Next costs '+next.toLocaleString()+' 🪩');render();
+}
+function closeSlotModal(){document.getElementById('slot-modal').classList.remove('show');}
+
+// ── MODAL ────────────────────────────────────────────────────
+function openModal(id,fromSlot){
+  let it=null;
+  if(fromSlot) it=Object.values(G.equipped).find(i=>i&&i.id===id)||null;
+  if(!it) it=G.bag.find(i=>i.id===id)||null;
+  if(!it)return;
+
+  const isEq=Object.values(G.equipped).some(i=>i&&i.id===id);
+  const canEquip=it.slot&&!isEq&&!it.mythBound;
+  const swap=canEquip&&G.equipped[it.slot]!=null;
+  const bagFull=usedSlots()>=G.bagSlots;
+
+  let acts='';
+  if(it.mythBound) acts+=`<button class="mab off">MYTHBOUND</button>`;
+  else if(isEq){
+    if(it.soulbound) acts+=`<button class="mab off">SOULBOUND</button>`;
+    else if(bagFull) acts+=`<button class="mab off">BAG FULL</button>`;
+    else acts+=`<button class="mab unequip" onclick="doUnequip('${it.id}')">UNEQUIP</button>`;
+  } else if(canEquip){
+    acts+=`<button class="mab equip" onclick="doEquip('${it.id}')">${swap?'EQUIP (SWAP)':'EQUIP'}</button>`;
+  }
+  // Show USE for consumables, usable key items, and myth_heart specifically
+  const isUsable = it.type==='consumable' || it.usable || it.id==='myth_heart';
+  // For myth_heart: only show if player not already mythbound (mythbound players use admin to reroll)
+  const mythHeartBlocked = it.id==='myth_heart' && MB.PLAYER.myth;
+  if(isUsable && !mythHeartBlocked) acts+=` <button class="mab use" onclick="doUse('${it.id}')">USE</button>`;
+  if(it.sell&&!it.soulbound&&!isEq) acts+=` <button class="mab sell" onclick="doSell('${it.id}')">SELL ${it.sell.toLocaleString()}🪙</button>`;
+
+  const statsHtml=it.stats?`<div class="modal-stats">${Object.entries(it.stats).map(([k,v])=>`
+    <div class="mstat"><span class="mstat-k">${STAT_FULL[k]||k.toUpperCase()}</span>
+    <span class="mstat-v" style="color:${v>0?'#6bff9b':'#ff6666'}">${v>0?'+':''}${v}</span></div>`).join('')}</div>`:'';
+  const elemHtml=it.element?`<div class="modal-elem" style="color:${EL_COLS[it.element]||'#aaa'}">${EL_LABELS[it.element]||it.element}</div>`:'';
+  const swapHtml=swap?`<div class="modal-warn">⚠ Will return your current ${it.slot.replace('main','main hand').replace('off','off hand')} to your bag.</div>`:'';
+  const sbHtml=it.soulbound?`<div class="modal-sb">SOULBOUND — cannot trade or sell</div>`:'';
+  const effHtml=it.effect?`<div class="modal-effect">⚡ ${it.effect}</div>`:'';
+
+  const nameCls=it.rarity==='ultimate'?'mb-ult-text':'';
+  const nameStyle=rarTextStyle(it.rarity);
+  const rarCls=it.rarity==='ultimate'?'mb-ult-text':'';
+  const rarStyle=rarTextStyle(it.rarity);
+
+  document.getElementById('modal-box').innerHTML=`
+    <div class="modal-top">
+      <div class="modal-name ${nameCls}" style="${nameStyle}">${it.name}</div>
+      <button class="modal-x" onclick="closeModal()">✕ CLOSE</button>
+    </div>
+    <div class="modal-em" style="display:flex;justify-content:center;">${MB.renderItemIconSVG(it.id, 72)}</div>
+    <div class="modal-rar ${rarCls}" style="${rarStyle}">${it.rarity.toUpperCase()} · ${it.type.toUpperCase()}${isEq?' · <span style="color:#fff">EQUIPPED</span>':''}</div>
+    <div class="modal-desc">${it.desc}</div>
+    ${statsHtml}${elemHtml}${effHtml}${sbHtml}${swapHtml}
+    <div class="modal-acts">${acts}</div>
+  `;
+  // Rainbow border for ultimate items — outer wrapper gets gradient, inner stays black
+  const _mb2 = document.getElementById('modal-box');
+  if(it.rarity==='ultimate'){
+    _mb2.style.cssText='padding:2px;background:linear-gradient(90deg,#ff0000,#ff8800,#ffff00,#00ff88,#00ccff,#8844ff,#ff0088,#ff0000);background-size:200% auto;animation:mb-rainbow-bg 2.4s linear infinite;border:none;';
+    // Wrap existing content in a black inner div
+    const existingHTML = _mb2.innerHTML;
+    _mb2.innerHTML = '<div style="background:#000;padding:20px 22px;width:100%;max-height:86vh;overflow-y:auto;">' + existingHTML + '</div>';
+  } else {
+    _mb2.style.cssText='';
+  }
+  document.getElementById('overlay').classList.add('show');
+}
+
+function closeModal(){document.getElementById('overlay').classList.remove('show');}
+
+function doEquip(id){
+  const it=G.bag.find(i=>i.id===id);if(!it||!it.slot)return;
+  const prev=G.equipped[it.slot];
+  G.equipped[it.slot]=it;
+  MB.PLAYER.equipped=G.equipped; MB.savePlayer();
+  toast(prev?`${it.name} equipped. ${prev.name} returned to bag.`:`${it.name} equipped!`);
+  closeModal();render();
+}
+function doUnequip(id){
+  const key=Object.keys(G.equipped).find(k=>G.equipped[k]&&G.equipped[k].id===id);
+  if(!key)return;
+  const it=G.equipped[key];
+  if(it.soulbound||it.mythBound){toast('This item cannot be removed.');return;}
+  if(usedSlots()>=G.bagSlots){toast('Bag is full! Free up space first.');return;}
+  G.equipped[key]=null;
+  MB.PLAYER.equipped=G.equipped; MB.savePlayer();
+  toast(`${it.name} unequipped — returned to bag.`);
+  closeModal();render();
+}
+function doUse(id){
+  const it=G.bag.find(i=>i.id===id);if(!it)return;
+  // Myth Heart — special binding flow
+  if(id==='myth_heart'){
+    if(MB.PLAYER.myth){toast('Already mythbound. See admin to unbind.');return;}
+    doMythBind(id);
+    return;
+  }
+  if((it.qty||1)>1) it.qty--; else G.bag.splice(G.bag.indexOf(it),1);
+  MB.PLAYER.bag=G.bag; MB.savePlayer();
+  toast(`Used ${it.name}!`);closeModal();render();
+}
+function doSell(id){
+  const it=G.bag.find(i=>i.id===id);if(!it||it.soulbound)return;
+  const val=it.sell*(it.qty||1);
+  G.bag.splice(G.bag.indexOf(it),1);
+  G.coins+=val;
+  document.getElementById('p-coins').textContent=MB.PLAYER.coins.toLocaleString()+' 🪙';
+  MB.PLAYER.bag=G.bag; MB.savePlayer();
+  toast(`Sold ${it.name} for ${val.toLocaleString()} 🪙`);closeModal();render();
+}
+
+function setTab(el,t){
+  clearSlotFilter();
+  document.querySelectorAll('.itab').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');G.tab=t;render();
+}
+function setSort(el,s){
+  document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');G.sort=s;render();
+}
+
+let tTmr=null;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  if(tTmr)clearTimeout(tTmr);
+  tTmr=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+document.getElementById('overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('overlay'))closeModal();
+});
+
+// ── MYTH BINDING ──────────────────────────────────────────────
+const MYTHS = [
+  { id:'phoenix',   name:'Phoenix',    em:'🔥', color:'#ff6600', desc:'A creature of rebirth. Its flame never dies.' },
+  { id:'leviathan', name:'Leviathan',  em:'🌊', color:'#0066ff', desc:'The Primordial Sea Beast. Ancient beyond measure.' },
+  { id:'thunderoc', name:'Thunderoc',  em:'⚡', color:'#ffdd00', desc:'A storm-eagle that splits the sky.' },
+  { id:'voidwyrm',  name:'Voidwyrm',   em:'🌀', color:'#aa00ff', desc:'Born in the space between worlds.' },
+  { id:'solarveil', name:'Solarveil',  em:'✨', color:'#ffffff', desc:'A creature of pure light. Rarely seen.' },
+  { id:'emberbear', name:'Emberbear',  em:'🐻', color:'#ff4400', desc:'A great bear wreathed in living fire.' },
+  { id:'moonshade', name:'Moonshade',  em:'🌙', color:'#aaaaff', desc:'A silver fox that walks between dreams.' },
+  { id:'stoneheart',name:'Stoneheart', em:'🪨', color:'#888888', desc:'An ancient construct of living rock.' },
+  { id:'tidecaller',name:'Tidecaller', em:'🐋', color:'#44ccff', desc:'A whale that sings the tides into being.' },
+  { id:'wraithwing',name:'Wraithwing', em:'🦅', color:'#666688', desc:'A ghost-hawk that hunts in the shadow realm.' },
+];
+
+function doMythBind(id) {
+  if (MB.PLAYER.myth) { toast('Already mythbound. See admin to unbind.'); return; }
+  // Ensure bag is a mutable copy (not the read-only DEFAULT_BAG)
+  if (!MB.PLAYER.bag || !MB.PLAYER.bag.length) {
+    MB.PLAYER.bag = DEFAULT_BAG.map(i => Object.assign({}, i));
+  }
+  const it = MB.PLAYER.bag.find(i => i.id === id);
+  if (!it) return;
+  closeModal();
+  if ((it.qty||1) > 1) it.qty--;
+  else MB.PLAYER.bag.splice(MB.PLAYER.bag.indexOf(it), 1);
+  const myth = MYTHS[Math.floor(Math.random() * MYTHS.length)];
+  showMythBinding(myth, () => {
+    MB.PLAYER.myth   = myth.name;
+    MB.PLAYER.mythId = myth.id;
+    // Equip the myth heart item into the myth slot
+    const heartId = 'myth_heart_' + myth.id;
+    const heartDef = MB.ITEMS[heartId] || {
+      id: heartId, name: myth.name+' Heart', emoji: myth.em,
+      rarity:'ultimate', type:'key', slot:'myth',
+      element: myth.element||'arcana', sell:0,
+      soulbound:true, mythBound:true, desc:'The bound heart of the '+myth.name+'.'
+    };
+    if (!MB.PLAYER.equipped) MB.PLAYER.equipped = {};
+    MB.PLAYER.equipped.myth = Object.assign({}, heartDef, {id: heartId});
+    MB.savePlayer();
+    render();
+    document.getElementById('p-info').textContent =
+      'Lv.'+MB.PLAYER.level+' '+MB.PLAYER.role+' · '+myth.name+' Mythbound';
+  });
+}
+
+function showMythBinding(myth, onComplete) {
+  const overlay = document.getElementById('myth-overlay');
+  const spriteEl = document.getElementById('myth-sprite');
+  const labelEl  = document.getElementById('myth-label');
+  const subEl    = document.getElementById('myth-sublabel');
+  const contBtn  = document.getElementById('myth-continue');
+  const glowEl   = document.getElementById('myth-glow');
+  const flash    = document.getElementById('myth-flash');
+  overlay.classList.add('show');
+  labelEl.classList.remove('show'); subEl.classList.remove('show'); contBtn.classList.remove('show');
+  spriteEl.style.animation = ''; spriteEl.style.transform = '';
+  glowEl.style.background = 'radial-gradient(circle,rgba(170,0,255,.4) 0%,transparent 70%)';
+  const heartSvg = MB.renderItemIconSVG('myth_heart', 120);
+  spriteEl.innerHTML = heartSvg;
+  spriteEl.style.animation = 'myth-pulse 0.8s ease-in-out infinite';
+  playMythSound();
+  setTimeout(() => {
+    flash.classList.add('go');
+    setTimeout(() => flash.classList.remove('go'), 600);
+  }, 1800);
+  setTimeout(() => {
+    const mythSprite = MB.SPRITES && MB.SPRITES[myth.id] ? MB.renderItemIconSVG(myth.id, 120) : null;
+    spriteEl.innerHTML = mythSprite || `<div style="font-size:96px;line-height:1;">${myth.em}</div>`;
+    glowEl.style.background = `radial-gradient(circle,${myth.color}66 0%,transparent 70%)`;
+    spriteEl.style.animation = 'myth-reveal .6s ease-out forwards';
+    setTimeout(() => {
+      labelEl.textContent = myth.em + '  ' + myth.name.toUpperCase() + '  ' + myth.em;
+      labelEl.style.color = myth.color;
+      labelEl.classList.add('show');
+      subEl.textContent = myth.desc + '\n\nYou are now ' + myth.name + ' Mythbound.';
+      subEl.classList.add('show');
+      contBtn.classList.add('show');
+      if (onComplete) onComplete();
+    }, 700);
+  }, 2100);
+}
+
+function closeMythOverlay() { document.getElementById('myth-overlay').classList.remove('show'); }
+
+function playMythSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [261.6, 329.6, 392, 523.2, 659.2, 880].forEach((freq, i) => {
+      const osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.18);
+      gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.18);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + i * 0.18 + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.4);
+      osc.start(ctx.currentTime + i * 0.18);
+      osc.stop(ctx.currentTime + i * 0.18 + 0.5);
+    });
+  } catch(e) {}
+}
+
+if (!MB.requireAuth()) throw new Error("not signed in");
+MB.injectUltimateCSS();
+MB.renderNav('main-nav','inventory');
+// Wait for game data (MB.ITEMS) to be current before rendering
+MB.onReady(() => render());
+</script>
+</body>
+</html>

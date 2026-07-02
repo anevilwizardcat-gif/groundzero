@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MYTHBOUND — Mining</title>
+<script src="mythbound_shared.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+.root{background:#000;min-height:760px;font-family:'VT323',monospace;color:#fff;user-select:none;-webkit-user-select:none;}
+/* canonical nav — matches all other pages */
+.nav-links{display:flex;gap:5px;}
+.nb{background:#000;border:2px solid #444;color:#444;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.nb:hover,.nb.on{border-color:#fff;color:#fff;}
+.nb.wip{border-color:#222;color:#333;cursor:default;}
+.nb.myth{border-color:#555;color:#555;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:2px solid #fff;background:#000;flex-shrink:0;}
+.logo{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;}
+.navbtn{font-family:'Press Start 2P',monospace;font-size:7px;background:#000;color:#888;border:1px solid #444;padding:5px 8px;cursor:pointer;letter-spacing:1px;}
+.navbtn.active,.navbtn:hover{color:#fff;border-color:#fff;}
+.navbtn.signout{color:#ff6b6b;border-color:#ff6b6b;}
+.navbtn.debug{color:#ff6bff;border-color:#ff6bff;}.navbtn.debug:hover{background:#ff6bff;color:#000;}
+.navbtn.debug-green{color:#6bff9b;border-color:#6bff9b;}.navbtn.debug-green:hover{background:#6bff9b;color:#000;}
+.navbtn.debug-amber{color:#ffdd6b;border-color:#ffdd6b;}.navbtn.debug-amber:hover,.navbtn.debug-amber.on{background:#ffdd6b;color:#000;}
+.navbtn.debug-blue{color:#6bb5ff;border-color:#6bb5ff;}.navbtn.debug-blue:hover{background:#6bb5ff;color:#000;}
+.navbtn.debug-gold{color:#e8c34a;border-color:#e8c34a;}.navbtn.debug-gold:hover,.navbtn.debug-gold.on{background:#e8c34a;color:#000;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-user{font-family:'Press Start 2P',monospace;font-size:7px;color:#aaa;}
+.page{display:flex;min-height:680px;}
+.main{flex:1;display:flex;flex-direction:column;align-items:center;padding:14px;gap:12px;}
+.sidebar{width:210px;border-left:2px solid #fff;padding:14px;display:flex;flex-direction:column;gap:14px;flex-shrink:0;}
+.hud{width:100%;max-width:620px;display:flex;flex-direction:column;gap:5px;}
+.hud-row{display:flex;justify-content:space-between;align-items:baseline;}
+.hud-lbl{font-family:'Press Start 2P',monospace;font-size:8px;color:#888;letter-spacing:1px;}
+.hud-val{font-size:17px;color:#fff;}
+.hud-val .exhaust-tag{color:#ff6b6b;font-family:'Press Start 2P',monospace;font-size:9px;margin-left:8px;}
+.bar-bg{width:100%;height:9px;background:#111;border:2px solid #fff;}
+.bar-fill{height:100%;transition:width .15s;}
+.energy-fill{background:#ffdd6b;}.energy-fill.low{background:#ff6b6b;}.energy-fill.empty{background:#552222;}
+.hp-fill{background:#6bff9b;}.hp-fill.mid{background:#ffdd6b;}.hp-fill.low{background:#ff6b6b;}
+.rock-hp-fill{background:#fff;}.rock-hp-fill.combat{background:#ff6b6b;}
+.playbox{position:relative;width:100%;max-width:620px;height:440px;background:#0a0a0a;border:2px solid #fff;overflow:hidden;cursor:default;}
+.playbox.no-cursor{cursor:none;}.playbox.exhausted{background:#100a0a;}.playbox.combat{background:#0a0a14;}
+.playbox.player-hurt{animation:hurtFlash .4s;}
+@keyframes hurtFlash{0%{box-shadow:inset 0 0 0 0 rgba(255,60,60,0);}30%{box-shadow:inset 0 0 60px 10px rgba(255,60,60,.55);}100%{box-shadow:inset 0 0 0 0 rgba(255,60,60,0);}}
+.playbox-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:24px 24px;pointer-events:none;}
+.rock-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);transform-origin:center center;}
+.rock-wrap.dropping{animation:rockDropIn .55s cubic-bezier(.5,.1,.7,1.4);}
+@keyframes rockDropIn{0%{transform:translate(-50%,-400%) rotate(-8deg);}70%{transform:translate(-50%,-40%) rotate(2deg);}85%{transform:translate(-50%,-54%) rotate(-1deg);}100%{transform:translate(-50%,-50%) rotate(0)}}
+.rock-wrap.shake{animation:shake .12s;}
+@keyframes shake{0%{transform:translate(-50%,-50%);}25%{transform:translate(-52%,-49%);}50%{transform:translate(-48%,-51%);}75%{transform:translate(-51%,-50%);}100%{transform:translate(-50%,-50%)}}
+.rock-wrap.slime-bounce{animation:slimeBounce 1.2s ease-in-out infinite;}
+@keyframes slimeBounce{0%,100%{transform:translate(-50%,-50%) scaleY(1) scaleX(1);}50%{transform:translate(-50%,-46%) scaleY(.92) scaleX(1.08)}}
+.rock-wrap.slime-lunge{animation:slimeLunge .4s ease-out;}
+@keyframes slimeLunge{0%{transform:translate(-50%,-50%) scale(1);}35%{transform:translate(-50%,-58%) scale(1.25);}100%{transform:translate(-50%,-50%) scale(1)}}
+.rock-wrap.broken{animation:rockBreakFade .5s forwards;}
+@keyframes rockBreakFade{to{opacity:0;transform:translate(-50%,-50%) scale(.8)}}
+.rock{display:grid;gap:0;image-rendering:pixelated;}
+.rock-px{width:var(--cell,16px);height:var(--cell,16px);}
+.rock-px.r1{background:#fff}.rock-px.r2{background:#888}.rock-px.r3{background:#444}.rock-px.r4{background:#1a1a1a}.rock-px.r5{background:#fff}
+.rock-px.s1{background:#fff}.rock-px.s2{background:#bbb}.rock-px.s3{background:#888}.rock-px.k{background:#000}.rock-px.n{background:#555}
+.rock-px.g1{background:#fff}.rock-px.g2{background:#9aa}.rock-px.g3{background:#566}.rock-px.g4{background:#0bc}
+.rock-px.c1{background:#5a3a1a}.rock-px.c2{background:#8b5a2b}.rock-px.c3{background:#e8c34a}.rock-px.c4{background:#2a1808}
+.rock-px.empty{background:transparent}
+.rock-px.weak{background:#ffdd6b !important;box-shadow:inset 0 0 0 2px #fff;animation:pulse .5s infinite;cursor:pointer}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.55}}
+.dust{position:absolute;width:8px;height:8px;background:#999;pointer-events:none}
+.drop-reveal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:0;display:flex;flex-direction:column;align-items:center;gap:14px;background:#000;border:3px solid #fff;padding:24px 38px;pointer-events:none;z-index:5}
+.drop-reveal.show{opacity:1;transition:opacity .4s}.drop-reveal.gameover{border-color:#ff6b6b}.drop-reveal.treasure{border-color:#e8c34a}
+.drop-sprite{width:72px;height:72px;display:flex;align-items:center;justify-content:center;border:3px solid;image-rendering:pixelated}
+.drop-name{font-family:'Press Start 2P',monospace;font-size:14px;letter-spacing:1px;text-align:center}
+.drop-rarity{font-family:'Press Start 2P',monospace;font-size:10px;letter-spacing:1px;padding:5px 11px;border:2px solid}
+.ambush-banner{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Press Start 2P',monospace;font-size:30px;color:#ff6b6b;letter-spacing:3px;text-shadow:4px 4px 0 #000,-4px -4px 0 #000,4px -4px 0 #000,-4px 4px 0 #000;opacity:0;pointer-events:none;z-index:6;white-space:nowrap}
+.ambush-banner.show{animation:ambushFlash 1.2s ease-out forwards}
+@keyframes ambushFlash{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}25%{transform:translate(-50%,-50%) scale(1.3);opacity:1}50%{transform:translate(-50%,-50%) scale(1.05);opacity:1}85%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+.enemy-hpbar{position:absolute;left:50%;transform:translateX(-50%);display:none;flex-direction:column;align-items:center;gap:4px;z-index:5;pointer-events:none;width:220px}
+.enemy-hpbar-name{font-family:'Press Start 2P',monospace;font-size:8px;color:#fff;letter-spacing:1px;text-shadow:2px 2px 0 #000;white-space:nowrap}
+.enemy-hpbar-track{width:100%;height:10px;background:#1a0a0a;border:2px solid #fff}
+.enemy-hpbar-fill{height:100%;background:#ff6b6b;transition:width .15s}
+.dig-in-box{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:'Press Start 2P',monospace;font-size:10px;background:#000;color:#fff;border:2px solid #fff;padding:14px 22px;cursor:pointer;letter-spacing:1px;box-shadow:4px 4px 0 #555;z-index:5;transition:background .1s,color .1s}
+.dig-in-box:hover{background:#fff;color:#000;box-shadow:2px 2px 0 #555;transform:translate(calc(-50% + 2px),calc(-50% + 2px))}
+.dig-in-box:hover .dig-cost-inline{color:#888}
+.dig-in-box.below-loot{top:auto;bottom:32px;transform:translate(-50%,0);font-size:9px;padding:10px 18px}
+.dig-in-box.below-loot:hover{transform:translate(calc(-50% + 2px),2px)}.dig-in-box.hidden{display:none}
+.dig-cost-inline{font-family:'VT323',monospace;font-size:14px;font-weight:normal;letter-spacing:0;margin-left:8px;color:#888}
+.cursor-pick,.cursor-sword{position:fixed;width:40px;height:40px;pointer-events:none;z-index:1000;display:none;image-rendering:pixelated;transition:transform .06s;transform-origin:2px 2px}
+.cursor-pick.swing{transform:rotate(-30deg) scale(1.1)}.cursor-pick.swing-weak{transform:rotate(-15deg) scale(.9)}.cursor-sword.dragging{transform:scale(1.1)}.pick-px{position:absolute}
+.particle,.spark{position:absolute;pointer-events:none}.spark{width:4px;height:4px;background:#fff;z-index:4}
+.dmg-pop{position:absolute;font-family:'Press Start 2P',monospace;font-size:26px;color:#fff;pointer-events:none;text-shadow:3px 0 0 #000,-3px 0 0 #000,0 3px 0 #000,0 -3px 0 #000,3px 3px 0 #000,-3px -3px 0 #000,3px -3px 0 #000,-3px 3px 0 #000;letter-spacing:1px;white-space:nowrap}
+.dmg-pop.crit{color:#ffdd6b;font-size:36px}.dmg-pop.weak{color:#ff8a8a;font-size:20px}.dmg-pop.player{color:#ff4d4d;font-size:24px}
+.toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);font-family:'Press Start 2P',monospace;font-size:8px;padding:6px 10px;background:#000;border:2px solid #fff;letter-spacing:1px;opacity:0;transition:opacity .2s;z-index:7}
+.toast.show{opacity:1}.toast.exhaust{border-color:#ff6b6b;color:#ff6b6b}.toast.crit{border-color:#ffdd6b;color:#ffdd6b}
+.spawn-status{font-size:14px;color:#666;letter-spacing:1px;text-align:center;min-height:18px}
+.section-hdr{font-family:'Press Start 2P',monospace;font-size:8px;color:#888;letter-spacing:1px;padding-bottom:6px;border-bottom:1px solid #333;margin-bottom:10px}
+.stat-row{display:flex;justify-content:space-between;font-size:15px;margin-bottom:6px}
+.stat-row .v{color:#fff}.stat-row .l{color:#888}.stat-row .v.warn{color:#ff6b6b}
+.session-loot{display:flex;flex-direction:column;gap:6px;max-height:140px;overflow-y:auto}
+.loot-item{display:flex;justify-content:space-between;font-size:15px;align-items:center;border-bottom:1px solid #222;padding:4px 0}
+.loot-rare-common{color:#aaa}.loot-rare-uncommon{color:#6bff9b}.loot-rare-rare{color:#6bb5ff}.loot-rare-legendary{color:#ffdd6b}
+.slash-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;display:block}
+#slash-group.flicker{animation:slashFlicker .55s infinite}
+@keyframes slashFlicker{0%,100%{opacity:1}50%{opacity:.45}}
+</style></head>
+<body style="display:flex;flex-direction:column;height:100vh;overflow:hidden;background:#000;">
+<div style="flex:1;overflow-y:auto;background:#000;">
+
+
+<div class="root" id="root">
+  <nav>
+    <div class="logo">MYTHBOUND</div>
+    <div class="nav-links" id="main-nav"></div>
+  </nav>
+  <div class="page">
+    <div class="main">
+      <div class="hud">
+        <div class="hud-row"><span class="hud-lbl">ENERGY</span><span class="hud-val"><span id="energy-val">1000/1000</span><span class="exhaust-tag" id="exhaust-tag" style="display:none"></span></span></div>
+        <div class="bar-bg"><div class="bar-fill energy-fill" id="energy-bar" style="width:100%"></div></div>
+        <div class="hud-row" style="margin-top:4px"><span class="hud-lbl">HP</span><span class="hud-val" id="hp-val">100/100</span></div>
+        <div class="bar-bg"><div class="bar-fill hp-fill" id="hp-bar" style="width:100%"></div></div>
+        <div class="hud-row" style="margin-top:4px"><span class="hud-lbl">ROCK HP</span><span class="hud-val" id="rock-hp-val">—/—</span></div>
+        <div class="bar-bg"><div class="bar-fill rock-hp-fill" id="rock-hp-bar" style="width:0%"></div></div>
+      </div>
+      <div class="playbox" id="playbox">
+        <div class="playbox-bg"></div>
+        <div class="rock-wrap" id="rock-wrap" style="display:none"><div class="rock" id="rock"></div></div>
+        <div class="enemy-hpbar" id="enemy-hpbar">
+          <div class="enemy-hpbar-name" id="enemy-hpbar-name">ENEMY</div>
+          <div class="enemy-hpbar-track"><div class="enemy-hpbar-fill" id="enemy-hpbar-fill" style="width:100%"></div></div>
+        </div>
+        <svg class="slash-svg" id="slash-svg" width="100%" height="100%" style="display:none">
+          <g id="slash-group" class="flicker">
+            <!-- Guide line: slightly thicker (6) for easier tracking -->
+            <line id="slash-line-svg" x1="0" y1="0" x2="0" y2="0" stroke="#ffdd6b" stroke-width="6" stroke-dasharray="9 6" stroke-linecap="round"/>
+            <circle id="slash-start-c" r="9" fill="#ffdd6b" stroke="#fff" stroke-width="2"/>
+            <circle id="slash-end-c" r="9" fill="#ff6b6b" stroke="#fff" stroke-width="2"/>
+          </g>
+          <!-- Fill line: RED, resets on every mouseup -->
+          <line id="slash-fill" x1="0" y1="0" x2="0" y2="0" stroke="#ff3333" stroke-width="7" stroke-linecap="round" opacity="0"/>
+          <line id="slash-trail" x1="0" y1="0" x2="0" y2="0" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity="0"/>
+        </svg>
+        <div class="drop-reveal" id="drop-reveal"></div>
+        <div class="ambush-banner" id="ambush-banner">! AMBUSH !</div>
+        <div class="toast" id="toast"></div>
+        <button class="dig-in-box" id="dig-in-box" onclick="manualSpawn()">▸ BEGIN MINING <span class="dig-cost-inline">-10 energy</span></button>
+      </div>
+      <div class="spawn-status" id="spawn-status">▸ click BEGIN MINING to start</div>
+    </div>
+    <div class="sidebar">
+      <div>
+        <div class="section-hdr">▸ MINING — Lv.<span id="mine-level">1</span></div>
+        <div class="stat-row"><span class="l">XP</span><span class="v" id="mine-xp">0/100</span></div>
+        <div class="stat-row"><span class="l">Pickaxe</span><span class="v" id="pick-name">COPPER</span></div>
+        <div class="stat-row"><span class="l">Dmg</span><span class="v" id="pick-dmg">8</span></div>
+      </div>
+      <div>
+        <div class="section-hdr">▸ TARGET</div>
+        <div class="stat-row"><span class="l">Name</span><span class="v" id="rock-type">—</span></div>
+        <div class="stat-row"><span class="l">Tier</span><span class="v" id="rock-tier">—</span></div>
+        <div class="stat-row"><span class="l">Status</span><span class="v" id="tier-status">—</span></div>
+      </div>
+      <div>
+        <div class="section-hdr">▸ SESSION LOOT</div>
+        <div class="session-loot" id="session-loot"><div style="font-size:14px;color:#555;text-align:center;padding:8px">nothing yet</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="cursor-pick" id="cursor-pick">
+    <div class="pick-px" style="background:#fff;top:0;left:0;width:4px;height:4px"></div><div class="pick-px" style="background:#ddd;top:0;left:4px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#ccc;top:4px;left:0;width:4px;height:4px"></div><div class="pick-px" style="background:#aaa;top:4px;left:4px;width:4px;height:4px"></div><div class="pick-px" style="background:#888;top:4px;left:8px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#aaa;top:8px;left:4px;width:4px;height:4px"></div><div class="pick-px" style="background:#888;top:8px;left:8px;width:4px;height:4px"></div><div class="pick-px" style="background:#666;top:8px;left:12px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#888;top:12px;left:8px;width:4px;height:4px"></div><div class="pick-px" style="background:#666;top:12px;left:12px;width:4px;height:4px"></div><div class="pick-px" style="background:#8b5424;top:12px;left:16px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#666;top:16px;left:12px;width:4px;height:4px"></div><div class="pick-px" style="background:#a06532;top:16px;left:16px;width:4px;height:4px"></div><div class="pick-px" style="background:#c4824a;top:16px;left:20px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#8b5424;top:20px;left:16px;width:4px;height:4px"></div><div class="pick-px" style="background:#a06532;top:20px;left:20px;width:4px;height:4px"></div><div class="pick-px" style="background:#c4824a;top:20px;left:24px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#8b5424;top:24px;left:20px;width:4px;height:4px"></div><div class="pick-px" style="background:#a06532;top:24px;left:24px;width:4px;height:4px"></div><div class="pick-px" style="background:#c4824a;top:24px;left:28px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#8b5424;top:28px;left:24px;width:4px;height:4px"></div><div class="pick-px" style="background:#a06532;top:28px;left:28px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#6b4019;top:32px;left:28px;width:4px;height:4px"></div><div class="pick-px" style="background:#8b5424;top:32px;left:32px;width:4px;height:4px"></div>
+  </div>
+  <div class="cursor-sword" id="cursor-sword">
+    <div class="pick-px" style="background:#fff;top:0;left:0;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#ddd;top:4px;left:0;width:4px;height:4px"></div><div class="pick-px" style="background:#fff;top:4px;left:4px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#bbb;top:8px;left:4px;width:4px;height:4px"></div><div class="pick-px" style="background:#ddd;top:8px;left:8px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#bbb;top:12px;left:8px;width:4px;height:4px"></div><div class="pick-px" style="background:#ddd;top:12px;left:12px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#bbb;top:16px;left:12px;width:4px;height:4px"></div><div class="pick-px" style="background:#ddd;top:16px;left:16px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#daa520;top:16px;left:8px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#ffd700;top:20px;left:12px;width:4px;height:4px"></div><div class="pick-px" style="background:#daa520;top:20px;left:16px;width:4px;height:4px"></div><div class="pick-px" style="background:#daa520;top:20px;left:20px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#daa520;top:24px;left:16px;width:4px;height:4px"></div><div class="pick-px" style="background:#8b5424;top:24px;left:20px;width:4px;height:4px"></div><div class="pick-px" style="background:#a06532;top:24px;left:24px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#8b5424;top:28px;left:24px;width:4px;height:4px"></div><div class="pick-px" style="background:#a06532;top:28px;left:28px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#daa520;top:32px;left:28px;width:4px;height:4px"></div><div class="pick-px" style="background:#ffd700;top:32px;left:32px;width:4px;height:4px"></div>
+    <div class="pick-px" style="background:#daa520;top:36px;left:32px;width:4px;height:4px"></div>
+  </div>
+</div>
+
+<script>
+const ROCK_CELL_PX=16,WEAK_SPOT_SIZE=2,WEAK_SPOT_MIN_DELAY=6000,WEAK_SPOT_MAX_DELAY=10000,WEAK_SPOT_VISIBLE_MS=1500;
+const DIG_COST=10,RESPAWN_DELAY_MS=2500,EXHAUST_DMG_MULT=0.15,EXHAUST_DURATION_MS=15000;
+const SLASH_WINDOW_MS=2800,SWORD_DAMAGE=12,COMBAT_ENERGY_COST=8,SLIME_LUNGE_MS=400;
+const SLASH_MIN_COVERAGE=0.55,SLASH_PERFECT_COVERAGE=0.85;
+const SLASH_MAX_OFFSET=32,SLASH_PERFECT_OFFSET=15,SLASH_PERFECT_MAX_MS=420,SLASH_SLOW_MS=950;
+let PLAYER_MAX_HP=100,PLAYER_HP=100;
+const PICKAXES=MB.PICKAXES; // PICKAXES from MB.PICKAXES
+// NOTE: Rock and enemy data now live in mythbound_data.json and are read LIVE
+// from MB.ROCKS / MB.MINE_ENEMIES (see spawnRock / spawnAmbush). Editing them in
+// the Data Editor (mythbound_admin_data.html) takes effect on next spawn.
+const SPAWN_TABLE=[{type:'rock',weight:24},{type:'ambush',weight:2.4},{type:'chest',weight:1.0}];
+const CHEST={name:'TREASURE CHEST',tier:1,hp:24,xp:8,isChest:true,drops:[{item:'Gold Pile',rarity:'uncommon',pixel:'#e8c34a',weight:55},{item:'Gem Cache',rarity:'rare',pixel:'#6bb5ff',weight:35},{item:'Ancient Relic',rarity:'legendary',pixel:'#fff',weight:10}]};
+const SHAPES={
+  ROCK:[
+    [['empty','empty','empty','empty','empty','empty','empty','r1','r2','r1','empty','empty','empty','empty'],['empty','empty','empty','empty','empty','empty','r1','r2','r3','r2','r1','empty','empty','empty'],['empty','empty','empty','empty','empty','r1','r2','r3','r4','r3','r2','r1','empty','empty'],['empty','empty','empty','empty','r1','r2','r3','r3','r5','r3','r3','r2','r1','empty'],['empty','empty','empty','r1','r2','r3','r3','r4','r3','r3','r3','r3','r2','r1'],['empty','empty','r1','r2','r3','r4','r3','r3','r3','r4','r3','r3','r3','r2'],['empty','r1','r2','r3','r3','r3','r3','r2','r3','r3','r3','r3','r3','r2'],['r1','r2','r3','r2','r3','r3','r2','r3','r3','r2','r3','r3','r3','r2'],['r1','r2','r2','r2','r2','r2','r2','r2','r2','r2','r2','r2','r2','r1'],['r1','r1','r2','r2','r1','r2','r1','r1','r2','r1','r2','r2','r1','empty'],['empty','empty','r1','r1','empty','r1','empty','empty','empty','empty','r1','r1','empty','empty']],
+    [['empty','empty','empty','empty','empty','empty','empty','empty','empty','empty','empty','empty','empty','empty'],['empty','empty','empty','r1','r2','r2','r3','r2','r2','r2','r1','empty','empty','empty'],['empty','empty','r1','r2','r3','r3','r3','r3','r3','r3','r2','r1','empty','empty'],['empty','r1','r2','r3','r4','r3','r3','r4','r3','r3','r3','r2','r1','empty'],['r1','r2','r3','r3','r3','r4','r3','r3','r3','r4','r3','r3','r2','r1'],['r1','r2','r3','r5','r3','r3','r3','r3','r3','r3','r3','r3','r2','r1'],['r1','r2','r3','r3','r3','r2','r3','r3','r3','r3','r4','r3','r2','r1'],['r1','r2','r3','r3','r2','r3','r3','r2','r2','r3','r3','r3','r2','r1'],['r1','r2','r2','r3','r3','r2','r2','r2','r2','r2','r3','r2','r2','r1'],['empty','r1','r2','r2','r2','r2','r1','r1','r2','r2','r2','r2','r1','empty'],['empty','empty','r1','r1','r1','r1','empty','empty','r1','r1','r1','r1','empty','empty']],
+    [['empty','empty','empty','empty','empty','empty','empty','empty','empty','r1','r2','r1','empty','empty'],['empty','empty','empty','empty','empty','empty','empty','empty','r1','r2','r3','r2','r1','empty'],['empty','empty','empty','empty','empty','empty','empty','r1','r2','r3','r4','r3','r2','r1'],['empty','empty','empty','empty','empty','empty','r1','r2','r3','r3','r3','r4','r3','r2'],['empty','empty','empty','empty','empty','r1','r2','r3','r4','r3','r3','r3','r3','r2'],['empty','empty','empty','empty','r1','r2','r3','r3','r3','r3','r3','r4','r3','r2'],['empty','empty','empty','r1','r2','r3','r3','r4','r3','r3','r2','r3','r2','r1'],['empty','empty','r1','r2','r3','r3','r2','r3','r3','r2','r3','r3','r2','r1'],['empty','r1','r2','r3','r2','r2','r3','r2','r2','r2','r2','r2','r1','empty'],['r1','r2','r2','r2','r2','r2','r2','r1','r2','r2','r1','r1','empty','empty'],['empty','r1','r1','r1','r1','r1','empty','empty','r1','r1','empty','empty','empty','empty']],
+    [['empty','empty','empty','r1','r2','r1','empty','empty','r1','r2','r1','empty','empty','empty'],['empty','empty','r1','r2','r3','r2','r1','r1','r2','r3','r2','r1','empty','empty'],['empty','r1','r2','r3','r4','r3','r2','r2','r3','r4','r3','r2','r1','empty'],['r1','r2','r3','r3','r3','r3','r2','r3','r3','r3','r3','r2','r2','r1'],['r1','r2','r3','r4','r3','r3','r3','r3','r3','r5','r3','r3','r3','r2'],['r1','r2','r3','r3','r3','r2','r4','r3','r3','r3','r3','r3','r2','r1'],['r1','r2','r3','r3','r2','r3','r3','r3','r3','r3','r4','r2','r2','r1'],['r1','r2','r2','r3','r3','r2','r2','r3','r2','r2','r3','r3','r2','r1'],['empty','r1','r2','r2','r2','r2','r2','r2','r2','r2','r2','r2','r1','empty'],['empty','r1','r2','r2','r1','r2','r1','r1','r1','r2','r2','r1','r1','empty'],['empty','empty','r1','r1','empty','r1','empty','empty','empty','r1','r1','empty','empty','empty']],
+  ],
+  SLIME:[[['empty','empty','empty','empty','empty','s1','s2','s2','s1','empty','empty','empty','empty','empty'],['empty','empty','empty','s1','s2','s3','s3','s3','s3','s2','s1','empty','empty','empty'],['empty','empty','s1','s2','s3','s3','s3','s3','s3','s3','s2','s1','empty','empty'],['empty','s1','s2','s3','k','k','s3','s3','k','k','s3','s2','s1','empty'],['s1','s2','s3','s3','k','k','s3','s3','k','k','s3','s3','s2','s1'],['s1','s2','s3','s3','s3','s3','n','n','s3','s3','s3','s3','s2','s1'],['s1','s2','s3','s3','k','s3','s3','s3','s3','s3','k','s3','s2','s1'],['s1','s2','s3','s3','s3','k','k','k','k','k','s3','s3','s2','s1'],['s1','s2','s2','s2','s2','s2','s2','s2','s2','s2','s2','s2','s2','s1'],['empty','s1','s1','s1','s1','s1','s1','s1','s1','s1','s1','s1','s1','empty']]],
+  GOLEM:[[['empty','empty','empty','g1','g2','g2','g2','g2','g2','g1','empty','empty','empty','empty'],['empty','empty','g1','g2','g3','g3','g3','g3','g3','g2','g1','empty','empty','empty'],['empty','empty','g1','g2','g4','g3','g3','g3','g4','g2','g1','empty','empty','empty'],['empty','empty','g1','g2','g3','g3','g3','g3','g3','g2','g1','empty','empty','empty'],['g1','g1','g2','g2','g3','g3','g3','g3','g3','g2','g2','g1','g1','empty'],['g1','g2','g2','g3','g3','g4','g3','g4','g3','g3','g2','g2','g1','empty'],['g1','g2','g3','g3','g3','g3','g3','g3','g3','g3','g3','g2','g1','empty'],['empty','g1','g2','g3','g3','g2','g3','g2','g3','g3','g2','g1','empty','empty'],['empty','g1','g2','g2','empty','g1','g2','g1','empty','g2','g2','g1','empty','empty'],['empty','g1','g1','g1','empty','g1','g1','g1','empty','g1','g1','g1','empty','empty']]],
+  CHEST:[[['empty','c1','c1','c1','c1','c1','c1','c1','c1','c1','c1','c1','c1','empty'],['empty','c1','c3','c3','c3','c3','c3','c3','c3','c3','c3','c3','c1','empty'],['empty','c1','c3','c2','c2','c2','c2','c2','c2','c2','c2','c3','c1','empty'],['empty','c1','c3','c2','c2','c2','c3','c3','c2','c2','c2','c3','c1','empty'],['empty','c1','c1','c1','c1','c1','c3','c3','c1','c1','c1','c1','c1','empty'],['empty','c1','c2','c2','c2','c2','c4','c4','c2','c2','c2','c2','c1','empty'],['empty','c1','c2','c2','c2','c2','c3','c3','c2','c2','c2','c2','c1','empty'],['empty','c1','c2','c2','c2','c2','c2','c2','c2','c2','c2','c2','c1','empty'],['empty','c1','c1','c1','c1','c1','c1','c1','c1','c1','c1','c1','c1','empty']]],
+};
+// Load from MB.PLAYER (already hydrated from localStorage by shared.js)
+let ENERGY      = MB.PLAYER.energy;
+let MAX_ENERGY  = MB.PLAYER.energyMax;
+let MINING_LEVEL= MB.PLAYER.professions.mining.level;
+let MINING_XP   = MB.PLAYER.professions.mining.xp;
+let MINING_XP_NEXT = MB.xpForLevel(MINING_LEVEL);
+let CURRENT_PICKAXE=PICKAXES.copper;
+let CURRENT_ROCK=null,CURRENT_ROCK_HP=0,CURRENT_ROCK_MAX=0,CURRENT_ROCK_SHAPE=null,LAST_SHAPE_INDEX=-1;
+let SESSION_LOOT=[],WEAK_SPOT_INDICES=[],WEAK_SPOT_GROUP=null;
+let RESPAWN_TIMER=null,RESPAWN_AT=0,WEAK_SPOT_TIMER=null,BREAK_HIDE_TIMER=null;
+let GAME_ACTIVE=false,EXHAUSTED_UNTIL=0;
+let COMBAT_MODE=false,CURRENT_ENEMY=null,CURRENT_ENEMY_HP=0,CURRENT_ENEMY_MAX=0;
+let SLASH_LINE=null,SLASH_TIMER=null,DRAG_PATH=[],DRAG_LIVE=false,LUNGE_TIMER=null;
+let SLASH_TRACK=null,LAST_SPARK={x:0,y:0};
+let DEBUG_FORCE_AMBUSH=false,DEBUG_FORCE_CHEST=false;
+
+function isExhausted(){return Date.now()<EXHAUSTED_UNTIL;}
+function exhaustionRemainingMs(){return Math.max(0,EXHAUSTED_UNTIL-Date.now());}
+function pickRockShape(){const s=SHAPES.ROCK,o=s.map((_,i)=>i).filter(i=>i!==LAST_SHAPE_INDEX);const idx=o[Math.floor(Math.random()*o.length)];LAST_SHAPE_INDEX=idx;return s[idx];}
+
+function renderSprite(shape){
+  const r=document.getElementById('rock');r.innerHTML='';if(!shape)return;
+  const cols=shape[0].length,rows=shape.length;
+  r.style.setProperty('--cell',ROCK_CELL_PX+'px');
+  r.style.gridTemplateColumns=`repeat(${cols},${ROCK_CELL_PX}px)`;
+  r.style.gridTemplateRows=`repeat(${rows},${ROCK_CELL_PX}px)`;
+  shape.forEach((row,ry)=>row.forEach((cls,cx)=>{
+    const idx=ry*cols+cx,isWeak=!COMBAT_MODE&&WEAK_SPOT_INDICES.includes(idx)&&cls!=='empty';
+    const d=document.createElement('div');d.className='rock-px '+(isWeak?'weak':cls);d.dataset.idx=idx;
+    if(isWeak)d.addEventListener('click',e=>{e.stopPropagation();hitWeak(e);});
+    r.appendChild(d);
+  }));
+}
+
+function clickHitsRock(clientX,clientY){
+  if(!CURRENT_ROCK_SHAPE)return false;
+  const rect=document.getElementById('rock').getBoundingClientRect();
+  const vx=clientX-rect.left,vy=clientY-rect.top;
+  if(vx<0||vy<0||vx>rect.width||vy>rect.height)return false;
+  const cols=CURRENT_ROCK_SHAPE[0].length,rows=CURRENT_ROCK_SHAPE.length;
+  const scaleX=rect.width/(cols*ROCK_CELL_PX)||1,scaleY=rect.height/(rows*ROCK_CELL_PX)||1;
+  const col=Math.floor(vx/scaleX/ROCK_CELL_PX),row=Math.floor(vy/scaleY/ROCK_CELL_PX);
+  if(col<0||col>=cols||row<0||row>=rows)return false;
+  return CURRENT_ROCK_SHAPE[row][col]!=='empty';
+}
+
+function spawnWeakSpotCluster(){
+  if(!CURRENT_ROCK||!CURRENT_ROCK_SHAPE||CURRENT_ROCK.isChest)return;
+  const cols=CURRENT_ROCK_SHAPE[0].length,rows=CURRENT_ROCK_SHAPE.length,cand=[];
+  for(let ry=0;ry<=rows-WEAK_SPOT_SIZE;ry++)for(let cx=0;cx<=cols-WEAK_SPOT_SIZE;cx++){
+    let ok=true;
+    for(let dy=0;dy<WEAK_SPOT_SIZE&&ok;dy++)for(let dx=0;dx<WEAK_SPOT_SIZE&&ok;dx++)
+      if(CURRENT_ROCK_SHAPE[ry+dy][cx+dx]==='empty')ok=false;
+    if(ok)cand.push({ry,cx});
+  }
+  if(!cand.length)return;
+  const a=cand[Math.floor(Math.random()*cand.length)],g=[];
+  for(let dy=0;dy<WEAK_SPOT_SIZE;dy++)for(let dx=0;dx<WEAK_SPOT_SIZE;dx++)g.push((a.ry+dy)*cols+(a.cx+dx));
+  WEAK_SPOT_INDICES=g.slice();WEAK_SPOT_GROUP=g.slice();renderSprite(CURRENT_ROCK_SHAPE);
+  setTimeout(()=>{WEAK_SPOT_INDICES=WEAK_SPOT_INDICES.filter(i=>!g.includes(i));if(WEAK_SPOT_GROUP&&WEAK_SPOT_GROUP.every(i=>g.includes(i)))WEAK_SPOT_GROUP=null;renderSprite(CURRENT_ROCK_SHAPE);},WEAK_SPOT_VISIBLE_MS);
+}
+
+function updateEnemyHpBar(){
+  const bar=document.getElementById('enemy-hpbar');
+  if(!CURRENT_ENEMY){bar.style.display='none';return;}
+  bar.style.display='flex';
+  document.getElementById('enemy-hpbar-name').textContent=CURRENT_ENEMY.name;
+  document.getElementById('enemy-hpbar-fill').style.width=(CURRENT_ENEMY_HP/CURRENT_ENEMY_MAX*100)+'%';
+  const pbH=document.getElementById('playbox').getBoundingClientRect().height;
+  bar.style.top=Math.max(4,pbH/2-SHAPES[CURRENT_ENEMY.shape][0].length*ROCK_CELL_PX/2-50)+'px';
+}
+
+function updateHUD(){
+  const eBar=document.getElementById('energy-bar');
+  document.getElementById('energy-val').textContent=ENERGY+'/'+MAX_ENERGY;
+  eBar.style.width=(ENERGY/MAX_ENERGY*100)+'%';
+  const ex=isExhausted();
+  eBar.classList.toggle('low',ENERGY<MAX_ENERGY*0.2&&!ex);eBar.classList.toggle('empty',ex);
+  document.getElementById('playbox').classList.toggle('exhausted',ex);
+  const eTag=document.getElementById('exhaust-tag');
+  if(ex){eTag.style.display='';eTag.textContent='⚠ '+Math.ceil(exhaustionRemainingMs()/1000)+'s';}else eTag.style.display='none';
+  const hpBar=document.getElementById('hp-bar');
+  document.getElementById('hp-val').textContent=PLAYER_HP+'/'+PLAYER_MAX_HP;
+  hpBar.style.width=(PLAYER_HP/PLAYER_MAX_HP*100)+'%';
+  const hp=PLAYER_HP/PLAYER_MAX_HP;hpBar.classList.toggle('mid',hp<=0.5&&hp>0.25);hpBar.classList.toggle('low',hp<=0.25);
+  document.getElementById('mine-level').textContent=MINING_LEVEL;
+  document.getElementById('mine-xp').textContent=MINING_XP+'/'+MINING_XP_NEXT;
+  document.getElementById('pick-name').textContent=CURRENT_PICKAXE.name;
+  document.getElementById('pick-dmg').textContent=CURRENT_PICKAXE.damage;
+  if(CURRENT_ROCK){
+    document.getElementById('rock-type').textContent=CURRENT_ROCK.name;document.getElementById('rock-tier').textContent='T'+CURRENT_ROCK.tier;
+    document.getElementById('rock-hp-val').textContent=CURRENT_ROCK_HP+'/'+CURRENT_ROCK_MAX;
+    document.getElementById('rock-hp-bar').style.width=(CURRENT_ROCK_HP/CURRENT_ROCK_MAX*100)+'%';document.getElementById('rock-hp-bar').classList.remove('combat');
+    const st=document.getElementById('tier-status');
+    if(CURRENT_ROCK.isChest){st.textContent='LOOT';st.classList.remove('warn');}else{const w=CURRENT_ROCK.tier>CURRENT_PICKAXE.tier;st.textContent=w?'NEED T'+CURRENT_ROCK.tier+'+':'OK';st.classList.toggle('warn',w);}
+  }else if(CURRENT_ENEMY){
+    document.getElementById('rock-type').textContent=CURRENT_ENEMY.name;document.getElementById('rock-tier').textContent='T'+CURRENT_ENEMY.tier;
+    document.getElementById('rock-hp-val').textContent='—/—';document.getElementById('rock-hp-bar').style.width='0%';document.getElementById('rock-hp-bar').classList.add('combat');
+    document.getElementById('tier-status').textContent='COMBAT';document.getElementById('tier-status').classList.remove('warn');
+  }else{
+    ['rock-type','rock-tier','rock-hp-val','tier-status'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('rock-hp-bar').style.width='0%';document.getElementById('rock-hp-bar').classList.remove('combat');document.getElementById('tier-status').classList.remove('warn');
+  }
+  updateEnemyHpBar();updateDigButton();
+}
+
+function updateDigButton(){
+  const b=document.getElementById('dig-in-box');
+  if(CURRENT_ROCK||CURRENT_ENEMY){b.classList.add('hidden');}
+  else{b.classList.remove('hidden');if(GAME_ACTIVE){b.classList.add('below-loot');b.innerHTML='▸ DIG DEEPER <span class="dig-cost-inline">-10 energy</span>';}else{b.classList.remove('below-loot');b.innerHTML='▸ BEGIN MINING <span class="dig-cost-inline">-10 energy</span>';}}
+}
+
+function toast(msg,cls=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+cls;clearTimeout(t._tid);t._tid=setTimeout(()=>t.classList.remove('show'),1100);}
+
+function spawnDustPoof(){
+  const pb=document.getElementById('playbox'),r=pb.getBoundingClientRect();const cx=r.width/2,cy=r.height/2+60;
+  for(let i=0;i<12;i++){const d=document.createElement('div');d.className='dust';d.style.left=(cx+(Math.random()-.5)*80)+'px';d.style.top=cy+'px';pb.appendChild(d);
+  const ang=(Math.random()-.5)*Math.PI,dist=60+Math.random()*50;
+  d.animate([{transform:'translate(0,0) scale(1)',opacity:.9},{transform:`translate(${Math.cos(ang)*dist}px,${-Math.abs(Math.sin(ang))*dist*.6+10}px) scale(1.6)`,opacity:0}],{duration:600,easing:'ease-out'}).onfinish=()=>d.remove();}
+}
+
+function spawnRockChips(cx,cy){
+  const pb=document.getElementById('playbox'),r=pb.getBoundingClientRect();const px=cx-r.left,py=cy-r.top;
+  const cols=['#fff','#bbb','#888','#666','#444'];
+  for(let i=0;i<9;i++){const c=document.createElement('div');c.className='particle';const s=2+Math.floor(Math.random()*4);c.style.width=s+'px';c.style.height=s+'px';c.style.background=cols[Math.floor(Math.random()*cols.length)];c.style.left=px+'px';c.style.top=py+'px';pb.appendChild(c);
+  const ang=Math.random()*Math.PI*2,spd=25+Math.random()*65,vx=Math.cos(ang)*spd,up=-(35+Math.random()*55),fall=85+Math.random()*55;
+  c.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${vx*.5}px,${up}px)`,opacity:1,offset:.4},{transform:`translate(${vx}px,${up+fall}px)`,opacity:0}],{duration:550+Math.random()*250,easing:'cubic-bezier(.3,.5,.7,1)'}).onfinish=()=>c.remove();}
+}
+
+function spawnSpark(lx,ly){const pb=document.getElementById('playbox');for(let i=0;i<2;i++){const sp=document.createElement('div');sp.className='spark';sp.style.background=Math.random()<.5?'#fff':'#ff6666';sp.style.left=lx+'px';sp.style.top=ly+'px';pb.appendChild(sp);const ang=Math.random()*Math.PI*2,d=10+Math.random()*22;sp.animate([{transform:'translate(-50%,-50%) scale(1)',opacity:1},{transform:`translate(calc(-50% + ${Math.cos(ang)*d}px),calc(-50% + ${Math.sin(ang)*d}px)) scale(.2)`,opacity:0}],{duration:280+Math.random()*150,easing:'ease-out'}).onfinish=()=>sp.remove();}}
+
+function spawnDamagePopup(x,y,dmg,kind){
+  const pb=document.getElementById('playbox'),r=pb.getBoundingClientRect();const p=document.createElement('div');p.className='dmg-pop'+(kind?(' '+kind):'');p.textContent=(kind==='player'?'':'-')+dmg;p.style.left=((x-r.left)+(Math.random()-.5)*16)+'px';p.style.top=(y-r.top)+'px';pb.appendChild(p);const dx=(Math.random()-.5)*40;
+  p.animate([{transform:'translate(-50%,-50%) scale(.6)',opacity:1},{transform:`translate(calc(-50% + ${dx*.5}px),calc(-50% - 32px)) scale(1.1)`,opacity:1,offset:.3},{transform:`translate(calc(-50% + ${dx}px),calc(-50% - 90px)) scale(1)`,opacity:0}],{duration:900,easing:'cubic-bezier(.5,-.2,.7,1)'}).onfinish=()=>p.remove();
+}
+
+function resetFill(x,y){const fl=document.getElementById('slash-fill');const ax=x??0,ay=y??0;fl.setAttribute('x1',ax);fl.setAttribute('y1',ay);fl.setAttribute('x2',ax);fl.setAttribute('y2',ay);fl.setAttribute('opacity','0');}
+function weightedPick(t){const tot=t.reduce((s,e)=>s+e.weight,0);let r=Math.random()*tot;for(const e of t){if((r-=e.weight)<=0)return e.type;}return t[0].type;}
+
+function nextSpawn(){
+  clearTimeout(BREAK_HIDE_TIMER);BREAK_HIDE_TIMER=null;clearTimeout(RESPAWN_TIMER);RESPAWN_TIMER=null;RESPAWN_AT=0;
+  let type;if(DEBUG_FORCE_AMBUSH){type='ambush';DEBUG_FORCE_AMBUSH=false;updateAmbushButton();}else if(DEBUG_FORCE_CHEST){type='chest';DEBUG_FORCE_CHEST=false;updateChestButton();}else type=weightedPick(SPAWN_TABLE);
+  if(type==='ambush')spawnAmbush();else if(type==='chest')spawnChest();else spawnRock();
+}
+
+function prepWrap(){
+  const wrap=document.getElementById('rock-wrap'),rock=document.getElementById('rock');clearTimeout(LUNGE_TIMER);
+  wrap.classList.remove('dropping','shake','broken','slime-bounce','slime-lunge');wrap.style.display='';wrap.style.opacity='1';void wrap.offsetWidth;rock.style.transform='scale(1)';return wrap;
+}
+
+function spawnRock(){
+  // Read rocks LIVE from MB.ROCKS (populated from mythbound_data.json via the data editor).
+  const pool=Object.values(MB.ROCKS).filter(r=>(r.minLevel||1)<=MINING_LEVEL);
+  if(!pool.length){document.getElementById('spawn-status').textContent='▸ no rocks available';return;}
+  CURRENT_ROCK=pool[Math.floor(Math.random()*pool.length)];CURRENT_ROCK_MAX=CURRENT_ROCK.hp;CURRENT_ROCK_HP=CURRENT_ROCK.hp;CURRENT_ROCK_SHAPE=pickRockShape();WEAK_SPOT_INDICES=[];WEAK_SPOT_GROUP=null;
+  const wrap=prepWrap();renderSprite(CURRENT_ROCK_SHAPE);requestAnimationFrame(()=>wrap.classList.add('dropping'));
+  document.getElementById('drop-reveal').classList.remove('show','gameover','treasure');document.getElementById('drop-reveal').innerHTML='';
+  document.getElementById('spawn-status').textContent='▸ mine the rock!';document.getElementById('playbox').classList.add('no-cursor');document.getElementById('playbox').classList.remove('combat');
+  updateHUD();setTimeout(spawnDustPoof,480);setTimeout(scheduleWeakSpot,1000);
+}
+
+function spawnChest(){
+  CURRENT_ROCK={...CHEST};CURRENT_ROCK_MAX=CHEST.hp;CURRENT_ROCK_HP=CHEST.hp;CURRENT_ROCK_SHAPE=SHAPES.CHEST[0];WEAK_SPOT_INDICES=[];WEAK_SPOT_GROUP=null;
+  const wrap=prepWrap();renderSprite(CURRENT_ROCK_SHAPE);requestAnimationFrame(()=>wrap.classList.add('dropping'));
+  document.getElementById('drop-reveal').classList.remove('show','gameover','treasure');document.getElementById('drop-reveal').innerHTML='';
+  document.getElementById('spawn-status').textContent='▸ a treasure chest! break it open!';document.getElementById('playbox').classList.add('no-cursor');document.getElementById('playbox').classList.remove('combat');
+  toast('▸ TREASURE CHEST!','crit');updateHUD();setTimeout(spawnDustPoof,480);
+}
+
+function spawnAmbush(){
+  // Read enemies LIVE from MB.MINE_ENEMIES (populated from mythbound_data.json via the data editor).
+  const valid=MB.MINE_ENEMIES.filter(e=>MINING_LEVEL>=(e.minLevel||1)&&MINING_LEVEL<=(e.maxLevel||999));
+  const enemy=valid[Math.floor(Math.random()*valid.length)]||MB.MINE_ENEMIES[0];
+  if(!enemy){document.getElementById('spawn-status').textContent='▸ no enemies available';COMBAT_MODE=false;return;}
+  const shapeKey=SHAPES[enemy.shape]?enemy.shape:'SLIME';
+  COMBAT_MODE=true;CURRENT_ENEMY=enemy;CURRENT_ENEMY_MAX=enemy.hp;CURRENT_ENEMY_HP=enemy.hp;CURRENT_ROCK_SHAPE=SHAPES[shapeKey][0];
+  const wrap=prepWrap();renderSprite(CURRENT_ROCK_SHAPE);
+  const banner=document.getElementById('ambush-banner');banner.classList.remove('show');void banner.offsetWidth;banner.classList.add('show');
+  requestAnimationFrame(()=>wrap.classList.add('dropping'));
+  document.getElementById('drop-reveal').classList.remove('show','gameover','treasure');document.getElementById('drop-reveal').innerHTML='';
+  document.getElementById('spawn-status').textContent='▸ slash the line fast & accurately!';document.getElementById('playbox').classList.add('no-cursor','combat');
+  resetFill(0,0);updateHUD();setTimeout(spawnDustPoof,480);
+  setTimeout(()=>{if(COMBAT_MODE){wrap.classList.add('slime-bounce');spawnNewSlashLine();}},800);
+}
+
+function manualSpawn(){
+  if(!isExhausted()){
+    ENERGY=Math.max(0,ENERGY-DIG_COST);
+    if(ENERGY===0){EXHAUSTED_UNTIL=Date.now()+EXHAUST_DURATION_MS;toast('▸ EXHAUSTED!','exhaust');}
+  }
+  MB.PLAYER.energy=ENERGY; MB.savePlayer();
+  GAME_ACTIVE=true;nextSpawn();
+}
+
+function scheduleWeakSpot(){clearTimeout(WEAK_SPOT_TIMER);const d=WEAK_SPOT_MIN_DELAY+Math.random()*(WEAK_SPOT_MAX_DELAY-WEAK_SPOT_MIN_DELAY);WEAK_SPOT_TIMER=setTimeout(()=>{if(CURRENT_ROCK&&!CURRENT_ROCK.isChest&&CURRENT_ROCK_HP>0){spawnWeakSpotCluster();scheduleWeakSpot();}},d);}
+
+function hitWeak(e){const g=WEAK_SPOT_GROUP?WEAK_SPOT_GROUP.slice():[];WEAK_SPOT_INDICES=WEAK_SPOT_INDICES.filter(i=>!g.includes(i));WEAK_SPOT_GROUP=null;renderSprite(CURRENT_ROCK_SHAPE);applyHit(true,e);}
+
+function applyHit(isCrit,evt){
+  if(!CURRENT_ROCK||CURRENT_ROCK_HP<=0)return;
+  const ex=isExhausted(),wt=!CURRENT_ROCK.isChest&&CURRENT_ROCK.tier>CURRENT_PICKAXE.tier;
+  let dmg=CURRENT_PICKAXE.damage;if(isCrit)dmg*=3;if(ex)dmg*=EXHAUST_DMG_MULT;if(wt)dmg*=EXHAUST_DMG_MULT;dmg=Math.max(1,Math.floor(dmg));
+  if(ex){EXHAUSTED_UNTIL=Date.now()+EXHAUST_DURATION_MS;}else{ENERGY=Math.max(0,ENERGY-CURRENT_PICKAXE.energyCost);if(ENERGY===0){EXHAUSTED_UNTIL=Date.now()+EXHAUST_DURATION_MS;toast('▸ EXHAUSTED! 15s','exhaust');}}
+  CURRENT_ROCK_HP=Math.max(0,CURRENT_ROCK_HP-dmg);
+  const x=evt?evt.clientX:document.getElementById('playbox').getBoundingClientRect().left+300;
+  const y=evt?evt.clientY:document.getElementById('playbox').getBoundingClientRect().top+200;
+  let k='';if(isCrit&&!ex&&!wt)k='crit';else if(ex||wt)k='weak';
+  spawnDamagePopup(x,y,dmg,k);
+  const wrap=document.getElementById('rock-wrap');wrap.classList.remove('shake');void wrap.offsetWidth;wrap.classList.add('shake');
+  document.getElementById('rock').style.transform='scale('+(0.5+CURRENT_ROCK_HP/CURRENT_ROCK_MAX*0.5)+')';
+  if(isCrit&&!ex&&!wt)toast('▸ WEAK SPOT HIT!','crit');spawnRockChips(x,y);updateHUD();if(CURRENT_ROCK_HP<=0)breakRock();
+}
+
+function rollDrop(t){
+  if(!t||!t.drops||!t.drops.length) return null; // empty drop table (e.g. cleared in editor)
+  const lb=MINING_LEVEL/100,a=t.drops.map(d=>{let w=d.weight;if(d.rarity==='uncommon')w*=(1+lb*0.5);if(d.rarity==='rare')w*=(1+lb*0.7);if(d.rarity==='legendary')w*=(1+lb*0.3);return{...d,w};});
+  const tot=a.reduce((s,d)=>s+d.w,0);let r=Math.random()*tot;for(const d of a){if((r-=d.w)<=0)return d;}return a[0];
+}
+
+function breakRock(){
+  clearTimeout(WEAK_SPOT_TIMER);WEAK_SPOT_INDICES=[];WEAK_SPOT_GROUP=null;
+  const wasChest=CURRENT_ROCK.isChest,drop=rollDrop(CURRENT_ROCK);
+  // XP — update local vars AND persist via MB
+  MINING_XP += CURRENT_ROCK.xp;
+  MB.PLAYER.professions.mining.xp = MINING_XP;
+  if(MINING_XP >= MINING_XP_NEXT){
+    MINING_XP -= MINING_XP_NEXT; MINING_LEVEL++;
+    MINING_XP_NEXT = MB.xpForLevel(MINING_LEVEL);
+    MB.PLAYER.professions.mining.level = MINING_LEVEL;
+    MB.PLAYER.professions.mining.xp = MINING_XP;
+    MB.PLAYER.professions.mining.xpMax = MINING_XP_NEXT;
+    toast('▸ LEVEL UP! Lv.'+MINING_LEVEL,'crit');
+  }
+  MB.savePlayer();
+  hideTargetSprite();
+  if(drop){addLoot(drop);showDropReveal(drop,wasChest?'treasure':'');}
+  CURRENT_ROCK=null;document.getElementById('playbox').classList.remove('no-cursor');updateHUD();scheduleNextSpawn();
+}
+
+function defeatEnemy(){
+  clearTimeout(SLASH_TIMER);SLASH_TIMER=null;clearTimeout(LUNGE_TIMER);hideSlashLine();document.getElementById('rock-wrap').classList.remove('slime-bounce','slime-lunge');
+  const drop=rollDrop(CURRENT_ENEMY);
+  MINING_XP += CURRENT_ENEMY.xp;
+  MB.PLAYER.professions.mining.xp = MINING_XP;
+  if(MINING_XP >= MINING_XP_NEXT){
+    MINING_XP -= MINING_XP_NEXT; MINING_LEVEL++;
+    MINING_XP_NEXT = MB.xpForLevel(MINING_LEVEL);
+    MB.PLAYER.professions.mining.level = MINING_LEVEL;
+    MB.PLAYER.professions.mining.xp = MINING_XP;
+    MB.PLAYER.professions.mining.xpMax = MINING_XP_NEXT;
+    toast('▸ LEVEL UP! Lv.'+MINING_LEVEL,'crit');
+  }
+  MB.savePlayer();
+  hideTargetSprite();
+  if(drop){addLoot(drop);showDropReveal(drop,'');}
+  CURRENT_ENEMY=null;COMBAT_MODE=false;document.getElementById('playbox').classList.remove('no-cursor','combat');updateHUD();scheduleNextSpawn();
+}
+
+function playerDefeated(){
+  clearTimeout(SLASH_TIMER);SLASH_TIMER=null;clearTimeout(LUNGE_TIMER);hideSlashLine();document.getElementById('rock-wrap').classList.remove('slime-bounce','slime-lunge');
+  toast('▸ GAME OVER!','exhaust');hideTargetSprite();CURRENT_ENEMY=null;COMBAT_MODE=false;document.getElementById('playbox').classList.remove('no-cursor','combat');
+  SESSION_LOOT=[];renderSessionLoot();
+  const rv=document.getElementById('drop-reveal');rv.innerHTML=`<div class="drop-name" style="color:#ff6b6b;font-size:18px">GAME OVER!</div><div style="font-size:19px;color:#aaa;letter-spacing:1px;text-align:center">You dropped your loot...</div>`;rv.classList.add('show','gameover');
+  document.getElementById('spawn-status').textContent='▸ recover and dig again';PLAYER_HP=PLAYER_MAX_HP;updateHUD();scheduleNextSpawn();
+}
+
+function addLoot(drop){
+  // Resolve item id — try name match, then snake_case conversion
+  const itemId = Object.keys(MB.ITEMS).find(k =>
+    MB.ITEMS[k].name === drop.item || k === drop.item ||
+    k === drop.item.toLowerCase().replace(/\s+/g,'_').replace(/-/g,'_')
+  ) || drop.item.toLowerCase().replace(/\s+/g,'_').replace(/-/g,'_');
+  // Get proper rarity from MB.ITEMS if available
+  const itemDef = MB.ITEMS[itemId];
+  const rarity = itemDef ? itemDef.rarity : (drop.rarity||'common');
+  // Session display
+  const e = SESSION_LOOT.find(l=>l.item===drop.item);
+  if(e) e.count++;
+  else SESSION_LOOT.push({item:drop.item, rarity:rarity, pixel:drop.pixel, count:1});
+  renderSessionLoot();
+  // Persist to inventory
+  MB.addToInventory(itemId, 1);
+}
+function hideTargetSprite(){const wrap=document.getElementById('rock-wrap');wrap.classList.add('broken');BREAK_HIDE_TIMER=setTimeout(()=>{wrap.style.display='none';wrap.classList.remove('broken');document.getElementById('rock').innerHTML='';CURRENT_ROCK_SHAPE=null;BREAK_HIDE_TIMER=null;},500);}
+function showDropReveal(drop,extra){
+  const rv=document.getElementById('drop-reveal');rv.classList.remove('gameover','treasure');
+  const head=extra==='treasure'?`<div class="drop-name" style="color:#e8c34a">TREASURE!</div>`:'';
+  // drop.item is now a real item ID — resolve display name / rarity / icon from MB.ITEMS
+  const itemKey = Object.keys(MB.ITEMS).find(k =>
+    k===drop.item || MB.ITEMS[k].name===drop.item ||
+    k===String(drop.item).toLowerCase().replace(/\s+/g,'_').replace(/-/g,'_'));
+  const itemDef = itemKey ? MB.ITEMS[itemKey] : null;
+  const displayName = itemDef ? itemDef.name : drop.item;
+  const rarity = itemDef ? itemDef.rarity : (drop.rarity||'common');
+  const icon = MB.renderItemIconSVG(itemKey||drop.item, 56);
+  rv.innerHTML=`${head}<div class="drop-sprite" style="background:${drop.pixel}33;border-color:${drop.pixel}"><div style="width:56px;height:56px;image-rendering:pixelated;">${icon}</div></div><div class="drop-name">${displayName}</div><div class="drop-rarity loot-rare-${rarity}" style="border-color:currentColor">${rarity.toUpperCase()}</div>`;
+  rv.classList.add('show');if(extra)rv.classList.add(extra);
+}
+function scheduleNextSpawn(){RESPAWN_AT=Date.now()+RESPAWN_DELAY_MS;clearTimeout(RESPAWN_TIMER);RESPAWN_TIMER=setTimeout(()=>{if(GAME_ACTIVE)nextSpawn();},RESPAWN_DELAY_MS);startRespawnCountdown();}
+function startRespawnCountdown(){const st=document.getElementById('spawn-status');function tick(){if(!RESPAWN_AT||CURRENT_ROCK||CURRENT_ENEMY)return;const rem=Math.max(0,RESPAWN_AT-Date.now());if(rem<=0){st.textContent='▸ incoming...';return;}st.textContent='▸ next in '+(rem/1000).toFixed(1)+'s  ·  or DIG DEEPER for instant';requestAnimationFrame(tick);}tick();}
+function renderSessionLoot(){
+  const el=document.getElementById('session-loot');
+  if(!SESSION_LOOT.length){
+    el.innerHTML='<div style="font-size:14px;color:#555;text-align:center;padding:8px">nothing yet</div>';
+    return;
+  }
+  const o={legendary:0,rare:1,uncommon:2,common:3};
+  el.innerHTML=[...SESSION_LOOT].sort((a,b)=>(o[a.rarity]||3)-(o[b.rarity]||3)).map(l=>{
+    // Look up proper name and rarity from MB.ITEMS
+    const itemKey = Object.keys(MB.ITEMS).find(k=>
+      MB.ITEMS[k].name===l.item || k===l.item ||
+      k===l.item.toLowerCase().replace(/\s+/g,'_').replace(/-/g,'_')
+    );
+    const itemDef = itemKey ? MB.ITEMS[itemKey] : null;
+    const displayName = itemDef ? itemDef.name : l.item;
+    const rarity = itemDef ? itemDef.rarity : (l.rarity||'common');
+    const id = itemKey || l.item.toLowerCase().replace(/\s+/g,'_');
+    const sprite = MB.renderItemIconSVG(id, 20);
+    return `<div class="loot-item loot-rare-${rarity}" style="display:flex;align-items:center;gap:6px;">
+      <div style="flex-shrink:0;width:20px;height:20px;image-rendering:pixelated;">${sprite}</div>
+      <span>${displayName}</span>
+      <span style="margin-left:auto;">×${l.count}</span>
+    </div>`;
+  }).join('');
+}
+
+function spawnNewSlashLine(){
+  if(!COMBAT_MODE||!CURRENT_ENEMY||CURRENT_ENEMY_HP<=0)return;
+  const pb=document.getElementById('playbox'),r=pb.getBoundingClientRect();
+  const cx=r.width/2+(Math.random()-.5)*70,cy=r.height/2+(Math.random()-.5)*55;
+  const angle=Math.random()*Math.PI,length=95+Math.random()*45;
+  const x1=cx-Math.cos(angle)*length/2,y1=cy-Math.sin(angle)*length/2;
+  const x2=cx+Math.cos(angle)*length/2,y2=cy+Math.sin(angle)*length/2;
+  SLASH_LINE={x1,y1,x2,y2,length};
+  const svg=document.getElementById('slash-svg');svg.style.display='block';
+  document.getElementById('slash-line-svg').setAttribute('x1',x1);document.getElementById('slash-line-svg').setAttribute('y1',y1);document.getElementById('slash-line-svg').setAttribute('x2',x2);document.getElementById('slash-line-svg').setAttribute('y2',y2);
+  document.getElementById('slash-start-c').setAttribute('cx',x1);document.getElementById('slash-start-c').setAttribute('cy',y1);document.getElementById('slash-end-c').setAttribute('cx',x2);document.getElementById('slash-end-c').setAttribute('cy',y2);
+  resetFill(x1,y1);clearTimeout(SLASH_TIMER);SLASH_TIMER=setTimeout(slimeAttacksPlayer,SLASH_WINDOW_MS);
+}
+
+function hideSlashLine(){document.getElementById('slash-svg').style.display='none';SLASH_LINE=null;SLASH_TRACK=null;resetFill(0,0);}
+
+function slimeAttacksPlayer(){
+  if(!COMBAT_MODE||!CURRENT_ENEMY)return;hideSlashLine();
+  const dmg=CURRENT_ENEMY.tier*8;PLAYER_HP=Math.max(0,PLAYER_HP-dmg);
+  const pb=document.getElementById('playbox');pb.classList.remove('player-hurt');void pb.offsetWidth;pb.classList.add('player-hurt');
+  const wrap=document.getElementById('rock-wrap');clearTimeout(LUNGE_TIMER);wrap.classList.remove('slime-bounce','slime-lunge');void wrap.offsetWidth;wrap.classList.add('slime-lunge');
+  LUNGE_TIMER=setTimeout(()=>{wrap.classList.remove('slime-lunge');if(COMBAT_MODE&&CURRENT_ENEMY)wrap.classList.add('slime-bounce');},SLIME_LUNGE_MS);
+  const r=pb.getBoundingClientRect();spawnDamagePopup(r.left+r.width/2,r.top+r.height-70,dmg,'player');toast('▸ '+CURRENT_ENEMY.name+' HITS YOU! -'+dmg,'exhaust');
+  updateHUD();if(PLAYER_HP<=0){playerDefeated();return;}setTimeout(()=>{if(COMBAT_MODE&&CURRENT_ENEMY)spawnNewSlashLine();},900);
+}
+
+function projOnLine(P){
+  if(!SLASH_LINE)return{t:0,x:P.x,y:P.y};
+  const A={x:SLASH_LINE.x1,y:SLASH_LINE.y1},B={x:SLASH_LINE.x2,y:SLASH_LINE.y2};
+  const ABx=B.x-A.x,ABy=B.y-A.y,len2=ABx*ABx+ABy*ABy||1;
+  let t=((P.x-A.x)*ABx+(P.y-A.y)*ABy)/len2;t=Math.max(0,Math.min(1,t));
+  return{t,x:A.x+ABx*t,y:A.y+ABy*t};
+}
+
+/* ════ FIX: evaluateSlash resets fill on ALL exit paths ════
+   Early returns call resetFill so failed attempts can't be
+   "continued" by starting a second gesture from where they stopped. */
+function evaluateSlash(){
+  if(!SLASH_LINE||!SLASH_TRACK||!SLASH_TRACK.started){
+    toast('▸ INCOMPLETE','exhaust');
+    if(SLASH_LINE)resetFill(SLASH_LINE.x1,SLASH_LINE.y1);  /* reset on fail */
+    return;
+  }
+  const coverage=SLASH_TRACK.maxSpan,offset=SLASH_TRACK.maxOffset;
+  const duration=Math.max(1,SLASH_TRACK.maxSpanTime-SLASH_TRACK.startTime);
+  if(coverage<SLASH_MIN_COVERAGE){
+    toast('▸ INCOMPLETE','exhaust');
+    if(SLASH_LINE)resetFill(SLASH_LINE.x1,SLASH_LINE.y1);  /* reset on fail */
+    return;
+  }
+  if(offset>SLASH_MAX_OFFSET){
+    toast('▸ MISSED!','exhaust');                            /* renamed from OFF THE LINE */
+    if(SLASH_LINE)resetFill(SLASH_LINE.x1,SLASH_LINE.y1);  /* reset on fail */
+    return;
+  }
+  clearTimeout(SLASH_TIMER);SLASH_TIMER=null;
+  const perfect=coverage>=SLASH_PERFECT_COVERAGE&&offset<=SLASH_PERFECT_OFFSET&&duration<=SLASH_PERFECT_MAX_MS;
+  const sloppy=duration>SLASH_SLOW_MS;
+  const pr=projOnLine(DRAG_PATH[DRAG_PATH.length-1]);
+  showSlashTrail(DRAG_PATH[0],DRAG_PATH[DRAG_PATH.length-1]);
+  applySwordDamage(pr,perfect,sloppy);
+  hideSlashLine();  /* hideSlashLine calls resetFill internally */
+  if(CURRENT_ENEMY&&CURRENT_ENEMY_HP>0)setTimeout(spawnNewSlashLine,650);
+}
+
+function showSlashTrail(s,e){const t=document.getElementById('slash-trail');t.setAttribute('x1',s.x);t.setAttribute('y1',s.y);t.setAttribute('x2',e.x);t.setAttribute('y2',e.y);t.setAttribute('opacity','1');t.animate([{opacity:1},{opacity:0}],{duration:450,easing:'ease-out',fill:'forwards'});}
+
+function applySwordDamage(pr,perfect,sloppy){
+  const ex=isExhausted();let dmg=SWORD_DAMAGE;if(perfect)dmg*=2;else if(sloppy)dmg*=0.5;
+  if(ex){dmg=Math.max(1,Math.floor(dmg*EXHAUST_DMG_MULT));EXHAUSTED_UNTIL=Date.now()+EXHAUST_DURATION_MS;}
+  else{ENERGY=Math.max(0,ENERGY-COMBAT_ENERGY_COST);if(ENERGY===0){EXHAUSTED_UNTIL=Date.now()+EXHAUST_DURATION_MS;toast('▸ EXHAUSTED!','exhaust');}}
+  dmg=Math.max(1,Math.floor(dmg));CURRENT_ENEMY_HP=Math.max(0,CURRENT_ENEMY_HP-dmg);
+  const pb=document.getElementById('playbox'),r=pb.getBoundingClientRect();
+  spawnDamagePopup(r.left+pr.x,r.top+pr.y,dmg,perfect&&!ex?'crit':(ex||sloppy?'weak':''));
+  if(perfect&&!ex)toast('▸ PERFECT SLASH!','crit');else if(sloppy)toast('▸ SLOPPY...','exhaust');
+  updateHUD();if(CURRENT_ENEMY_HP<=0)defeatEnemy();
+}
+
+const playbox=document.getElementById('playbox');
+const cursorPick=document.getElementById('cursor-pick');
+const cursorSword=document.getElementById('cursor-sword');
+function localXY(e){const r=playbox.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+
+playbox.addEventListener('mousemove',e=>{
+  if(COMBAT_MODE){
+    cursorPick.style.display='none';cursorSword.style.display='block';cursorSword.style.left=e.clientX+'px';cursorSword.style.top=e.clientY+'px';
+    if(DRAG_LIVE&&SLASH_LINE&&SLASH_TRACK){
+      const P=localXY(e);DRAG_PATH.push(P);const pr=projOnLine(P);
+      const off=Math.hypot(P.x-pr.x,P.y-pr.y),span=Math.abs(pr.t-SLASH_TRACK.originT);
+      if(span>0.05&&!SLASH_TRACK.started){SLASH_TRACK.started=true;SLASH_TRACK.startTime=Date.now();}
+      if(SLASH_TRACK.started&&off>SLASH_TRACK.maxOffset)SLASH_TRACK.maxOffset=off;
+      if(span>SLASH_TRACK.maxSpan){SLASH_TRACK.maxSpan=span;SLASH_TRACK.maxSpanTime=Date.now();}
+      const fl=document.getElementById('slash-fill');
+      fl.setAttribute('x1',SLASH_TRACK.originPt.x);fl.setAttribute('y1',SLASH_TRACK.originPt.y);
+      fl.setAttribute('x2',pr.x);fl.setAttribute('y2',pr.y);fl.setAttribute('opacity',span>0.03?'0.9':'0');
+      if(Math.hypot(P.x-LAST_SPARK.x,P.y-LAST_SPARK.y)>9){spawnSpark(P.x,P.y);LAST_SPARK={x:P.x,y:P.y};}
+    }
+  }else if(CURRENT_ROCK){cursorSword.style.display='none';cursorPick.style.display='block';cursorPick.style.left=e.clientX+'px';cursorPick.style.top=e.clientY+'px';}
+  else{cursorPick.style.display='none';cursorSword.style.display='none';}
+});
+
+playbox.addEventListener('mouseleave',()=>{cursorPick.style.display='none';cursorSword.style.display='none';if(DRAG_LIVE){DRAG_LIVE=false;cursorSword.classList.remove('dragging');DRAG_PATH=[];SLASH_TRACK=null;}});
+
+playbox.addEventListener('click',e=>{
+  if(COMBAT_MODE)return;if(!CURRENT_ROCK)return;if(e.target.closest('.dig-in-box'))return;
+  const sw=isExhausted()?'swing-weak':'swing';cursorPick.classList.add(sw);setTimeout(()=>cursorPick.classList.remove(sw),isExhausted()?250:120);
+  if(!clickHitsRock(e.clientX,e.clientY))return;applyHit(false,e);
+});
+
+playbox.addEventListener('mousedown',e=>{
+  if(!COMBAT_MODE)return;if(e.target.closest('.dig-in-box'))return;
+  DRAG_LIVE=true;const P=localXY(e);DRAG_PATH=[P];LAST_SPARK={x:P.x,y:P.y};cursorSword.classList.add('dragging');
+  const originProj=SLASH_LINE?projOnLine(P):{t:0,x:P.x,y:P.y};
+  SLASH_TRACK={started:false,startTime:0,originT:originProj.t,originPt:{x:originProj.x,y:originProj.y},maxSpan:0,maxSpanTime:0,maxOffset:0};
+  if(SLASH_LINE)resetFill(originProj.x,originProj.y);
+});
+
+/* ════ FIX: Always reset fill on mouseup regardless of outcome ════
+   This prevents partial fill from persisting after a failed slash
+   so players can't "continue" from where they left off. */
+playbox.addEventListener('mouseup',e=>{
+  if(!COMBAT_MODE||!DRAG_LIVE)return;
+  DRAG_LIVE=false;cursorSword.classList.remove('dragging');DRAG_PATH.push(localXY(e));
+  evaluateSlash();
+  DRAG_PATH=[];
+  /* ALWAYS reset fill on mouseup — evaluateSlash may have already done it
+     on success (via hideSlashLine), but failed slashes also need clearing. */
+  if(SLASH_LINE)resetFill(SLASH_LINE.x1,SLASH_LINE.y1);
+  else resetFill(0,0);
+});
+
+let _energySaveTick=0;
+setInterval(()=>{
+  if(ENERGY<MAX_ENERGY){ENERGY=Math.min(MAX_ENERGY,ENERGY+1);updateHUD();}
+  if(++_energySaveTick%10===0){MB.PLAYER.energy=ENERGY;MB.savePlayer();}
+},2000);
+setInterval(()=>{if(PLAYER_HP<PLAYER_MAX_HP){PLAYER_HP=Math.min(PLAYER_MAX_HP,PLAYER_HP+1);updateHUD();}},3000);
+setInterval(()=>{if(isExhausted()||EXHAUSTED_UNTIL>0)updateHUD();},500);
+
+function debugDrainEnergy(){ENERGY=0;EXHAUSTED_UNTIL=Date.now()+EXHAUST_DURATION_MS;toast('▸ ENERGY DRAINED','exhaust');updateHUD();}
+function debugRefillAll(){ENERGY=MAX_ENERGY;EXHAUSTED_UNTIL=0;PLAYER_HP=PLAYER_MAX_HP;toast('▸ REFILLED','crit');updateHUD();}
+function debugHeal(){PLAYER_HP=PLAYER_MAX_HP;toast('▸ HP HEALED','crit');updateHUD();}
+function debugAddLevel(){MINING_LEVEL++;toast('▸ LEVEL → '+MINING_LEVEL,'crit');updateHUD();}
+function toggleDebugAmbush(){DEBUG_FORCE_AMBUSH=!DEBUG_FORCE_AMBUSH;if(DEBUG_FORCE_AMBUSH)DEBUG_FORCE_CHEST=false;updateAmbushButton();updateChestButton();}
+function toggleDebugChest(){DEBUG_FORCE_CHEST=!DEBUG_FORCE_CHEST;if(DEBUG_FORCE_CHEST)DEBUG_FORCE_AMBUSH=false;updateAmbushButton();updateChestButton();}
+function updateAmbushButton(){const b=document.getElementById('debug-ambush-btn');b.textContent='DBG: AMBUSH '+(DEBUG_FORCE_AMBUSH?'NEXT':'OFF');b.classList.toggle('on',DEBUG_FORCE_AMBUSH);}
+function updateChestButton(){const b=document.getElementById('debug-chest-btn');b.textContent='DBG: CHEST '+(DEBUG_FORCE_CHEST?'NEXT':'OFF');b.classList.toggle('on',DEBUG_FORCE_CHEST);}
+updateHUD();
+
+if (!MB.requireAuth()) throw new Error("not signed in");
+MB.injectUltimateCSS();
+MB.renderNav('main-nav','games');
+// Rocks/enemies are read live from MB.ROCKS / MB.MINE_ENEMIES at spawn time,
+// so they always reflect the latest data file. Pickaxes are captured into
+// CURRENT_PICKAXE, so re-point it once the data file load resolves (loadGameData
+// replaces the MB.PICKAXES object).
+MB.gameDataReady.then(() => {
+  if (MB.PICKAXES && MB.PICKAXES.copper) CURRENT_PICKAXE = MB.PICKAXES.copper;
+  updateHUD();
+});
+</script>
+<div style="padding:10px 18px;border-top:1px solid #111;display:flex;gap:6px;flex-wrap:wrap;background:#000;flex-shrink:0;">
+  <span style="font-family:'Press Start 2P',monospace;font-size:6px;color:#333;align-self:center;margin-right:4px;">DEBUG</span>
+  <button class="navbtn debug" onclick="debugDrainEnergy()">EXHAUST</button>
+  <button class="navbtn debug-green" onclick="debugRefillAll()">REFILL</button>
+  <button class="navbtn debug-blue" onclick="debugHeal()">HEAL</button>
+  <button class="navbtn debug-blue" onclick="debugAddLevel()">+LVL</button>
+  <button class="navbtn debug-amber" id="debug-ambush-btn" onclick="toggleDebugAmbush()">AMBUSH OFF</button>
+  <button class="navbtn debug-gold" id="debug-chest-btn" onclick="toggleDebugChest()">CHEST OFF</button>
+  <button class="navbtn debug" onclick="MB.resetSave()" style="margin-left:14px;">RESET SAVE</button>
+</div>
+</div>
+</body>
+</html>

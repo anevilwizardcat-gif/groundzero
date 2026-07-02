@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MYTHBOUND &mdash; Auction House</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<script src="mythbound_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:'VT323',monospace;font-size:18px;display:flex;flex-direction:column;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:2px solid #fff;background:#000;flex-shrink:0;}
+.logo{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;}
+.nav-links{display:flex;gap:5px;}
+.nb{background:#000;border:2px solid #444;color:#444;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.nb:hover,.nb.on{border-color:#fff;color:#fff;}
+.nb.wip{border-color:#222;color:#333;cursor:default;}
+
+.pbar{display:flex;align-items:center;gap:14px;padding:8px 18px;border-bottom:1px solid #222;flex-shrink:0;}
+.pav{width:34px;height:34px;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.pname{font-family:'Press Start 2P',monospace;font-size:9px;}
+.pinfo{font-size:14px;color:#555;margin-top:2px;}
+.pcoins{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:9px;color:#ffdd6b;}
+
+/* Layout */
+.layout{flex:1;display:flex;overflow:hidden;min-height:0;}
+
+/* ── LEFT: Search & Filter ── */
+.sidebar{width:220px;flex-shrink:0;border-right:2px solid #222;display:flex;flex-direction:column;overflow:hidden;}
+.sidebar-hdr{font-family:'Press Start 2P',monospace;font-size:7px;color:#555;padding:12px 14px;border-bottom:1px solid #111;letter-spacing:1px;flex-shrink:0;}
+.sidebar-body{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px;}
+.sf{display:flex;flex-direction:column;gap:5px;}
+.sf-label{font-family:'Press Start 2P',monospace;font-size:5px;color:#333;letter-spacing:1px;}
+.sf-input{background:#000;border:2px solid #222;color:#fff;font-family:'VT323',monospace;font-size:18px;padding:6px 10px;outline:none;width:100%;}
+.sf-input:focus{border-color:#fff;}
+.sf-input::placeholder{color:#222;}
+.sf-select{background:#000;border:2px solid #222;color:#fff;font-family:'VT323',monospace;font-size:16px;padding:6px 10px;outline:none;width:100%;cursor:pointer;-webkit-appearance:none;}
+.sf-select:focus{border-color:#fff;}
+.search-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#000;border:2px solid #fff;color:#fff;padding:8px;cursor:pointer;width:100%;margin-top:4px;}
+.search-btn:hover{background:#fff;color:#000;}
+.clear-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#000;border:2px solid #333;color:#555;padding:6px;cursor:pointer;width:100%;text-align:center;}
+.clear-btn:hover{border-color:#fff;color:#fff;}
+.stat-row{display:flex;justify-content:space-between;font-size:14px;color:#333;padding:3px 0;}
+.stat-val{color:#555;}
+
+/* ── CENTER: Listing Grid ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.main-toolbar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #222;flex-shrink:0;}
+.sort-label{font-family:'Press Start 2P',monospace;font-size:6px;color:#333;}
+.sort-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#000;border:1px solid #222;color:#333;padding:5px 8px;cursor:pointer;}
+.sort-btn:hover{border-color:#555;color:#555;}.sort-btn.on{border-color:#fff;color:#fff;}
+.result-count{margin-left:auto;font-family:'Press Start 2P',monospace;font-size:6px;color:#333;}
+.listing-wrap{flex:1;overflow-y:auto;}
+.listing-table{width:100%;border-collapse:collapse;}
+.listing-table thead tr{border-bottom:2px solid #1a1a1a;position:sticky;top:0;background:#000;z-index:5;}
+.listing-table th{font-family:'Press Start 2P',monospace;font-size:5px;color:#333;padding:8px 10px;text-align:left;white-space:nowrap;cursor:pointer;user-select:none;}
+.listing-table th:hover{color:#888;}
+.listing-table th.sorted{color:#fff;}
+.listing-table td{padding:7px 10px;border-bottom:1px solid #080808;vertical-align:middle;}
+.listing-table tr:hover td{background:#080808;}
+.item-icon{width:28px;height:28px;image-rendering:pixelated;}
+.item-name{font-size:17px;color:#fff;}
+.item-sub{font-size:13px;color:#444;margin-top:1px;}
+.rar-badge{font-family:'Press Start 2P',monospace;font-size:5px;padding:2px 6px;border:1px solid;}
+.rb-common{border-color:#555;color:#999;}.rb-uncommon{border-color:#3a7a50;color:#6bff9b;}
+.rb-rare{border-color:#3a6a99;color:#6bb5ff;}.rb-epic{border-color:#7a3399;color:#c455e8;}
+.rb-legendary{border-color:#998832;color:#ffdd6b;}
+.rb-ultimate{border-color:#888;background:linear-gradient(90deg,#ff0,#0cf,#f0f,#ff0);background-size:200%;animation:mb-rainbow-bg 2.4s linear infinite;-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.seller-name{font-family:'Press Start 2P',monospace;font-size:6px;color:#555;}
+.price-cell{font-family:'Press Start 2P',monospace;font-size:8px;color:#ffdd6b;white-space:nowrap;}
+.price-per{font-size:13px;color:#333;margin-top:2px;font-family:'VT323',monospace;}
+.time-cell{font-size:14px;color:#444;white-space:nowrap;}
+.time-cell.expiring{color:#ff6644;}
+.buy-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#000;border:2px solid #6bff9b;color:#6bff9b;padding:5px 10px;cursor:pointer;white-space:nowrap;}
+.buy-btn:hover{background:#6bff9b;color:#000;}
+.buy-btn:disabled{border-color:#1a1a1a;color:#222;cursor:default;}
+.mine-row td{background:#080800 !important;}
+.cancel-btn{font-family:'Press Start 2P',monospace;font-size:6px;background:#000;border:2px solid #444;color:#555;padding:5px 10px;cursor:pointer;}
+.cancel-btn:hover{border-color:#ff4444;color:#ff4444;}
+.empty-list{padding:60px 20px;text-align:center;font-family:'Press Start 2P',monospace;font-size:7px;color:#1a1a1a;line-height:3;}
+
+/* ── RIGHT: Sell Panel ── */
+.sell-panel{width:280px;flex-shrink:0;border-left:2px solid #222;display:flex;flex-direction:column;overflow:hidden;}
+.sp-tabs{display:flex;border-bottom:1px solid #222;flex-shrink:0;}
+.sp-tab{flex:1;padding:10px 6px;font-family:'Press Start 2P',monospace;font-size:6px;color:#333;cursor:pointer;text-align:center;border-bottom:2px solid transparent;}
+.sp-tab:hover{color:#777;}.sp-tab.on{color:#fff;border-bottom-color:#fff;}
+.sp-body{flex:1;overflow-y:auto;padding:14px;}
+/* Sell form */
+.sp-section{font-family:'Press Start 2P',monospace;font-size:6px;color:#333;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #0d0d0d;}
+.ef{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+.ef-label{font-family:'Press Start 2P',monospace;font-size:5px;color:#333;letter-spacing:1px;}
+.ef-input{background:#000;border:2px solid #222;color:#fff;font-family:'VT323',monospace;font-size:18px;padding:6px 10px;outline:none;width:100%;}
+.ef-input:focus{border-color:#fff;}
+.ef-select{background:#000;border:2px solid #222;color:#fff;font-family:'Press Start 2P',monospace;font-size:6px;padding:7px 10px;outline:none;width:100%;cursor:pointer;-webkit-appearance:none;}
+.ef-select:focus{border-color:#fff;}
+.fee-row{display:flex;justify-content:space-between;font-size:15px;margin-bottom:6px;}
+.fee-key{color:#555;}.fee-val{color:#ffdd6b;}
+.list-btn{font-family:'Press Start 2P',monospace;font-size:7px;background:#000;border:2px solid #fff;color:#fff;padding:10px;cursor:pointer;width:100%;margin-top:8px;}
+.list-btn:hover{background:#fff;color:#000;}
+/* Item picker */
+.item-pick-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px;}
+.ip-slot{aspect-ratio:1;background:#000;border:2px solid #111;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;padding:4px;}
+.ip-slot:hover{border-color:#555;}
+.ip-slot.selected{border-color:#fff;background:#0a0a0a;}
+.ip-slot.ib-common{border-color:#333;}.ip-slot.ib-uncommon{border-color:#2a5a3a;}.ip-slot.ib-rare{border-color:#2a4a77;}
+.ip-slot.ib-epic{border-color:#5a2277;}.ip-slot.ib-legendary{border-color:#776622;}
+.ip-name{font-family:'Press Start 2P',monospace;font-size:4px;text-align:center;color:#555;line-height:1.5;word-break:break-word;}
+.ip-qty{font-family:'Press Start 2P',monospace;font-size:4px;color:#333;}
+/* My listings */
+.my-listing{background:#0a0a00;border:1px solid #1a1a00;padding:10px;margin-bottom:8px;}
+.ml-item{font-family:'Press Start 2P',monospace;font-size:6px;color:#fff;margin-bottom:4px;}
+.ml-price{font-size:14px;color:#ffdd6b;margin-bottom:4px;}
+.ml-exp{font-size:13px;color:#444;margin-bottom:6px;}
+.ml-cancel{font-family:'Press Start 2P',monospace;font-size:5px;background:#000;border:1px solid #333;color:#555;padding:4px 8px;cursor:pointer;}
+.ml-cancel:hover{border-color:#ff4444;color:#ff4444;}
+
+/* Confirm overlay */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:center;justify-content:center;}
+.overlay.show{display:flex;}
+.confirm-box{background:#000;border:2px solid #fff;padding:24px 28px;width:340px;}
+.cb-title{font-family:'Press Start 2P',monospace;font-size:8px;color:#fff;margin-bottom:14px;}
+.cb-body{font-size:18px;color:#888;line-height:1.7;margin-bottom:8px;}
+.cb-price{font-family:'Press Start 2P',monospace;font-size:10px;color:#ffdd6b;margin-bottom:20px;}
+.cb-btns{display:flex;gap:10px;}
+.cb-btns button{flex:1;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px;cursor:pointer;background:#000;border:2px solid #fff;color:#fff;}
+.cb-btns button:hover{background:#fff;color:#000;}
+.cb-btns .cancel{border-color:#333;color:#444;}
+.cb-btns .cancel:hover{background:#111;color:#666;}
+
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#000;border:2px solid #fff;color:#fff;font-family:'Press Start 2P',monospace;font-size:7px;padding:10px 18px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;line-height:2;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">MYTHBOUND</div>
+  <div class="nav-links" id="main-nav"></div>
+</nav>
+<div class="pbar">
+  <div class="pav" id="p-av">?</div>
+  <div><div class="pname" id="p-name"></div><div class="pinfo" id="p-info"></div></div>
+  <div class="pcoins" id="p-coins">0 🪙</div>
+</div>
+<div class="layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-hdr" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>&#9658; SEARCH</span>
+      <button onclick="manualRefresh()" style="background:#000;border:1px solid #333;color:#555;font-family:'Press Start 2P',monospace;font-size:5px;padding:3px 7px;cursor:pointer;" title="Refresh listings">&#8635;</button>
+    </div>
+    <div class="sidebar-body">
+      <div class="sf">
+        <div class="sf-label">ITEM NAME</div>
+        <input class="sf-input" id="f-name" placeholder="Search..." oninput="applyFilters()">
+      </div>
+      <div class="sf">
+        <div class="sf-label">RARITY</div>
+        <select class="sf-select" id="f-rarity" onchange="applyFilters()">
+          <option value="">All rarities</option>
+          <option value="common">Common</option>
+          <option value="uncommon">Uncommon</option>
+          <option value="rare">Rare</option>
+          <option value="epic">Epic</option>
+          <option value="legendary">Legendary</option>
+          <option value="ultimate">Ultimate</option>
+        </select>
+      </div>
+      <div class="sf">
+        <div class="sf-label">TYPE</div>
+        <select class="sf-select" id="f-type" onchange="applyFilters()">
+          <option value="">All types</option>
+          <option value="equipment">Equipment</option>
+          <option value="consumable">Consumable</option>
+          <option value="material">Material</option>
+          <option value="fish">Fish</option>
+          <option value="key">Key Item</option>
+        </select>
+      </div>
+      <div class="sf">
+        <div class="sf-label">SELLER</div>
+        <input class="sf-input" id="f-seller" placeholder="Player name..." oninput="applyFilters()">
+      </div>
+      <div class="sf">
+        <div class="sf-label">MAX PRICE</div>
+        <input class="sf-input" id="f-maxprice" type="number" placeholder="No limit..." oninput="applyFilters()">
+      </div>
+      <button class="clear-btn" onclick="clearFilters()">&#10005; CLEAR FILTERS</button>
+      <div style="border-top:1px solid #0d0d0d;padding-top:10px;">
+        <div class="sf-label" style="margin-bottom:8px;">MARKET STATS</div>
+        <div class="stat-row"><span>Active listings</span><span class="stat-val" id="stat-total">0</span></div>
+        <div class="stat-row"><span>Unique items</span><span class="stat-val" id="stat-unique">0</span></div>
+        <div class="stat-row"><span>Listing fee</span><span class="stat-val">5%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main listing area -->
+  <div class="main">
+    <div class="main-toolbar">
+      <span class="sort-label">SORT:</span>
+      <button class="sort-btn on" onclick="setSort('name',this)">NAME</button>
+      <button class="sort-btn" onclick="setSort('price',this)">PRICE</button>
+      <button class="sort-btn" onclick="setSort('rarity',this)">RARITY</button>
+      <button class="sort-btn" onclick="setSort('expires',this)">TIME LEFT</button>
+      <span class="result-count" id="result-count">0 listings</span>
+    </div>
+    <div class="listing-wrap">
+      <table class="listing-table">
+        <thead>
+          <tr>
+            <th style="width:36px;"></th>
+            <th>ITEM</th>
+            <th>RARITY</th>
+            <th>QTY</th>
+            <th>SELLER</th>
+            <th>BUYOUT</th>
+            <th>PER UNIT</th>
+            <th>TIME LEFT</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="listing-tbody"></tbody>
+      </table>
+      <div class="empty-list" id="empty-msg" style="display:none;">NO LISTINGS FOUND</div>
+    </div>
+  </div>
+
+  <!-- Sell panel -->
+  <div class="sell-panel">
+    <div class="sp-tabs">
+      <div class="sp-tab on" onclick="setSPTab(this,'sell')">SELL</div>
+      <div class="sp-tab" onclick="setSPTab(this,'mine')">MY LISTINGS</div>
+    </div>
+    <div class="sp-body" id="sp-body"></div>
+  </div>
+</div>
+
+<!-- Buy confirm overlay -->
+<div class="overlay" id="buy-overlay">
+  <div class="confirm-box">
+    <div class="cb-title">CONFIRM PURCHASE</div>
+    <div class="cb-body" id="cb-body"></div>
+    <div class="cb-price" id="cb-price"></div>
+    <div class="cb-btns">
+      <button class="cancel" onclick="closeBuyOverlay()">&#10005; CANCEL</button>
+      <button id="cb-confirm" onclick="confirmBuy()">&#9658; BUY</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+if (!MB.requireAuth()) throw new Error('not signed in');
+MB.injectUltimateCSS();
+MB.renderNav('main-nav','auction');
+
+// ── INIT PLAYER BAR ───────────────────────────────────────────
+(function(){
+  const p = MB.PLAYER;
+  document.getElementById('p-av').textContent    = p.em || '?';
+  document.getElementById('p-name').textContent  = p.name || '';
+  document.getElementById('p-info').textContent  = 'Lv.'+(p.level||1)+' '+(p.role||'Adventurer');
+  document.getElementById('p-coins').textContent = (p.coins||0).toLocaleString()+' \uD83E\uDE99';
+})();
+
+// ── STATE ─────────────────────────────────────────────────────
+let ALL_LISTINGS  = [];   // full list from server, refreshed via SSE + periodic fetch
+let FILTERED      = [];   // after search/filter
+let SORT_KEY      = 'name';
+let SORT_DIR      = 1;    // 1 = asc, -1 = desc
+let ahStream      = null;
+let spTab         = 'sell';
+let selectedItemId = null;
+let pendingBuy    = null; // { listing } waiting for confirm
+let myListings    = [];
+
+const RORD = { common:0, uncommon:1, rare:2, epic:3, legendary:4, ultimate:5 };
+
+// ── TOAST ─────────────────────────────────────────────────────
+let _tTmr;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  if (_tTmr) clearTimeout(_tTmr);
+  _tTmr = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── CONNECT TO AH SSE ─────────────────────────────────────────
+function connectAH() {
+  if (ahStream) ahStream.close();
+  ahStream = new EventSource('http://localhost:3000/__ah/stream');
+  ahStream.onmessage = (e) => {
+    try {
+      const { event, payload } = JSON.parse(e.data);
+      if (event === 'init') {
+        ALL_LISTINGS = payload;
+        applyFilters();
+        updateStats();
+      } else if (event === 'listed') {
+        // Add new listing if not already present
+        if (!ALL_LISTINGS.find(l => l.id === payload.id)) {
+          ALL_LISTINGS.push(payload);
+          applyFilters();
+          updateStats();
+        }
+      } else if (event === 'sold' || event === 'cancelled') {
+        ALL_LISTINGS = ALL_LISTINGS.filter(l => l.id !== payload.id);
+        applyFilters();
+        updateStats();
+        if (event === 'sold') pollAHMail(); // check if we got a mail
+        if (spTab === 'mine') renderSellPanel();
+      }
+    } catch(err) {}
+  };
+  ahStream.onerror = () => {
+    // Reconnect after 4s
+    ahStream.close(); ahStream = null;
+    setTimeout(connectAH, 4000);
+  };
+}
+
+// ── PERIODIC FETCH (backup if SSE misses something) ───────────
+setInterval(async () => {
+  try {
+    const r = await fetch('http://localhost:3000/__ah/listings');
+    if (!r.ok) return;
+    ALL_LISTINGS = await r.json();
+    applyFilters(); updateStats();
+  } catch(e) {}
+}, 30000); // every 30s as fallback
+
+// ── MAIL POLL — check for AH mail (purchases/sales) ──────────
+async function pollAHMail() {
+  const name = (MB.PLAYER.name||'').toUpperCase();
+  if (!name) return;
+  try {
+    const r = await fetch('http://localhost:3000/__ah/mail/poll?name=' + encodeURIComponent(name));
+    if (!r.ok) return;
+    const mails = await r.json();
+    if (!mails.length) return;
+    // Inject into player's mail localStorage key
+    const mailKey = 'mythbound_mail_v2_' + name;
+    let existing = [];
+    try { existing = JSON.parse(localStorage.getItem(mailKey)||'[]'); } catch(e) {}
+    mails.forEach(m => {
+      if (!existing.find(x => x.id === m.id)) existing.unshift(m);
+    });
+    localStorage.setItem(mailKey, JSON.stringify(existing));
+    // Update coins if we sold something
+    mails.forEach(m => {
+      if (m.coins > 0) {
+        MB.addCoins(m.coins);
+        document.getElementById('p-coins').textContent = MB.PLAYER.coins.toLocaleString()+' \uD83E\uDE99';
+      }
+    });
+    toast('\uD83D\uDCEC '+mails.length+' new AH mail'+(mails.length>1?'s':'')+'!');
+  } catch(e) {}
+}
+
+// ── FILTERS ───────────────────────────────────────────────────
+function applyFilters() {
+  const qName   = (document.getElementById('f-name').value||'').toLowerCase().trim();
+  const qRar    = document.getElementById('f-rarity').value;
+  const qType   = document.getElementById('f-type').value;
+  const qSeller = (document.getElementById('f-seller').value||'').toUpperCase().trim();
+  const qMax    = parseFloat(document.getElementById('f-maxprice').value)||Infinity;
+
+  FILTERED = ALL_LISTINGS.filter(l => {
+    const def = MB.ITEMS[l.itemId] || {};
+    const name = (def.name || l.itemId).toLowerCase();
+    if (qName   && !name.includes(qName))                   return false;
+    if (qRar    && (def.rarity||'common') !== qRar)          return false;
+    if (qType   && (def.type||'') !== qType)                 return false;
+    if (qSeller && l.seller !== qSeller)                     return false;
+    if (l.price > qMax)                                      return false;
+    return true;
+  });
+
+  sortListings();
+  renderListings();
+}
+
+function clearFilters() {
+  ['f-name','f-seller','f-maxprice'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('f-rarity').value='';
+  document.getElementById('f-type').value='';
+  applyFilters();
+}
+
+// ── SORT ──────────────────────────────────────────────────────
+function setSort(key, btn) {
+  if (SORT_KEY === key) SORT_DIR *= -1;
+  else { SORT_KEY = key; SORT_DIR = 1; }
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  sortListings();
+  renderListings();
+}
+
+function sortListings() {
+  FILTERED.sort((a, b) => {
+    const da = MB.ITEMS[a.itemId] || {}, db = MB.ITEMS[b.itemId] || {};
+    let va, vb;
+    if (SORT_KEY === 'name')    { va = (da.name||a.itemId); vb = (db.name||b.itemId); return SORT_DIR * va.localeCompare(vb); }
+    if (SORT_KEY === 'price')   { va = a.price; vb = b.price; }
+    if (SORT_KEY === 'rarity')  { va = RORD[da.rarity||'common']; vb = RORD[db.rarity||'common']; }
+    if (SORT_KEY === 'expires') { va = a.expires; vb = b.expires; }
+    return SORT_DIR * (va - vb);
+  });
+}
+
+// ── RENDER LISTINGS ───────────────────────────────────────────
+function renderListings() {
+  const tbody = document.getElementById('listing-tbody');
+  const empty = document.getElementById('empty-msg');
+  const count = document.getElementById('result-count');
+  count.textContent = FILTERED.length + ' listing' + (FILTERED.length!==1?'s':'');
+
+  if (!FILTERED.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const me = (MB.PLAYER.name||'').toUpperCase();
+  const now = Date.now();
+
+  tbody.innerHTML = '';
+  FILTERED.forEach(l => {
+    const def    = MB.ITEMS[l.itemId] || { name: l.itemId, rarity:'common', type:'material' };
+    const rar    = def.rarity || 'common';
+    const isMine = l.seller === me;
+    const left   = l.expires - now;
+    const hrs    = Math.floor(left / 3600000);
+    const mins   = Math.floor((left % 3600000) / 60000);
+    const timeStr = hrs > 0 ? hrs+'h '+mins+'m' : mins+'m';
+    const expiring = left < 3600000 * 2; // < 2h
+    const perUnit = l.qty > 1 ? (l.price / l.qty).toFixed(0)+' ea' : '—';
+
+    const tr = document.createElement('tr');
+    if (isMine) tr.className = 'mine-row';
+
+    tr.innerHTML = `
+      <td><div class="item-icon">${MB.renderItemIconSVG(l.itemId, 28)}</div></td>
+      <td>
+        <div class="item-name">${def.name||l.itemId}</div>
+        <div class="item-sub">${def.type||'item'}</div>
+      </td>
+      <td><span class="rar-badge rb-${rar}">${rar.toUpperCase()}</span></td>
+      <td style="font-size:16px;color:#aaa;">${l.qty}</td>
+      <td><span class="seller-name">${l.seller}</span></td>
+      <td>
+        <div class="price-cell">${l.price.toLocaleString()} \uD83E\uDE99</div>
+      </td>
+      <td><div class="price-per">${perUnit}</div></td>
+      <td><span class="time-cell${expiring?' expiring':''}">${timeStr}</span></td>
+      <td>
+        ${isMine
+          ? `<button class="cancel-btn" onclick="cancelListing('${l.id}')">CANCEL</button>`
+          : `<button class="buy-btn" onclick="openBuyOverlay('${l.id}')">BUY</button>`
+        }
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function updateStats() {
+  const active = ALL_LISTINGS.filter(l => l.status === 'active');
+  document.getElementById('stat-total').textContent = active.length;
+  document.getElementById('stat-unique').textContent = new Set(active.map(l=>l.itemId)).size;
+}
+
+// ── BUY FLOW ──────────────────────────────────────────────────
+function openBuyOverlay(listingId) {
+  const listing = ALL_LISTINGS.find(l => l.id === listingId);
+  if (!listing) { toast('Listing not found.'); return; }
+  const def = MB.ITEMS[listing.itemId] || { name: listing.itemId };
+  if (MB.PLAYER.coins < listing.price) { toast('Not enough Doubloons!'); return; }
+  pendingBuy = listing;
+  document.getElementById('cb-body').textContent =
+    listing.qty + '\u00d7 ' + def.name + ' from ' + listing.seller;
+  document.getElementById('cb-price').textContent = listing.price.toLocaleString() + ' \uD83E\uDE99';
+  document.getElementById('buy-overlay').classList.add('show');
+}
+
+function closeBuyOverlay() {
+  document.getElementById('buy-overlay').classList.remove('show');
+  pendingBuy = null;
+}
+
+async function confirmBuy() {
+  if (!pendingBuy) return;
+  const l = pendingBuy;
+  closeBuyOverlay();
+  if (MB.PLAYER.coins < l.price) { toast('Not enough Doubloons!'); return; }
+  try {
+    const r = await fetch('http://localhost:3000/__ah/buy', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ buyer: MB.PLAYER.name, listingId: l.id }),
+    });
+    if (r.status === 404) { toast('Listing already sold or expired.'); return; }
+    if (!r.ok) { toast('Purchase failed. Try again.'); return; }
+    MB.addCoins(-l.price);
+    document.getElementById('p-coins').textContent = MB.PLAYER.coins.toLocaleString()+' \uD83E\uDE99';
+    // Remove bought listing from local list immediately — SSE will confirm
+    ALL_LISTINGS = ALL_LISTINGS.filter(x => x.id !== l.id);
+    applyFilters(); updateStats();
+    toast('Purchased! Check your mail.');
+    setTimeout(pollAHMail, 500);
+  } catch(e) { toast('Server error.'); }
+}
+
+// ── CANCEL LISTING ────────────────────────────────────────────
+
+async function manualRefresh() {
+  try {
+    const r = await fetch('http://localhost:3000/__ah/listings');
+    if (!r.ok) return;
+    ALL_LISTINGS = await r.json();
+    applyFilters();
+    updateStats();
+    toast('Listings refreshed.');
+  } catch(e) { toast('Could not reach server.'); }
+}
+
+async function cancelListing(listingId) {
+  if (!confirm('Cancel this listing? Item will be returned via mail. Listing fee is not refunded.')) return;
+  try {
+    const r = await fetch('http://localhost:3000/__ah/cancel', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ seller: MB.PLAYER.name, listingId }),
+    });
+    if (!r.ok) { toast('Cancel failed.'); return; }
+    toast('Listing cancelled. Item returning via mail.');
+    setTimeout(pollAHMail, 500);
+    if (spTab === 'mine') setTimeout(renderSellPanel, 600);
+  } catch(e) { toast('Server error.'); }
+}
+
+// ── SELL PANEL ────────────────────────────────────────────────
+function setSPTab(el, tab) {
+  document.querySelectorAll('.sp-tab').forEach(t => t.classList.remove('on'));
+  el.classList.add('on');
+  spTab = tab;
+  renderSellPanel();
+}
+
+async function renderSellPanel() {
+  const body = document.getElementById('sp-body');
+  if (spTab === 'mine') {
+    body.innerHTML = '<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:#555;margin-bottom:12px;">YOUR ACTIVE LISTINGS</div>';
+    try {
+      const r = await fetch('http://localhost:3000/__ah/mine?seller='+encodeURIComponent(MB.PLAYER.name));
+      if (!r.ok) return;
+      myListings = await r.json();
+      if (!myListings.length) {
+        body.innerHTML += '<div style="font-family:\'Press Start 2P\',monospace;font-size:6px;color:#222;text-align:center;padding:20px;line-height:3;">NO ACTIVE LISTINGS</div>';
+        return;
+      }
+      const now = Date.now();
+      myListings.forEach(l => {
+        const def = MB.ITEMS[l.itemId] || {name:l.itemId};
+        const left = Math.max(0, l.expires - now);
+        const hrs  = Math.floor(left/3600000);
+        const mins = Math.floor((left%3600000)/60000);
+        const div = document.createElement('div'); div.className = 'my-listing';
+        div.innerHTML = `<div class="ml-item">${l.qty}\u00d7 ${def.name}</div>
+          <div class="ml-price">${l.price.toLocaleString()} \uD83E\uDE99</div>
+          <div class="ml-exp">Expires in ${hrs}h ${mins}m</div>`;
+        const btn = document.createElement('button'); btn.className='ml-cancel'; btn.textContent='CANCEL';
+        btn.onclick = () => cancelListing(l.id);
+        div.appendChild(btn);
+        body.appendChild(div);
+      });
+    } catch(e) {}
+    return;
+  }
+
+  // Sell tab — MB.getBag() returns hydrated view without mutating stored bag
+  const bag = MB.getBag().filter(i => i.id && !i.soulbound && !i.mythBound);
+
+  body.innerHTML = `<div class="sp-section">SELECT ITEM FROM BAG</div>`;
+  const grid = document.createElement('div'); grid.className='item-pick-grid';
+
+  if (!bag.length) {
+    const msg = document.createElement('div');
+    msg.style.cssText='font-family:\'Press Start 2P\',monospace;font-size:6px;color:#222;padding:10px;line-height:2.5;';
+    msg.textContent='No eligible items in bag.';
+    body.appendChild(msg);
+  } else {
+    bag.forEach(item => {
+      const el = document.createElement('div');
+      const rar = item.rarity||'common';
+      el.className='ip-slot ib-'+rar+(selectedItemId===item.id?' selected':'');
+      el.innerHTML='<div style="width:24px;height:24px;image-rendering:pixelated;">'+MB.renderItemIconSVG(item.id,24)+'</div>';
+      const nm=document.createElement('div');nm.className='ip-name';nm.textContent=item.name||item.id;el.appendChild(nm);
+      if((item.qty||1)>1){const q=document.createElement('div');q.className='ip-qty';q.textContent='\u00d7'+(item.qty||1);el.appendChild(q);}
+      el.onclick=()=>{selectedItemId=item.id;renderSellPanel();};
+      grid.appendChild(el);
+    });
+    body.appendChild(grid);
+  }
+
+  if (selectedItemId) {
+    const selItem = bag.find(i=>i.id===selectedItemId);
+    if (selItem) {
+      const maxQty = selItem.qty||1;
+      const form = document.createElement('div');
+      form.style.marginTop='12px';
+      form.innerHTML=`
+        <div class="ef"><div class="ef-label">QUANTITY</div>
+          <input class="ef-input" type="number" id="s-qty" min="1" max="${maxQty}" value="1" oninput="updateFeePreview()"></div>
+        <div class="ef"><div class="ef-label">BUYOUT PRICE (\uD83E\uDE99)</div>
+          <input class="ef-input" type="number" id="s-price" min="1" placeholder="0" oninput="updateFeePreview()"></div>
+        <div class="ef"><div class="ef-label">DURATION</div>
+          <select class="ef-select" id="s-dur">
+            <option value="12">12 hours</option>
+            <option value="24">24 hours</option>
+            <option value="48" selected>48 hours</option>
+            <option value="72">72 hours</option>
+          </select></div>
+        <div class="fee-row"><span class="fee-key">Listing fee (5%)</span><span class="fee-val" id="fee-preview">0 \uD83E\uDE99</span></div>
+        <div class="fee-row"><span class="fee-key">You receive</span><span class="fee-val" id="receive-preview">0 \uD83E\uDE99</span></div>
+        <button class="list-btn" onclick="submitListing()">&#9658; LIST ITEM</button>`;
+      body.appendChild(form);
+    }
+  }
+}
+
+function updateFeePreview() {
+  const price = parseInt(document.getElementById('s-price')?.value)||0;
+  const fee   = Math.floor(price * 0.05);
+  const el1   = document.getElementById('fee-preview');
+  const el2   = document.getElementById('receive-preview');
+  if (el1) el1.textContent = fee.toLocaleString()+' \uD83E\uDE99';
+  if (el2) el2.textContent = (price-fee).toLocaleString()+' \uD83E\uDE99';
+}
+
+async function submitListing() {
+  // Read raw bag for qty — never use hydrated view for mutations
+  const item  = (MB.PLAYER.bag||[]).find(i=>i.id===selectedItemId);
+  if (!item) { toast('Item not found in bag.'); return; }
+  const qty   = Math.min(parseInt(document.getElementById('s-qty').value)||1, item.qty||1);
+  const price = parseInt(document.getElementById('s-price').value)||0;
+  const dur   = parseInt(document.getElementById('s-dur').value)||48;
+  if (price < 1) { toast('Set a buyout price.'); return; }
+  const fee   = Math.floor(price * 0.05);
+  if (MB.PLAYER.coins < fee) { toast('Not enough Doubloons for listing fee ('+fee+' \uD83E\uDE99).'); return; }
+
+  try {
+    const r = await fetch('http://localhost:3000/__ah/list', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ seller:MB.PLAYER.name, itemId:selectedItemId, qty, price, duration:dur }),
+    });
+    if (r.status === 409) { toast('Identical listing already exists.'); return; }
+    if (!r.ok) { toast('Listing failed.'); return; }
+    // Deduct item and fee from player
+    MB.removeFromInventory(selectedItemId, qty);
+    MB.addCoins(-fee);
+    document.getElementById('p-coins').textContent = MB.PLAYER.coins.toLocaleString()+' \uD83E\uDE99';
+    selectedItemId = null;
+    toast('Listed! Other players can now buy it.');
+    renderSellPanel();
+  } catch(e) { toast('Server error.'); }
+}
+
+// ── CLOSE OVERLAY ON CLICK OUTSIDE ───────────────────────────
+document.getElementById('buy-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('buy-overlay')) closeBuyOverlay();
+});
+
+// ── INIT ──────────────────────────────────────────────────────
+// Connect SSE immediately so we don't miss any listing events
+connectAH();
+// Wait for MB.ITEMS to be loaded before rendering item names/icons
+MB.onReady(() => {
+  // Re-render listings now that MB.ITEMS is populated
+  applyFilters();
+  renderSellPanel();
+  pollAHMail();
+  setInterval(pollAHMail, 30000);
+});
+</script>
+</body>
+</html>

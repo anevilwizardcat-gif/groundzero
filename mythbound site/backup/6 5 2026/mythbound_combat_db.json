@@ -1,0 +1,1142 @@
+{
+  "_version": 1,
+  "_note": "MYTHBOUND combat database. Merges into mythbound_data.json as top-level keys. Edited via admin panel; battle.html + inventory read it live.",
+  "elements": {
+    "physical": {
+      "name": "Physical",
+      "em": "⚔️",
+      "color": "#cccccc",
+      "strong": [],
+      "weak": []
+    },
+    "fire": {
+      "name": "Fire",
+      "em": "🔥",
+      "color": "#ff6600",
+      "strong": [
+        "nature"
+      ],
+      "weak": [
+        "frost"
+      ]
+    },
+    "frost": {
+      "name": "Frost",
+      "em": "❄️",
+      "color": "#4ad6ff",
+      "strong": [
+        "fire"
+      ],
+      "weak": [
+        "nature"
+      ]
+    },
+    "nature": {
+      "name": "Nature",
+      "em": "🌿",
+      "color": "#6bff9b",
+      "strong": [
+        "frost"
+      ],
+      "weak": [
+        "fire"
+      ]
+    },
+    "void": {
+      "name": "Void",
+      "em": "🟣",
+      "color": "#b14aff",
+      "strong": [
+        "light"
+      ],
+      "weak": [
+        "arcana"
+      ]
+    },
+    "light": {
+      "name": "Light",
+      "em": "✨",
+      "color": "#ffe066",
+      "strong": [
+        "arcana"
+      ],
+      "weak": [
+        "void"
+      ]
+    },
+    "arcana": {
+      "name": "Arcana",
+      "em": "🔮",
+      "color": "#ff5fd2",
+      "strong": [
+        "void"
+      ],
+      "weak": [
+        "light"
+      ]
+    }
+  },
+  "skills": {
+    "strike": {
+      "name": "Strike",
+      "em": "🗡️",
+      "kind": "physical",
+      "element": "physical",
+      "power": 18,
+      "mpCost": 0,
+      "atbCost": 100,
+      "target": "one-enemy",
+      "scaling": "atk",
+      "anim": "slash",
+      "status": null,
+      "desc": "A basic weapon strike."
+    },
+    "fireball": {
+      "name": "Fireball",
+      "em": "🔥",
+      "kind": "magic",
+      "element": "fire",
+      "power": 34,
+      "mpCost": 12,
+      "atbCost": 100,
+      "target": "one-enemy",
+      "scaling": "mag",
+      "anim": "fire_burst",
+      "status": "burn",
+      "desc": "Hurl a ball of flame. May Burn."
+    },
+    "flame_wall": {
+      "name": "Flame Wall",
+      "em": "🔥",
+      "kind": "magic",
+      "element": "fire",
+      "power": 22,
+      "mpCost": 24,
+      "atbCost": 100,
+      "target": "all-enemies",
+      "scaling": "mag",
+      "anim": "fire_burst",
+      "status": "burn",
+      "desc": "Engulf all foes in fire."
+    },
+    "ice_lance": {
+      "name": "Ice Lance",
+      "em": "❄️",
+      "kind": "magic",
+      "element": "frost",
+      "power": 30,
+      "mpCost": 12,
+      "atbCost": 100,
+      "target": "one-enemy",
+      "scaling": "mag",
+      "anim": "frost_shard",
+      "status": "chill",
+      "desc": "Pierce a foe with ice. May Chill (−SPD)."
+    },
+    "vine_grasp": {
+      "name": "Vine Grasp",
+      "em": "🌿",
+      "kind": "magic",
+      "element": "nature",
+      "power": 26,
+      "mpCost": 14,
+      "atbCost": 100,
+      "target": "one-enemy",
+      "scaling": "mag",
+      "anim": "nature_coil",
+      "status": "root",
+      "desc": "Roots bind a foe. May Root (stun)."
+    },
+    "void_rend": {
+      "name": "Void Rend",
+      "em": "🟣",
+      "kind": "magic",
+      "element": "void",
+      "power": 38,
+      "mpCost": 18,
+      "atbCost": 100,
+      "target": "one-enemy",
+      "scaling": "mag",
+      "anim": "void_tear",
+      "status": null,
+      "desc": "Tear at a foe with raw void."
+    },
+    "smite": {
+      "name": "Smite",
+      "em": "✨",
+      "kind": "magic",
+      "element": "light",
+      "power": 32,
+      "mpCost": 16,
+      "atbCost": 100,
+      "target": "one-enemy",
+      "scaling": "mag",
+      "anim": "light_ray",
+      "status": null,
+      "desc": "Call down a ray of light."
+    },
+    "arc_bolt": {
+      "name": "Arc Bolt",
+      "em": "🔮",
+      "kind": "magic",
+      "element": "arcana",
+      "power": 30,
+      "mpCost": 14,
+      "atbCost": 100,
+      "target": "one-enemy",
+      "scaling": "mag",
+      "anim": "arcana_zap",
+      "status": null,
+      "desc": "A crackling bolt of arcana."
+    },
+    "mend": {
+      "name": "Mend",
+      "em": "💚",
+      "kind": "heal",
+      "element": "nature",
+      "power": 40,
+      "mpCost": 14,
+      "atbCost": 100,
+      "target": "one-ally",
+      "scaling": "mag",
+      "anim": "heal_sparkle",
+      "status": null,
+      "desc": "Restore an ally’s HP."
+    },
+    "rally": {
+      "name": "Rally",
+      "em": "⬆️",
+      "kind": "buff",
+      "element": "physical",
+      "power": 0,
+      "mpCost": 12,
+      "atbCost": 100,
+      "target": "all-allies",
+      "scaling": "none",
+      "anim": "buff_glow",
+      "status": "atk_up",
+      "desc": "Raise the party’s ATK."
+    },
+    "guard_break": {
+      "name": "Guard Break",
+      "em": "⬇️",
+      "kind": "debuff",
+      "element": "physical",
+      "power": 8,
+      "mpCost": 10,
+      "atbCost": 100,
+      "target": "one-enemy",
+      "scaling": "atk",
+      "anim": "slash",
+      "status": "def_down",
+      "desc": "Lower a foe’s DEF."
+    },
+    "phoenix_rebirth": {
+      "name": "Phoenix Rebirth",
+      "em": "🔥",
+      "kind": "magic",
+      "element": "fire",
+      "power": 80,
+      "mpCost": 0,
+      "atbCost": 0,
+      "target": "all-enemies",
+      "scaling": "mag",
+      "anim": "fire_nova",
+      "status": "burn",
+      "desc": "LIMIT: A nova of rebirth flame; heals the caster.",
+      "limit": true,
+      "healSelf": 0.5
+    },
+    "tide_crash": {
+      "name": "Tide Crash",
+      "em": "🌊",
+      "kind": "magic",
+      "element": "frost",
+      "power": 90,
+      "mpCost": 0,
+      "atbCost": 0,
+      "target": "all-enemies",
+      "scaling": "mag",
+      "anim": "frost_nova",
+      "status": "chill",
+      "desc": "LIMIT: A crushing wave drowns all foes.",
+      "limit": true
+    }
+  },
+  "statuses": {
+    "burn": {
+      "name": "Burn",
+      "em": "🔥",
+      "kind": "debuff",
+      "effect": "dot",
+      "element": "fire",
+      "magnitude": 8,
+      "duration": 3,
+      "tick": "turn-start",
+      "anim": "burn_tick",
+      "desc": "Fire damage each turn."
+    },
+    "poison": {
+      "name": "Poison",
+      "em": "🟢",
+      "kind": "debuff",
+      "effect": "dot",
+      "element": "nature",
+      "magnitude": 6,
+      "duration": 4,
+      "tick": "turn-start",
+      "anim": "poison_tick",
+      "desc": "Nature damage each turn."
+    },
+    "chill": {
+      "name": "Chill",
+      "em": "❄️",
+      "kind": "debuff",
+      "effect": "stat",
+      "stat": "spd",
+      "magnitude": -0.3,
+      "duration": 3,
+      "anim": "frost_shard",
+      "desc": "-30% SPD."
+    },
+    "root": {
+      "name": "Root",
+      "em": "🌿",
+      "kind": "debuff",
+      "effect": "stun",
+      "magnitude": 1,
+      "duration": 1,
+      "anim": "nature_coil",
+      "desc": "Cannot act for 1 turn."
+    },
+    "stun": {
+      "name": "Stun",
+      "em": "💫",
+      "kind": "debuff",
+      "effect": "stun",
+      "magnitude": 1,
+      "duration": 1,
+      "anim": "buff_glow",
+      "desc": "Cannot act for 1 turn."
+    },
+    "atk_up": {
+      "name": "ATK Up",
+      "em": "⬆️",
+      "kind": "buff",
+      "effect": "stat",
+      "stat": "atk",
+      "magnitude": 0.25,
+      "duration": 3,
+      "anim": "buff_glow",
+      "desc": "+25% ATK."
+    },
+    "def_up": {
+      "name": "DEF Up",
+      "em": "🛡️",
+      "kind": "buff",
+      "effect": "stat",
+      "stat": "def",
+      "magnitude": 0.25,
+      "duration": 3,
+      "anim": "buff_glow",
+      "desc": "+25% DEF."
+    },
+    "def_down": {
+      "name": "DEF Down",
+      "em": "⬇️",
+      "kind": "debuff",
+      "effect": "stat",
+      "stat": "def",
+      "magnitude": -0.25,
+      "duration": 3,
+      "anim": "buff_glow",
+      "desc": "-25% DEF."
+    },
+    "regen": {
+      "name": "Regen",
+      "em": "💚",
+      "kind": "buff",
+      "effect": "regen",
+      "magnitude": 12,
+      "duration": 3,
+      "tick": "turn-start",
+      "anim": "heal_sparkle",
+      "desc": "Heal each turn."
+    },
+    "warden_bless": {
+      "name": "Warden's Bless",
+      "em": "🛡️",
+      "kind": "buff",
+      "effect": "stat",
+      "stat": "def",
+      "magnitude": 0.25,
+      "duration": 99,
+      "anim": "buff_glow",
+      "desc": "Enemy buff: +25% DEF."
+    }
+  },
+  "animations": {
+    "slash": {
+      "name": "Slash",
+      "type": "slash",
+      "color": "#ffffff",
+      "em": "",
+      "shake": 2,
+      "durationMs": 300
+    },
+    "fire_burst": {
+      "name": "Fire Burst",
+      "type": "flash",
+      "color": "#ff6600",
+      "em": "🔥",
+      "shake": 4,
+      "durationMs": 480
+    },
+    "fire_nova": {
+      "name": "Fire Nova",
+      "type": "nova",
+      "color": "#ff6600",
+      "em": "🔥",
+      "shake": 8,
+      "durationMs": 800
+    },
+    "frost_shard": {
+      "name": "Frost Shard",
+      "type": "projectile",
+      "color": "#4ad6ff",
+      "em": "❄️",
+      "shake": 3,
+      "durationMs": 450
+    },
+    "frost_nova": {
+      "name": "Frost Nova",
+      "type": "nova",
+      "color": "#4ad6ff",
+      "em": "❄️",
+      "shake": 8,
+      "durationMs": 800
+    },
+    "nature_coil": {
+      "name": "Nature Coil",
+      "type": "flash",
+      "color": "#6bff9b",
+      "em": "🌿",
+      "shake": 2,
+      "durationMs": 450
+    },
+    "void_tear": {
+      "name": "Void Tear",
+      "type": "flash",
+      "color": "#b14aff",
+      "em": "🟣",
+      "shake": 5,
+      "durationMs": 500
+    },
+    "light_ray": {
+      "name": "Light Ray",
+      "type": "projectile",
+      "color": "#ffe066",
+      "em": "✨",
+      "shake": 2,
+      "durationMs": 450
+    },
+    "arcana_zap": {
+      "name": "Arcana Zap",
+      "type": "projectile",
+      "color": "#ff5fd2",
+      "em": "🔮",
+      "shake": 3,
+      "durationMs": 450
+    },
+    "heal_sparkle": {
+      "name": "Heal Sparkle",
+      "type": "heal-sparkle",
+      "color": "#6bff9b",
+      "em": "💚",
+      "shake": 0,
+      "durationMs": 600
+    },
+    "buff_glow": {
+      "name": "Buff Glow",
+      "type": "flash",
+      "color": "#ffdd6b",
+      "em": "",
+      "shake": 0,
+      "durationMs": 400
+    },
+    "burn_tick": {
+      "name": "Burn Tick",
+      "type": "tick",
+      "color": "#ff6600",
+      "em": "🔥",
+      "shake": 0,
+      "durationMs": 300
+    },
+    "poison_tick": {
+      "name": "Poison Tick",
+      "type": "tick",
+      "color": "#6bff9b",
+      "em": "🟢",
+      "shake": 0,
+      "durationMs": 300
+    }
+  },
+  "myths": [
+    {
+      "id": "phoenix",
+      "name": "Phoenix",
+      "em": "🔥",
+      "color": "#ff6600",
+      "desc": "A creature of rebirth. Its flame never dies.",
+      "element": "fire",
+      "statMods": {
+        "hp": 25,
+        "mp": 15,
+        "atk": 5,
+        "def": 0,
+        "spd": 3,
+        "hpPct": 0.1
+      },
+      "resist": [
+        "fire"
+      ],
+      "weak": [
+        "frost"
+      ],
+      "skills": [
+        "fireball",
+        "flame_wall"
+      ],
+      "passive": {
+        "id": "rebirth",
+        "name": "Rebirth",
+        "desc": "Revive once per battle at 50% HP.",
+        "effect": "revive_once"
+      },
+      "limit": "phoenix_rebirth"
+    },
+    {
+      "id": "leviathan",
+      "name": "Leviathan",
+      "em": "🌊",
+      "color": "#2b8cff",
+      "desc": "An ancient terror of the deep.",
+      "element": "frost",
+      "statMods": {
+        "hp": 40,
+        "mp": 10,
+        "atk": 4,
+        "def": 6,
+        "spd": -1,
+        "hpPct": 0.15
+      },
+      "resist": [
+        "frost"
+      ],
+      "weak": [
+        "nature"
+      ],
+      "skills": [
+        "ice_lance",
+        "tide_crash"
+      ],
+      "passive": {
+        "id": "deepscale",
+        "name": "Deepscale",
+        "desc": "+15% max HP.",
+        "effect": "hp_pct"
+      },
+      "limit": "tide_crash"
+    },
+    {
+      "id": "thunderoc",
+      "name": "Thunderoc",
+      "em": "⚡",
+      "color": "#ffd24a",
+      "desc": "Wings of storm and thunder.",
+      "element": "arcana",
+      "statMods": {
+        "hp": 10,
+        "mp": 20,
+        "atk": 3,
+        "def": 0,
+        "spd": 8
+      },
+      "resist": [
+        "arcana"
+      ],
+      "weak": [
+        "light"
+      ],
+      "skills": [
+        "arc_bolt",
+        "rally"
+      ],
+      "passive": {
+        "id": "galewing",
+        "name": "Galewing",
+        "desc": "+8 SPD (acts faster).",
+        "effect": "spd_flat"
+      },
+      "limit": "tide_crash"
+    },
+    {
+      "id": "voidwyrm",
+      "name": "Voidwyrm",
+      "em": "🟣",
+      "color": "#b14aff",
+      "desc": "A serpent born of the space between stars.",
+      "element": "void",
+      "statMods": {
+        "hp": 15,
+        "mp": 25,
+        "atk": 6,
+        "def": 0,
+        "spd": 2
+      },
+      "resist": [
+        "void"
+      ],
+      "weak": [
+        "arcana"
+      ],
+      "skills": [
+        "void_rend",
+        "guard_break"
+      ],
+      "passive": {
+        "id": "entropy",
+        "name": "Entropy",
+        "desc": "Void attacks ignore 20% DEF.",
+        "effect": "pierce"
+      },
+      "limit": "phoenix_rebirth"
+    },
+    {
+      "id": "solarveil",
+      "name": "Solarveil",
+      "em": "✨",
+      "color": "#ffe066",
+      "desc": "Light given form and will.",
+      "element": "light",
+      "statMods": {
+        "hp": 20,
+        "mp": 20,
+        "atk": 3,
+        "def": 3,
+        "spd": 2
+      },
+      "resist": [
+        "light"
+      ],
+      "weak": [
+        "void"
+      ],
+      "skills": [
+        "smite",
+        "mend"
+      ],
+      "passive": {
+        "id": "radiance",
+        "name": "Radiance",
+        "desc": "Healing is 20% stronger.",
+        "effect": "heal_up"
+      },
+      "limit": "phoenix_rebirth"
+    },
+    {
+      "id": "emberbear",
+      "name": "Emberbear",
+      "em": "🐻",
+      "color": "#ff8844",
+      "desc": "A great bear wreathed in cinders.",
+      "element": "fire",
+      "statMods": {
+        "hp": 35,
+        "mp": 5,
+        "atk": 7,
+        "def": 5,
+        "spd": -2,
+        "hpPct": 0.1
+      },
+      "resist": [
+        "fire"
+      ],
+      "weak": [
+        "frost"
+      ],
+      "skills": [
+        "strike",
+        "flame_wall"
+      ],
+      "passive": {
+        "id": "thickhide",
+        "name": "Thick Hide",
+        "desc": "+15% DEF.",
+        "effect": "def_pct"
+      },
+      "limit": "phoenix_rebirth"
+    },
+    {
+      "id": "moonshade",
+      "name": "Moonshade",
+      "em": "🌑",
+      "color": "#8a7dff",
+      "desc": "A hunter that walks in shadow.",
+      "element": "void",
+      "statMods": {
+        "hp": 10,
+        "mp": 15,
+        "atk": 8,
+        "def": 0,
+        "spd": 6
+      },
+      "resist": [
+        "void"
+      ],
+      "weak": [
+        "light"
+      ],
+      "skills": [
+        "void_rend",
+        "guard_break"
+      ],
+      "passive": {
+        "id": "ambush",
+        "name": "Ambush",
+        "desc": "First strike each battle deals +50%.",
+        "effect": "first_strike"
+      },
+      "limit": "phoenix_rebirth"
+    },
+    {
+      "id": "stoneheart",
+      "name": "Stoneheart",
+      "em": "🪨",
+      "color": "#a98c66",
+      "desc": "Patience and stone, unyielding.",
+      "element": "nature",
+      "statMods": {
+        "hp": 50,
+        "mp": 0,
+        "atk": 3,
+        "def": 10,
+        "spd": -3,
+        "hpPct": 0.2
+      },
+      "resist": [
+        "nature"
+      ],
+      "weak": [
+        "fire"
+      ],
+      "skills": [
+        "vine_grasp",
+        "strike"
+      ],
+      "passive": {
+        "id": "bulwark",
+        "name": "Bulwark",
+        "desc": "+20% max HP, +10 DEF.",
+        "effect": "tank"
+      },
+      "limit": "tide_crash"
+    },
+    {
+      "id": "tidecaller",
+      "name": "Tidecaller",
+      "em": "🌀",
+      "color": "#3fd0d0",
+      "desc": "Voice of the rising tide.",
+      "element": "frost",
+      "statMods": {
+        "hp": 20,
+        "mp": 25,
+        "atk": 3,
+        "def": 2,
+        "spd": 3
+      },
+      "resist": [
+        "frost"
+      ],
+      "weak": [
+        "nature"
+      ],
+      "skills": [
+        "ice_lance",
+        "mend"
+      ],
+      "passive": {
+        "id": "flow",
+        "name": "Flow",
+        "desc": "Spells cost 15% less MP.",
+        "effect": "mp_cost_down"
+      },
+      "limit": "tide_crash"
+    },
+    {
+      "id": "wraithwing",
+      "name": "Wraithwing",
+      "em": "👻",
+      "color": "#9a6cff",
+      "desc": "A specter on tattered wings.",
+      "element": "void",
+      "statMods": {
+        "hp": 10,
+        "mp": 20,
+        "atk": 6,
+        "def": 0,
+        "spd": 7
+      },
+      "resist": [
+        "void"
+      ],
+      "weak": [
+        "light"
+      ],
+      "skills": [
+        "void_rend",
+        "arc_bolt"
+      ],
+      "passive": {
+        "id": "phase",
+        "name": "Phase",
+        "desc": "20% chance to dodge any attack.",
+        "effect": "dodge"
+      },
+      "limit": "phoenix_rebirth"
+    }
+  ],
+  "enemies": {
+    "sprite": {
+      "name": "SPRITE",
+      "em": "🕷️",
+      "element": "void",
+      "hp": 65,
+      "mp": 20,
+      "atk": 14,
+      "def": 8,
+      "mag": 10,
+      "spd": 18,
+      "resist": [],
+      "weak": [
+        "fire"
+      ],
+      "xp": 40,
+      "gold": 15,
+      "skills": [
+        "strike",
+        "guard_break"
+      ],
+      "ai": "aggressive",
+      "statusesOnSpawn": [],
+      "drops": [
+        {
+          "item": "silk",
+          "qty": [
+            1,
+            2
+          ],
+          "chance": 0.5
+        },
+        {
+          "item": "void_shard",
+          "qty": 1,
+          "chance": 0.05
+        }
+      ],
+      "lines": [
+        "* The SPRITE skitters in place.",
+        "* It is weaving something sticky.",
+        "* SPRITE is sizing you up."
+      ]
+    },
+    "fungus": {
+      "name": "FUNGUS",
+      "em": "🍄",
+      "element": "nature",
+      "hp": 80,
+      "mp": 30,
+      "atk": 18,
+      "def": 8,
+      "mag": 14,
+      "spd": 14,
+      "resist": [
+        "nature"
+      ],
+      "weak": [
+        "fire"
+      ],
+      "xp": 55,
+      "gold": 20,
+      "skills": [
+        "vine_grasp",
+        "poison"
+      ],
+      "ai": "caster",
+      "statusesOnSpawn": [
+        "warden_bless"
+      ],
+      "drops": [
+        {
+          "item": "ancient_sap",
+          "qty": 1,
+          "chance": 0.3
+        },
+        {
+          "item": "potion",
+          "qty": [
+            1,
+            2
+          ],
+          "chance": 0.4
+        }
+      ],
+      "lines": [
+        "* FUNGUS releases a cloud of spores.",
+        "* It smells damp and old.",
+        "* FUNGUS pulses with green light."
+      ]
+    },
+    "rootling": {
+      "name": "ROOTLING",
+      "em": "🌿",
+      "element": "nature",
+      "hp": 75,
+      "mp": 10,
+      "atk": 12,
+      "def": 8,
+      "mag": 6,
+      "spd": 12,
+      "resist": [
+        "nature"
+      ],
+      "weak": [
+        "fire"
+      ],
+      "xp": 45,
+      "gold": 12,
+      "skills": [
+        "strike",
+        "vine_grasp"
+      ],
+      "ai": "defensive",
+      "statusesOnSpawn": [
+        "warden_bless"
+      ],
+      "drops": [
+        {
+          "item": "oak_log",
+          "qty": [
+            2,
+            4
+          ],
+          "chance": 0.6
+        }
+      ],
+      "lines": [
+        "* The ROOTLING burrows nervously.",
+        "* Tiny roots probe the ground.",
+        "* ROOTLING wants to go home."
+      ]
+    },
+    "fungal_lord": {
+      "name": "FUNGAL LORD",
+      "em": "🍄",
+      "element": "nature",
+      "hp": 420,
+      "mp": 120,
+      "atk": 26,
+      "def": 16,
+      "mag": 24,
+      "spd": 13,
+      "resist": [
+        "nature",
+        "frost"
+      ],
+      "weak": [
+        "fire"
+      ],
+      "xp": 400,
+      "gold": 250,
+      "boss": true,
+      "skills": [
+        "flame_wall",
+        "vine_grasp",
+        "rally",
+        "mend"
+      ],
+      "ai": "boss",
+      "phases": [
+        {
+          "at": 0.5,
+          "grants": [
+            "atk_up"
+          ],
+          "line": "* THE FUNGAL LORD ERUPTS WITH SPORES!"
+        }
+      ],
+      "statusesOnSpawn": [],
+      "drops": [
+        {
+          "item": "ancient_sap",
+          "qty": [
+            2,
+            3
+          ],
+          "chance": 1
+        },
+        {
+          "item": "shadow_gem",
+          "qty": 1,
+          "chance": 0.25
+        }
+      ],
+      "lines": [
+        "* THE FUNGAL LORD towers over you.",
+        "* The whole hollow breathes with it.",
+        "* It regards you as an infection."
+      ]
+    }
+  },
+  "dungeons": [
+    {
+      "id": "whispering_hollow",
+      "name": "The Whispering Hollow",
+      "kind": "dungeon",
+      "element": "nature",
+      "minLevel": 1,
+      "bg": "forest",
+      "desc": "A damp wood where the trees mutter your name.",
+      "floors": [
+        {
+          "name": "Overgrown Entrance",
+          "encounters": [
+            {
+              "enemies": [
+                "sprite",
+                "fungus"
+              ],
+              "weight": 3
+            },
+            {
+              "enemies": [
+                "rootling",
+                "rootling",
+                "sprite"
+              ],
+              "weight": 2
+            }
+          ]
+        },
+        {
+          "name": "Tangled Depths",
+          "encounters": [
+            {
+              "enemies": [
+                "fungus",
+                "fungus"
+              ],
+              "weight": 2
+            },
+            {
+              "enemies": [
+                "sprite",
+                "rootling",
+                "fungus"
+              ],
+              "weight": 3
+            }
+          ]
+        },
+        {
+          "name": "Heart of the Hollow",
+          "boss": true,
+          "encounters": [
+            {
+              "enemies": [
+                "fungal_lord"
+              ],
+              "reward": {
+                "coins": 200,
+                "xp": 150,
+                "items": [
+                  {
+                    "item": "ancient_sap",
+                    "qty": 2
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "clearReward": {
+        "coins": 500,
+        "xp": 300,
+        "items": [
+          {
+            "item": "void_shard",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "emberdeep_raid",
+      "name": "Emberdeep (Raid)",
+      "kind": "raid",
+      "element": "fire",
+      "minLevel": 10,
+      "bg": "volcano",
+      "partySize": 5,
+      "desc": "A molten cavern. Bring friends.",
+      "floors": [
+        {
+          "name": "The Approach",
+          "encounters": [
+            {
+              "enemies": [
+                "sprite",
+                "sprite",
+                "fungus"
+              ],
+              "weight": 1
+            }
+          ]
+        },
+        {
+          "name": "Emberdeep Throne",
+          "boss": true,
+          "encounters": [
+            {
+              "enemies": [
+                "fungal_lord"
+              ],
+              "reward": {
+                "coins": 1000,
+                "xp": 800,
+                "items": [
+                  {
+                    "item": "myth_ore",
+                    "qty": 1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "clearReward": {
+        "coins": 2000,
+        "xp": 1500,
+        "items": [
+          {
+            "item": "myth_heart",
+            "qty": 1
+          }
+        ]
+      }
+    }
+  ]
+}

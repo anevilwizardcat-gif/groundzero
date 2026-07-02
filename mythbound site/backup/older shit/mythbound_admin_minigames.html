@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MYTHBOUND — Minigames Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<script src="mythbound_shared.js"></script>
+<style>
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:8px 18px;border-bottom:2px solid #fff;background:#000;flex-shrink:0;}
+.logo{font-family:'Press Start 2P',monospace;font-size:9px;color:#fff;}
+.nav-links{display:flex;gap:5px;}
+.nb{background:#000;border:2px solid #444;color:#444;padding:7px 12px;font-family:'Press Start 2P',monospace;font-size:7px;cursor:pointer;}
+.nb:hover,.nb.on{border-color:#fff;color:#fff;}
+.nb.wip{border-color:#222;color:#333;cursor:default;}
+.nb.myth{border-color:#555;color:#555;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:'VT323',monospace;font-size:18px;display:flex;}
+/* ── SIDEBAR ── */
+.sb{width:230px;flex-shrink:0;background:#060608;border-right:1px solid #333;display:flex;flex-direction:column;}
+.sb-logo{font-family:'Press Start 2P',monospace;font-size:13px;color:#fff;padding:16px 14px 12px;border-bottom:1px solid #333;line-height:2;}
+.sb-logo small{display:block;font-family:'VT323',monospace;font-size:15px;color:#555;margin-top:2px;}
+.sb-sec{font-family:'Press Start 2P',monospace;font-size:12px;color:#333;padding:12px 14px 5px;}
+.sb-link{padding:11px 16px;cursor:pointer;font-size:17px;color:#555;border-left:2px solid transparent;display:flex;align-items:center;gap:10px;transition:all .1s;}
+.sb-link:hover{color:#fff;background:#0a0a0a;}
+.sb-link.on{color:#fff;border-left-color:#fff;background:#111;}
+.sb-foot{margin-top:auto;padding:12px 14px;border-top:1px solid #1a1a1a;font-size:15px;color:#333;}
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{background:#060608;border-bottom:1px solid #333;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.tb-left{display:flex;flex-direction:column;gap:3px;}
+.tb-title{font-family:'Press Start 2P',monospace;font-size:16px;color:#fff;}
+.tb-sub{font-size:16px;color:#444;}
+.tb-right{display:flex;align-items:center;gap:10px;}
+/* live status */
+.live-dot{width:10px;height:10px;border-radius:50%;background:#555;flex-shrink:0;}
+.live-dot.on{background:#fff;box-shadow:0 0 6px #fff;}
+.live-status{font-family:'Press Start 2P',monospace;font-size:12px;color:#444;}
+.live-status.on{color:#fff;}
+.content{flex:1;overflow-y:auto;padding:18px 20px;}
+.view{display:none;}.view.on{display:block;}
+/* ── BUTTONS ── */
+.btn{background:#000;border:2px solid #fff;color:#fff;padding:9px 16px;font-family:'Press Start 2P',monospace;font-size:12px;cursor:pointer;transition:all .1s;}
+.btn:hover{background:#fff;color:#000;}
+.btn.ghost{border-color:#333;color:#555;}.btn.ghost:hover{border-color:#fff;color:#fff;}
+.btn.warn{border-color:#aaa;color:#aaa;}.btn.warn:hover{background:#aaa;color:#000;}
+.btn.danger{border-color:#888;color:#888;}.btn.danger:hover{background:#888;color:#000;}
+.btn.sm{padding:7px 12px;font-size:12px;}
+.btn.xs{padding:5px 9px;font-size:12px;}
+/* ── RESTART BANNER ── */
+.restart-banner{background:#111;border:2px solid #fff;padding:14px 18px;margin-bottom:18px;
+  display:flex;align-items:center;gap:16px;}
+.rb-title{font-family:'Press Start 2P',monospace;font-size:13px;color:#fff;}
+.rb-sub{font-size:16px;color:#888;margin-top:4px;}
+.rb-timer{font-family:'Press Start 2P',monospace;font-size:20px;color:#fff;min-width:60px;text-align:center;}
+/* ── NOTICE ── */
+.notice{background:#0a0a0a;border:1px solid #333;padding:14px 16px;font-size:16px;color:#666;margin-bottom:18px;line-height:1.7;}
+.notice strong{font-family:'Press Start 2P',monospace;font-size:12px;color:#fff;display:block;margin-bottom:6px;}
+/* ── CARD GRID ── */
+.mg-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:18px;}
+.mg-card{background:#0a0a0a;border:2px solid #222;padding:18px;cursor:pointer;transition:border-color .1s;}
+.mg-card:hover,.mg-card.on{border-color:#fff;}
+.mc-head{display:flex;align-items:center;gap:14px;margin-bottom:10px;}
+.mc-em{font-size:36px;}
+.mc-name{font-family:'Press Start 2P',monospace;font-size:14px;color:#fff;line-height:1.5;}
+.mc-sub{font-size:15px;color:#444;margin-top:3px;}
+.mc-tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.tag{font-family:'Press Start 2P',monospace;font-size:12px;padding:3px 8px;border:1px solid #333;color:#555;}
+.tag.on{border-color:#fff;color:#fff;}
+/* ── EDITOR ── */
+.editor{background:#080808;border:2px solid #333;padding:20px;margin-bottom:18px;}
+.ed-title{font-family:'Press Start 2P',monospace;font-size:16px;color:#fff;margin-bottom:18px;}
+.sec-label{font-family:'Press Start 2P',monospace;font-size:13px;color:#aaa;
+  margin:20px 0 10px;border-top:1px solid #1a1a1a;padding-top:16px;}
+.sec-hint{font-size:16px;color:#555;margin-top:-6px;margin-bottom:12px;line-height:1.6;}
+/* ── FORMS ── */
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:2px;}
+.fg label{font-family:'Press Start 2P',monospace;font-size:12px;color:#666;}
+.fg .hint{font-size:14px;color:#333;line-height:1.5;}
+.fg input,.fg select,.fg textarea{background:#000;border:1px solid #333;color:#fff;
+  font-family:'VT323',monospace;font-size:18px;padding:8px 11px;outline:none;width:100%;transition:border-color .1s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#fff;}
+.fg select option{background:#111;}
+.fg textarea{resize:vertical;min-height:60px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px;}
+/* ── INLINE TABLE ── */
+.tbl{width:100%;border-collapse:collapse;font-size:17px;margin-bottom:10px;}
+.tbl th{font-family:'Press Start 2P',monospace;font-size:12px;color:#555;
+  padding:9px 9px;border-bottom:1px solid #1a1a1a;text-align:left;white-space:nowrap;}
+.tbl td{padding:6px 8px;border-bottom:1px solid #0d0d0d;vertical-align:middle;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:#0a0a0a;}
+.ci{background:#000;border:1px solid #222;color:#fff;font-family:'VT323',monospace;
+  font-size:17px;padding:5px 8px;outline:none;width:100%;transition:border-color .1s;}
+.ci:focus{border-color:#fff;}
+.ci.w60{width:64px;}.ci.w80{width:84px;}.ci.w100{width:104px;}
+.em-ci{background:transparent;border:none;font-size:24px;width:40px;outline:none;text-align:center;color:#fff;}
+/* ── TIER BLOCKS ── */
+.tier-blk{background:#000;border:1px solid #222;padding:16px;margin-bottom:12px;}
+.tier-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.tier-num{font-family:'Press Start 2P',monospace;font-size:13px;color:#fff;}
+.tier-lbl{background:#000;border:1px solid #333;color:#fff;font-family:'Press Start 2P',monospace;
+  font-size:12px;padding:6px 10px;outline:none;width:160px;}
+.tier-lbl:focus{border-color:#fff;}
+.lvl-row{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.lvl-lbl{font-family:'Press Start 2P',monospace;font-size:12px;color:#555;}
+.lvl-in{background:#000;border:1px solid #333;color:#fff;font-family:'VT323',monospace;
+  font-size:17px;padding:5px 8px;outline:none;width:58px;}
+.lvl-in:focus{border-color:#fff;}
+.lvl-arrow{color:#555;font-size:18px;}
+.tier-cnt{font-family:'Press Start 2P',monospace;font-size:12px;color:#444;border:1px solid #222;padding:3px 8px;}
+/* ── WEIGHT SUMMARY ── */
+.ws-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #0d0d0d;}
+.ws-row:last-child{border-bottom:none;}
+.ws-em{font-size:22px;width:28px;text-align:center;flex-shrink:0;}
+.ws-name{flex:1;font-size:17px;color:#ccc;}
+.ws-pct{font-family:'Press Start 2P',monospace;font-size:12px;color:#fff;width:54px;text-align:right;}
+.ws-bar{width:90px;height:5px;background:#1a1a1a;flex-shrink:0;}
+.ws-fill{height:100%;background:#fff;}
+.ws-timing{font-family:'Press Start 2P',monospace;font-size:12px;color:#555;width:160px;text-align:right;}
+/* ── TOOL ROWS ── */
+.tool-row{background:#000;border:1px solid #222;padding:14px 16px;margin-bottom:10px;}
+.tool-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.tool-name-in{background:#000;border:1px solid #333;color:#fff;font-family:'Press Start 2P',monospace;
+  font-size:12px;padding:7px 10px;outline:none;flex:1;}
+.tool-name-in:focus{border-color:#fff;}
+.tool-desc-in{background:#000;border:1px solid #1a1a1a;color:#777;font-family:'VT323',monospace;
+  font-size:17px;padding:6px 10px;outline:none;width:100%;margin-top:8px;}
+.tool-desc-in:focus{border-color:#555;color:#fff;}
+.tool-field{display:flex;flex-direction:column;gap:5px;}
+.tool-field label{font-family:'Press Start 2P',monospace;font-size:12px;color:#555;}
+.tool-field input,.tool-field select{background:#000;border:1px solid #222;color:#fff;
+  font-family:'VT323',monospace;font-size:17px;padding:5px 8px;outline:none;width:100%;}
+.tool-field input:focus,.tool-field select:focus{border-color:#fff;}
+/* ── DIFF BLOCKS ── */
+.diff-wrap{display:flex;gap:12px;flex-wrap:wrap;}
+.diff-blk{background:#000;border:1px solid #222;padding:14px 16px;flex:1;min-width:150px;}
+.diff-lbl{font-family:'Press Start 2P',monospace;font-size:13px;color:#aaa;margin-bottom:12px;}
+.diff-field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+.diff-field label{font-family:'Press Start 2P',monospace;font-size:12px;color:#555;}
+.diff-field input{background:#000;border:1px solid #222;color:#fff;font-family:'VT323',monospace;
+  font-size:17px;padding:5px 8px;outline:none;width:100%;}
+.diff-field input:focus{border-color:#fff;}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:18px;right:18px;background:#000;border:2px solid #fff;color:#fff;
+  font-family:'Press Start 2P',monospace;font-size:12px;padding:11px 18px;
+  z-index:9998;opacity:0;transition:opacity .2s;pointer-events:none;}
+.toast.on{opacity:1;}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">MYTHBOUND</div>
+  <div class="nav-links" id="main-nav"></div>
+</nav>
+<div class="sb">
+  <div class="sb-logo">⚔ MYTHBOUND<small>Owner Panel</small></div>
+  <div class="sb-sec">Content</div>
+  <div class="sb-link"><span>🏰</span>Dungeons</div>
+  <div class="sb-link"><span>⚡</span>Raids</div>
+  <div class="sb-link"><span>💀</span>Enemies</div>
+  <div class="sb-link"><span>🎒</span>Items & Drops</div>
+  <div class="sb-link on" onclick="nav('fishing')"><span>🎣</span>Fishing</div>
+  <div class="sb-link" onclick="nav('schema')"><span>🔧</span>Live Config Docs</div>
+  <div class="sb-foot">Logged in as RAVEN (Owner)</div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-title">MINIGAMES — LIVE CONFIG</div>
+      <div class="tb-sub">Edits broadcast live to all connected players via Supabase Realtime</div>
+    </div>
+    <div class="tb-right">
+      <div class="live-dot" id="live-dot"></div>
+      <div class="live-status" id="live-status">CONNECTING...</div>
+      <button class="btn sm warn" onclick="openRestartDialog()">⚠ SERVER RESTART</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- RESTART DIALOG -->
+    <div id="restart-dialog" style="display:none;" class="editor" style="margin-bottom:18px;">
+      <div class="ed-title">BROADCAST SERVER RESTART WARNING</div>
+      <div class="notice" style="margin-bottom:14px;">
+        <strong>WHAT THIS DOES</strong>
+        Sends a countdown banner to every player currently in-game.
+        After the timer expires, all clients reload automatically.
+        Use this when you need to push structural changes (new fish IDs, new rod tiers).
+        Pure value edits (weights, xp, timings) apply instantly without a restart.
+      </div>
+      <div class="grid3" style="margin-bottom:14px;">
+        <div class="fg"><label>WARNING DURATION</label>
+          <select id="restart-mins">
+            <option value="1">1 minute</option>
+            <option value="3">3 minutes</option>
+            <option value="5" selected>5 minutes</option>
+            <option value="10">10 minutes</option>
+          </select>
+        </div>
+        <div class="fg"><label>REASON (shown to players)</label>
+          <input id="restart-reason" value="Server config update" placeholder="Reason...">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn warn" onclick="broadcastRestart()">BROADCAST RESTART WARNING</button>
+        <button class="btn ghost" onclick="document.getElementById('restart-dialog').style.display='none'">CANCEL</button>
+      </div>
+    </div>
+
+    <!-- FISHING VIEW -->
+    <div class="view on" id="view-fishing">
+      <div class="notice">
+        <strong>FISHING — LIVE CONFIG EDITOR</strong>
+        All values here map directly to the FC (FishingConfig) object read by the game engine at runtime.
+        Field names and structure match the game code exactly.
+        Hot Apply pushes changes via BroadcastChannel (same browser) or Supabase Realtime (production)
+        — no page refresh needed for players. Use Server Restart only for structural changes.
+      </div>
+      <div id="fishing-editor"></div>
+    </div>
+
+    <!-- SCHEMA VIEW -->
+    <div class="view" id="view-schema">
+      <div class="editor">
+        <div class="ed-title">FC — FISHING CONFIG REFERENCE</div>
+        <div style="font-family:'VT323',monospace;font-size:17px;color:#888;line-height:2;white-space:pre-wrap;background:#000;border:1px solid #222;padding:16px;" id="schema-content"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── LIVE GAME CONFIG (exact copy of FC from fishing lobby) ─────────────────
+// In production this is fetched from Supabase on load, then patched via Realtime.
+// Field names MUST match the game code exactly — the game reads FC directly.
+const FC = MB.FC; /* canonical FC
+const _FC_LOCAL = {
+  bar:{ base:52, pxPerLevel:3, lureBonus:14 },
+  catchRate:{ max:0.55, min:0.16, slope:0.0038 },
+  patienceDrain:{ min:0.14, max:0.83, slope:0.0073, regenOnFish:0.012, catchBleedOff:0.06 },
+  patienceComp:{ highThresh:0.20, lowThresh:0.12, highMult:0.80, midMult:0.90 },
+  fish:{
+    speedMult:0.055, velCapMult:2.2, wallBounce:-0.6,
+    dartAmpFraction:0.80, dartAmpCapMult:1.4,
+    behaviors:{
+      smooth: { damp:0.97, forceMult:0.65 },
+      sinker: { damp:0.98, gravity:0.22, gravitySpread:0.10, burstChance:0.022, burstMult:1.2, burstSpread:0.9 },
+      floater:{ damp:0.98, gravity:0.22, gravitySpread:0.10, burstChance:0.022, burstMult:1.2, burstSpread:0.9 },
+      mixed:  { damp:0.95, forceMult:0.90 },
+      dart:   { damp:0.82, forceMult:0.08 },
+    },
+    dartIntervals:{ dart:{min:12,spread:16}, mixed:{min:28,spread:28}, other:{min:50,spread:40} },
+  },
+  playerBar:{ accel:0.132, velCap:20, wallBounce:0.667 },
+  timing:{ biteWaitMinMs:2000, biteWaitRandMs:4000, biteWindowMs:3000 },
+  erratic:{ perLevelOver:0.20, cap:2.0, underBonus:0.82 },
+  energyCostPerCatch:40,
+  rods:[
+    { id:'basic', name:'WOODEN ROD', emoji:'🪡', tier:1, min:1, max:4, cost:0,    reqLvl:0, barBonus:0,  driftDamp:0,    desc:'Reliable. Gets the job done.',         stats:['BASE BAR +0px','STD REEL','LV1-4'] },
+    { id:'fiber', name:'FIBER ROD',  emoji:'🎣', tier:2, min:5, max:8, cost:1200, reqLvl:4, barBonus:8,  driftDamp:0.97, desc:'Wider catch window. Less overshoot.',  stats:['BASE BAR +8px','LESS DRIFT','LV5-8'] },
+  ],
+  bait:[
+    { id:'none',  name:'BARE HOOK', emoji:'🪝', cost:0,  qty:999, consumable:false, poolKey:'none',  barBonus:0,  desc:'Standard rates.' },
+    { id:'worm',  name:'WORM',      emoji:'🪱', cost:5,  qty:24,  consumable:true,  poolKey:'worm',  barBonus:0,  desc:'+Rare fish odds.' },
+    { id:'lure',  name:'LURE',      emoji:'✨', cost:25, qty:8,   consumable:true,  poolKey:'lure',  barBonus:14, desc:'Big fish only. +14px bar.' },
+    { id:'bread', name:'BREAD',     emoji:'🍞', cost:3,  qty:15,  consumable:true,  poolKey:'bread', barBonus:0,  desc:'Fast XP, common fish.' },
+  ],
+  tables:{
+    none:[
+      {id:'boot',    name:'Old Boot',        em:'👟',rar:'common',   diff:15,beh:'smooth', dartCh:0,    xp:3,  sell:0,  desc:"Someone lost a boot.",w:8},
+      {id:'perch',   name:'Common Perch',    em:'🐟',rar:'common',   diff:25,beh:'smooth', dartCh:0.04, xp:12, sell:12, desc:"A plain river perch.",w:40},
+      {id:'roach',   name:'River Roach',     em:'🐠',rar:'common',   diff:32,beh:'mixed',  dartCh:0.06, xp:14, sell:15, desc:"Slippery little thing.",w:32},
+      {id:'carp',    name:'Muddy Carp',      em:'🐡',rar:'common',   diff:38,beh:'sinker', dartCh:0.06, xp:18, sell:22, desc:"Bottom feeder.",w:22},
+      {id:'duck',    name:'Angry Duck',      em:'🦆',rar:'uncommon', diff:28,beh:'floater',dartCh:0.08, xp:30, sell:0,  desc:"It bit your line.",w:5},
+      {id:'eel',     name:'River Eel',       em:'🫎',rar:'uncommon', diff:52,beh:'sinker', dartCh:0.10, xp:35, sell:60, desc:"Long and pale.",w:14},
+      {id:'trout',   name:'Speckled Trout',  em:'🐟',rar:'uncommon', diff:58,beh:'mixed',  dartCh:0.12, xp:40, sell:80, desc:"Good eating.",w:12},
+      {id:'bottle',  name:'Sealed Bottle',   em:'🍶',rar:'rare',     diff:42,beh:'smooth', dartCh:0.05, xp:50, sell:140,desc:"Something inside.",w:5},
+      {id:'pike',    name:'Ghost Pike',      em:'🐊',rar:'rare',     diff:78,beh:'dart',   dartCh:0.22, xp:65, sell:200,desc:"Massive. Translucent.",w:4},
+      {id:'afanc',   name:'Afanc',           em:'🦎',rar:'rare',     diff:62,beh:'sinker', dartCh:0.12, xp:55, sell:90, desc:"Welsh lake beast.",w:6,minLvl:5},
+      {id:'ahuizotl',name:'Ahuizotl',        em:'🦦',rar:'rare',     diff:68,beh:'dart',   dartCh:0.18, xp:70, sell:160,desc:"Aztec river spirit.",w:4,minLvl:5},
+      {id:'kelpie',  name:'Kelpie',          em:'🐎',rar:'rare',     diff:72,beh:'mixed',  dartCh:0.14, xp:65, sell:150,desc:"Scottish water horse.",w:4,minLvl:5},
+      {id:'aspido',  name:'Aspidochelone',   em:'🐢',rar:'rare',     diff:74,beh:'smooth', dartCh:0.10, xp:80, sell:250,desc:"Medieval island-turtle.",w:3,minLvl:9},
+      {id:'tiddalik',name:'Tiddalik',        em:'🐸',rar:'rare',     diff:78,beh:'floater',dartCh:0.16, xp:85, sell:280,desc:"Frog that swallowed all water.",w:3,minLvl:9},
+      {id:'koi_ryu', name:'Koi-Ryū',         em:'🐉',rar:'epic',     diff:86,beh:'mixed',  dartCh:0.22, xp:160,sell:620,desc:"Koi mid-ascension.",w:2,minLvl:9},
+      {id:'mythcarp',name:'Mythbound Carp',   em:'🐲',rar:'epic',     diff:95,beh:'dart',   dartCh:0.32, xp:200,sell:800,desc:"Mythic energy.",w:1},
+      {id:'leviathan',name:'Leviathan Spawn', em:'🐍',rar:'epic',    diff:92,beh:'dart',   dartCh:0.28, xp:180,sell:700,desc:"Coil of the Primordial Sea Beast.",w:2,minLvl:9},
+      {id:'qallu',   name:'Qallupilluit',    em:'🫧',rar:'epic',     diff:95,beh:'dart',   dartCh:0.33, xp:220,sell:900,desc:"Inuit ice spirits.",w:1,minLvl:9},
+    ],
+    worm:[
+      {id:'perch',   name:'Common Perch',    em:'🐟',rar:'common',   diff:25,beh:'smooth', dartCh:0.04, xp:12, sell:12, w:26},
+      {id:'roach',   name:'River Roach',     em:'🐠',rar:'common',   diff:32,beh:'mixed',  dartCh:0.06, xp:14, sell:15, w:20},
+      {id:'carp',    name:'Muddy Carp',      em:'🐡',rar:'common',   diff:38,beh:'sinker', dartCh:0.06, xp:18, sell:22, w:16},
+      {id:'eel',     name:'River Eel',       em:'🫎',rar:'uncommon', diff:52,beh:'sinker', dartCh:0.10, xp:35, sell:60, w:20},
+      {id:'trout',   name:'Speckled Trout',  em:'🐟',rar:'uncommon', diff:58,beh:'mixed',  dartCh:0.12, xp:40, sell:80, w:18},
+      {id:'bottle',  name:'Sealed Bottle',   em:'🍶',rar:'rare',     diff:42,beh:'smooth', dartCh:0.05, xp:50, sell:140,w:7},
+      {id:'pike',    name:'Ghost Pike',      em:'🐊',rar:'rare',     diff:78,beh:'dart',   dartCh:0.22, xp:65, sell:200,w:6},
+      {id:'kelpie',  name:'Kelpie',          em:'🐎',rar:'rare',     diff:72,beh:'mixed',  dartCh:0.14, xp:65, sell:150,w:5,minLvl:5},
+      {id:'koi_ryu', name:'Koi-Ryū',         em:'🐉',rar:'epic',     diff:86,beh:'mixed',  dartCh:0.22, xp:160,sell:620,w:2,minLvl:9},
+      {id:'leviathan',name:'Leviathan Spawn', em:'🐍',rar:'epic',   diff:92,beh:'dart',   dartCh:0.28, xp:180,sell:700,w:2,minLvl:9},
+      {id:'mythcarp',name:'Mythbound Carp',   em:'🐲',rar:'epic',    diff:95,beh:'dart',   dartCh:0.32, xp:200,sell:800,w:2},
+    ],
+    lure:[
+      {id:'trout',   name:'Speckled Trout',  em:'🐟',rar:'uncommon', diff:58,beh:'mixed',  dartCh:0.12, xp:40, sell:80, w:26},
+      {id:'pike',    name:'Ghost Pike',      em:'🐊',rar:'rare',     diff:78,beh:'dart',   dartCh:0.22, xp:65, sell:200,w:22},
+      {id:'eel',     name:'River Eel',       em:'🫎',rar:'uncommon', diff:52,beh:'sinker', dartCh:0.10, xp:35, sell:60, w:20},
+      {id:'bottle',  name:'Sealed Bottle',   em:'🍶',rar:'rare',     diff:42,beh:'smooth', dartCh:0.05, xp:50, sell:140,w:10},
+      {id:'kelpie',  name:'Kelpie',          em:'🐎',rar:'rare',     diff:72,beh:'mixed',  dartCh:0.14, xp:65, sell:150,w:8,minLvl:5},
+      {id:'koi_ryu', name:'Koi-Ryū',         em:'🐉',rar:'epic',     diff:86,beh:'mixed',  dartCh:0.22, xp:160,sell:620,w:5,minLvl:9},
+      {id:'leviathan',name:'Leviathan Spawn', em:'🐍',rar:'epic',   diff:92,beh:'dart',   dartCh:0.28, xp:180,sell:700,w:4,minLvl:9},
+      {id:'mythcarp',name:'Mythbound Carp',   em:'🐲',rar:'epic',    diff:95,beh:'dart',   dartCh:0.32, xp:200,sell:800,w:5},
+      {id:'qallu',   name:'Qallupilluit',    em:'🫧',rar:'epic',     diff:95,beh:'dart',   dartCh:0.33, xp:220,sell:900,w:2,minLvl:9},
+    ],
+    bread:[
+      {id:'perch',   name:'Common Perch',    em:'🐟',rar:'common',   diff:25,beh:'smooth', dartCh:0.04, xp:12, sell:12, w:42},
+      {id:'carp',    name:'Muddy Carp',      em:'🐡',rar:'common',   diff:38,beh:'sinker', dartCh:0.06, xp:18, sell:22, w:36},
+      {id:'roach',   name:'River Roach',     em:'🐠',rar:'common',   diff:32,beh:'mixed',  dartCh:0.06, xp:14, sell:15, w:22},
+      {id:'boot',    name:'Old Boot',        em:'👟',rar:'common',   diff:15,beh:'smooth', dartCh:0,    xp:3,  sell:0,  w:14},
+      {id:'duck',    name:'Angry Duck',      em:'🦆',rar:'uncommon', diff:28,beh:'floater',dartCh:0.08, xp:30, sell:0,  w:6},
+      {id:'bottle',  name:'Sealed Bottle',   em:'🍶',rar:'rare',     diff:42,beh:'smooth', dartCh:0.05, xp:50, sell:140,w:4},
+    ],
+  },
+}
+ */
+// ── BROADCAST CHANNEL ─────────────────────────────────────────────────────
+// Same-origin cross-tab: works when panel and game are open in same browser.
+// Production: replace with Supabase channel.postMessage equivalent.
+const BC = (() => { try { return new BroadcastChannel('mythbound_config'); } catch(e) { return null; } })();
+// Also sync to main MB channel
+MB.onBC(m => { if(m.type==='fc_update') Object.assign(FC, m.data); });
+let liveConnected = false;
+
+function initLive() {
+  // Simulate "connected" after a brief delay (in prod: Supabase subscribe callback)
+  setTimeout(() => {
+    liveConnected = true;
+    document.getElementById('live-dot').classList.add('on');
+    document.getElementById('live-status').textContent = 'LIVE';
+    document.getElementById('live-status').classList.add('on');
+  }, 800);
+}
+
+// Push a patch to all connected game clients
+function hotApply(patch, description) {
+  if(BC) {
+    BC.postMessage({ type: 'FC_PATCH', payload: patch });
+  }
+  // In production: supabase.from('game_config').update({config: FC}).eq('id', 1)
+  console.log('[PANEL] Hot-applied:', description, patch);
+  toast('✓ LIVE — ' + description);
+}
+
+function broadcastRestart() {
+  const mins = +document.getElementById('restart-mins').value;
+  const reason = document.getElementById('restart-reason').value;
+  const secs = mins * 60;
+  if(BC) BC.postMessage({ type: 'RESTART_WARNING', secsRemaining: secs, reason });
+  document.getElementById('restart-dialog').style.display = 'none';
+  toast('Restart warning broadcast: ' + mins + ' min');
+  // Start countdown on this panel too
+  startLocalCountdown(secs);
+}
+
+function startLocalCountdown(secs) {
+  let s = secs;
+  const banner = document.createElement('div');
+  banner.id = 'local-restart-banner';
+  banner.style.cssText = 'background:#111;border-bottom:2px solid #fff;padding:12px 20px;display:flex;align-items:center;gap:16px;font-family:"Press Start 2P",monospace;font-size:12px;color:#fff;position:fixed;top:0;left:0;right:0;z-index:9000;';
+  banner.innerHTML = '⚠ RESTART IN <span id="local-cd"></span> — Players are being warned';
+  document.body.appendChild(banner);
+  const iv = setInterval(() => {
+    s--;
+    const el = document.getElementById('local-cd');
+    const m = Math.floor(s/60), r = s%60;
+    if(el) el.textContent = m + ':' + (r<10?'0':'') + r;
+    if(s <= 0) { clearInterval(iv); banner.remove(); if(BC) BC.postMessage({type:'RESTART_NOW'}); }
+  }, 1000);
+}
+
+function openRestartDialog() {
+  const d = document.getElementById('restart-dialog');
+  d.style.display = d.style.display === 'none' ? 'block' : 'none';
+}
+
+// ── NAV ────────────────────────────────────────────────────────────────────
+function nav(page) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('on'));
+  document.getElementById('view-'+page)?.classList.add('on');
+  if(page==='fishing') { buildFishingEditor(); }
+  if(page==='schema')  { buildSchema(); }
+}
+
+// ── FISHING EDITOR ─────────────────────────────────────────────────────────
+function buildFishingEditor() {
+  document.getElementById('fishing-editor').innerHTML = `
+    ${buildTopCards()}
+    ${buildGlobalConfig()}
+    ${buildTimingConfig()}
+    ${buildBehaviorConfig()}
+    ${buildRods()}
+    ${buildBait()}
+    ${buildPools()}
+  `;
+}
+
+function buildTopCards() {
+  // Summary cards showing what each rod/bait does currently
+  return `<div class="mg-cards">
+    <div class="mg-card on" style="cursor:default;">
+      <div class="mc-head"><div class="mc-em">🎣</div>
+        <div><div class="mc-name">THE RIVER</div>
+          <div class="mc-sub">${FC.tables.none.length + (FC.tables.worm||[]).length} fish entries · ${FC.rods.length} rod tiers · ${FC.bait.length} bait types</div>
+        </div>
+      </div>
+      <div style="font-size:16px;color:#555;line-height:1.6;">
+        Base bar: ${FC.bar.base}px · Per-level: +${FC.bar.pxPerLevel}px · Lure bonus: +${FC.bar.lureBonus}px<br>
+        Bite wait: ${FC.timing.biteWaitMinMs/1000}–${(FC.timing.biteWaitMinMs+FC.timing.biteWaitRandMs)/1000}s · Escape window: ${FC.timing.biteWindowMs/1000}s
+      </div>
+      <div class="mc-tags"><span class="tag on">● ACTIVE</span></div>
+    </div>
+  </div>`;
+}
+
+function buildGlobalConfig() {
+  return `<div class="editor">
+    <div class="ed-title">GLOBAL CATCH FORMULA</div>
+    <div class="sec-hint">
+      These values define the <strong>catch rate</strong> and <strong>patience drain</strong> formulas used for every fish.
+      catchRate(D) = clamp(max, min, max − (D−15)×slope) per frame at 60fps.
+      patienceDrain(D) = clamp(min, max, min + (D−15)×slope) per frame.
+      <br>DO NOT change slope values lightly — they affect all fish simultaneously.
+    </div>
+
+    <div class="sec-label">CATCH RATE FORMULA — fc.catchRate</div>
+    <div class="sec-hint">Higher difficulty = slower fill (lower rate per frame).</div>
+    <div class="grid3">
+      <div class="fg"><label>MAX RATE (easiest fish D=15)</label>
+        <input id="cr-max" type="number" step="0.005" value="${FC.catchRate.max}">
+        <div class="hint">D=15 fills in ${Math.round(100/FC.catchRate.max/60*10)/10}s. Current: ${FC.catchRate.max}</div>
+      </div>
+      <div class="fg"><label>MIN RATE (hardest fish)</label>
+        <input id="cr-min" type="number" step="0.005" value="${FC.catchRate.min}">
+        <div class="hint">D=110 fills in ${Math.round(100/FC.catchRate.min/60*10)/10}s. Current: ${FC.catchRate.min}</div>
+      </div>
+      <div class="fg"><label>SLOPE (rate decrease per difficulty)</label>
+        <input id="cr-slope" type="number" step="0.0001" value="${FC.catchRate.slope}">
+        <div class="hint">Smaller slope = less spread between easy/hard fish.</div>
+      </div>
+    </div>
+
+    <div class="sec-label">PATIENCE DRAIN FORMULA — fc.patienceDrain</div>
+    <div class="sec-hint">Higher difficulty = faster patience drain when fish is outside bar.</div>
+    <div class="grid4">
+      <div class="fg"><label>MIN DRAIN (easiest fish)</label>
+        <input id="pd-min" type="number" step="0.005" value="${FC.patienceDrain.min}">
+        <div class="hint">D=15 patience lasts ${Math.round(100/FC.patienceDrain.min/60*10)/10}s</div>
+      </div>
+      <div class="fg"><label>MAX DRAIN (hardest)</label>
+        <input id="pd-max" type="number" step="0.005" value="${FC.patienceDrain.max}">
+      </div>
+      <div class="fg"><label>SLOPE</label>
+        <input id="pd-slope" type="number" step="0.0001" value="${FC.patienceDrain.slope}">
+      </div>
+      <div class="fg"><label>REGEN WHEN ON FISH</label>
+        <input id="pd-regen" type="number" step="0.001" value="${FC.patienceDrain.regenOnFish}">
+        <div class="hint">Per-frame patience restore when fish is in bar.</div>
+      </div>
+    </div>
+
+    <div class="sec-label">FISH TIMING PREVIEW (read-only — computed from formula above)</div>
+    <table class="tbl">
+      <thead><tr><th>FISH</th><th>DIFF</th><th>CATCH (perfect tracking)</th><th>PATIENCE (max time off bar)</th></tr></thead>
+      <tbody>
+        ${[['Old Boot',15],['Common Perch',25],['River Roach',32],['Muddy Carp',38],['Angry Duck',28],
+           ['River Eel',52],['Speckled Trout',58],['Ghost Pike',78],['Koi-Ryū',86],['Leviathan Spawn',92],['Mythbound Carp',95]]
+          .map(([name,D])=>{
+            const cr=Math.max(FC.catchRate.min,Math.min(FC.catchRate.max,FC.catchRate.max-(D-15)*FC.catchRate.slope));
+            const pd=Math.max(FC.patienceDrain.min,Math.min(FC.patienceDrain.max,FC.patienceDrain.min+(D-15)*FC.patienceDrain.slope));
+            const ct=(100/cr/60).toFixed(1), pt=(100/pd/60).toFixed(1);
+            return \`<tr><td>\${name}</td><td style="font-family:'Press Start 2P',monospace;font-size:12px;">\${D}</td>
+              <td style="font-family:'Press Start 2P',monospace;font-size:12px;">\${ct}s</td>
+              <td style="font-family:'Press Start 2P',monospace;font-size:12px;">\${pt}s</td></tr>\`;
+          }).join('')}
+      </tbody>
+    </table>
+
+    <button class="btn sm" onclick="saveGlobalConfig()" style="margin-top:10px;">HOT APPLY FORMULA CHANGES</button>
+  </div>`;
+}
+
+function buildTimingConfig() {
+  return `<div class="editor">
+    <div class="ed-title">TIMING WINDOWS — fc.timing</div>
+    <div class="sec-hint">Controls cast-to-bite wait and how long the player has to press Space after a bite.</div>
+    <div class="grid4">
+      <div class="fg"><label>BITE WAIT MIN (ms)</label>
+        <input id="tw-min" type="number" step="100" value="${FC.timing.biteWaitMinMs}">
+        <div class="hint">Currently ${FC.timing.biteWaitMinMs/1000}s</div>
+      </div>
+      <div class="fg"><label>BITE WAIT RANDOM (ms)</label>
+        <input id="tw-rand" type="number" step="100" value="${FC.timing.biteWaitRandMs}">
+        <div class="hint">Max = min + this. Currently up to ${(FC.timing.biteWaitMinMs+FC.timing.biteWaitRandMs)/1000}s</div>
+      </div>
+      <div class="fg"><label>ESCAPE WINDOW (ms)</label>
+        <input id="tw-escape" type="number" step="100" value="${FC.timing.biteWindowMs}">
+        <div class="hint">Player has this long to press Space after a bite. Currently ${FC.timing.biteWindowMs/1000}s</div>
+      </div>
+      <div class="fg"><label>ENERGY COST PER CATCH</label>
+        <input id="tw-energy" type="number" min="0" value="${FC.energyCostPerCatch||40}">
+        <div class="hint">Deducted from player's energy pool on each catch.</div>
+      </div>
+    </div>
+    <button class="btn sm" onclick="saveTimingConfig()" style="margin-top:10px;">HOT APPLY</button>
+  </div>`;
+}
+
+function buildBehaviorConfig() {
+  const beh = FC.fish;
+  return `<div class="editor">
+    <div class="ed-title">FISH PHYSICS — fc.fish</div>
+    <div class="sec-hint">
+      speedMult × difficulty = max fish speed in px/frame. velCapMult × speed = velocity cap.
+      Each behavior has its own damping and force values.
+      Dart intervals control how often sudden jump windows open (in frame-units at 60fps target).
+    </div>
+    <div class="grid3">
+      <div class="fg"><label>SPEED MULT (×diff)</label>
+        <input id="bh-spd" type="number" step="0.005" value="${beh.speedMult}">
+        <div class="hint">D=25 Perch → max spd ${(25*beh.speedMult).toFixed(2)} px/frame</div>
+      </div>
+      <div class="fg"><label>VEL CAP (×speed)</label>
+        <input id="bh-vc" type="number" step="0.1" value="${beh.velCapMult}">
+      </div>
+      <div class="fg"><label>WALL BOUNCE (−speed ×)</label>
+        <input id="bh-wb" type="number" step="0.05" value="${Math.abs(beh.wallBounce)}">
+        <div class="hint">Fish bounces back at this fraction of impact speed. Currently ${Math.abs(beh.wallBounce)*100|0}%</div>
+      </div>
+    </div>
+
+    <div class="sec-label">PER-BEHAVIOR CONFIG</div>
+    <table class="tbl">
+      <thead><tr><th>BEHAVIOR</th><th>DESCRIPTION</th><th>DAMPING</th><th>FORCE/GRAVITY</th><th>NOTES</th></tr></thead>
+      <tbody>
+        <tr><td style="font-family:'Press Start 2P',monospace;font-size:12px;">smooth</td>
+          <td>Gentle sine drift</td>
+          <td><input class="ci w80" type="number" step="0.01" id="bs-smooth-d" value="${beh.behaviors.smooth.damp}"></td>
+          <td><input class="ci w80" type="number" step="0.05" id="bs-smooth-f" value="${beh.behaviors.smooth.forceMult}">× speed</td>
+          <td style="font-size:15px;color:#555;">Heavy damping = slow, predictable.</td></tr>
+        <tr><td style="font-family:'Press Start 2P',monospace;font-size:12px;">sinker</td>
+          <td>Gravity-biased, up burst</td>
+          <td><input class="ci w80" type="number" step="0.01" id="bs-sink-d" value="${beh.behaviors.sinker.damp}"></td>
+          <td><input class="ci w80" type="number" step="0.01" id="bs-sink-g" value="${beh.behaviors.sinker.gravity}"> px/frame²</td>
+          <td style="font-size:15px;color:#555;">Burst: ${(beh.behaviors.sinker.burstChance*100).toFixed(1)}% chance × ${beh.behaviors.sinker.burstMult}× speed</td></tr>
+        <tr><td style="font-family:'Press Start 2P',monospace;font-size:12px;">floater</td>
+          <td>Anti-gravity, down burst</td>
+          <td><input class="ci w80" type="number" step="0.01" id="bs-float-d" value="${beh.behaviors.floater.damp}"></td>
+          <td><input class="ci w80" type="number" step="0.01" id="bs-float-g" value="${beh.behaviors.floater.gravity}"> px/frame²</td>
+          <td style="font-size:15px;color:#555;">Same physics as sinker, inverted.</td></tr>
+        <tr><td style="font-family:'Press Start 2P',monospace;font-size:12px;">mixed</td>
+          <td>Random direction changes</td>
+          <td><input class="ci w80" type="number" step="0.01" id="bs-mix-d" value="${beh.behaviors.mixed.damp}"></td>
+          <td><input class="ci w80" type="number" step="0.05" id="bs-mix-f" value="${beh.behaviors.mixed.forceMult}">× speed</td>
+          <td style="font-size:15px;color:#555;">Unpredictable but readable.</td></tr>
+        <tr><td style="font-family:'Press Start 2P',monospace;font-size:12px;">dart</td>
+          <td>Still then sudden jumps</td>
+          <td><input class="ci w80" type="number" step="0.01" id="bs-dart-d" value="${beh.behaviors.dart.damp}"></td>
+          <td><input class="ci w80" type="number" step="0.01" id="bs-dart-f" value="${beh.behaviors.dart.forceMult}">× speed</td>
+          <td style="font-size:15px;color:#555;">Heavy damping between dart jumps.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sec-label">DART JUMP INTERVALS (frame-units at 60fps)</div>
+    <div class="sec-hint">How often the engine rolls for a dart jump. Lower = more frequent. Dart fish check every ${beh.dartIntervals.dart.min}–${beh.dartIntervals.dart.min+beh.dartIntervals.dart.spread} frames. Amplitude = (diff/110) × track × ${beh.dartAmpFraction}.</div>
+    <div class="grid3">
+      <div class="fg"><label>DART FISH INTERVAL (min)</label><input id="di-dart-min" type="number" value="${beh.dartIntervals.dart.min}"></div>
+      <div class="fg"><label>DART FISH SPREAD (+rand)</label><input id="di-dart-sp" type="number" value="${beh.dartIntervals.dart.spread}"></div>
+      <div class="fg"><label>DART AMP FRACTION (×track)</label><input id="di-amp" type="number" step="0.05" value="${beh.dartAmpFraction}"></div>
+      <div class="fg"><label>MIXED INTERVAL (min)</label><input id="di-mix-min" type="number" value="${beh.dartIntervals.mixed.min}"></div>
+      <div class="fg"><label>MIXED SPREAD</label><input id="di-mix-sp" type="number" value="${beh.dartIntervals.mixed.spread}"></div>
+      <div class="fg"><label>OTHER INTERVAL (min)</label><input id="di-oth-min" type="number" value="${beh.dartIntervals.other.min}"></div>
+    </div>
+    <button class="btn sm" onclick="saveBehaviorConfig()" style="margin-top:10px;">HOT APPLY</button>
+  </div>`;
+}
+
+function buildRods() {
+  return `<div class="editor">
+    <div class="ed-title">ROD TIERS — fc.rods</div>
+    <div class="sec-hint">
+      Each rod has a level range (min → max). Being over that range with the current rod makes fish more erratic (+${FC.erratic.perLevelOver*100|0}% per level over, cap ×${FC.erratic.cap}).
+      Being under-levelled for the rod gives a ${((1-FC.erratic.underBonus)*100)|0}% ease bonus.
+      barBonus adds flat px to the reel bar baseline. driftDamp applies velocity damping on release (0 = pure Stardew, 0.97 = subtle ease).
+    </div>
+    <div id="rod-list">
+      ${FC.rods.map((r,ri)=>`
+        <div class="tool-row">
+          <div class="tool-hd">
+            <input class="em-ci" value="${r.emoji}" style="font-size:26px;" onchange="FC.rods[${ri}].emoji=this.value">
+            <input class="tool-name-in" value="${r.name}" onchange="FC.rods[${ri}].name=this.value">
+            <button class="btn xs danger" onclick="removeRod(${ri})" style="margin-left:auto;">✕ REMOVE</button>
+          </div>
+          <div class="grid4">
+            <div class="tool-field"><label>TIER #</label><input type="number" min="1" value="${r.tier}" onchange="FC.rods[${ri}].tier=+this.value"></div>
+            <div class="tool-field"><label>MIN LEVEL</label><input type="number" min="1" value="${r.min}" onchange="FC.rods[${ri}].min=+this.value"></div>
+            <div class="tool-field"><label>MAX LEVEL</label><input type="number" min="1" value="${r.max}" onchange="FC.rods[${ri}].max=+this.value"></div>
+            <div class="tool-field"><label>COST (🪙)</label><input type="number" min="0" value="${r.cost}" onchange="FC.rods[${ri}].cost=+this.value"></div>
+            <div class="tool-field"><label>REQ LVL TO BUY</label><input type="number" min="0" value="${r.reqLvl}" onchange="FC.rods[${ri}].reqLvl=+this.value"></div>
+            <div class="tool-field"><label>BAR BONUS (px)</label><input type="number" min="0" value="${r.barBonus}" onchange="FC.rods[${ri}].barBonus=+this.value"></div>
+            <div class="tool-field"><label>DRIFT DAMP (0–1)</label>
+              <input type="number" min="0" max="1" step="0.01" value="${r.driftDamp}" onchange="FC.rods[${ri}].driftDamp=+this.value">
+              <div style="font-size:13px;color:#333;">0=Stardew exact · 0.97=subtle ease</div></div>
+          </div>
+          <input class="tool-desc-in" value="${r.desc||''}" placeholder="Description shown to player in rod selector..." onchange="FC.rods[${ri}].desc=this.value">
+        </div>`).join('')}
+    </div>
+    <div style="display:flex;gap:10px;margin-top:10px;">
+      <button class="btn sm" onclick="addRod()">+ ADD ROD TIER</button>
+      <button class="btn sm" onclick="saveRods()">HOT APPLY ROD CHANGES</button>
+    </div>
+    <div class="sec-label">ERRATIC MULTIPLIER CONFIG — fc.erratic</div>
+    <div class="sec-hint">When the player's level exceeds their rod's maxLevel, fish become more erratic. Under-equipped rod gives a slight ease bonus.</div>
+    <div class="grid3">
+      <div class="fg"><label>% ERRATIC PER LEVEL OVER</label>
+        <input id="er-plo" type="number" step="0.01" value="${FC.erratic.perLevelOver}">
+        <div class="hint">e.g. 0.20 = +20% per level over rod max</div>
+      </div>
+      <div class="fg"><label>MAX ERRATIC MULTIPLIER</label><input id="er-cap" type="number" step="0.1" value="${FC.erratic.cap}"></div>
+      <div class="fg"><label>UNDER-EQUIPPED EASE BONUS</label>
+        <input id="er-ub" type="number" step="0.01" value="${FC.erratic.underBonus}">
+        <div class="hint">Multiplier &lt;1.0. 0.82 = 18% ease.</div>
+      </div>
+    </div>
+    <button class="btn sm" onclick="saveErratic()" style="margin-top:10px;">HOT APPLY ERRATIC CONFIG</button>
+  </div>`;
+}
+
+function buildBait() {
+  return `<div class="editor">
+    <div class="ed-title">BAIT TYPES — fc.bait</div>
+    <div class="sec-hint">
+      Each bait has a <strong>poolKey</strong> that selects which fish table is used (fc.tables[poolKey]).
+      barBonus adds flat px to the reel bar while this bait is equipped.
+      Consumable = one used per catch. cost/qty set purchase price and shop stack size.
+    </div>
+    <table class="tbl">
+      <thead><tr><th>EM</th><th>NAME</th><th>POOL KEY</th><th>BAR +px</th><th>COST 🪙</th><th>STACK QTY</th><th>CONSUMABLE</th><th>DESCRIPTION</th><th></th></tr></thead>
+      <tbody id="bait-tbody">
+        ${FC.bait.map((b,bi)=>buildBaitRow(b,bi)).join('')}
+      </tbody>
+    </table>
+    <div style="display:flex;gap:10px;margin-top:8px;">
+      <button class="btn xs" onclick="addBait()">+ ADD BAIT TYPE</button>
+      <button class="btn xs" onclick="saveBait()">HOT APPLY BAIT CHANGES</button>
+    </div>
+  </div>`;
+}
+
+function buildBaitRow(b,bi) {
+  const poolKeys = Object.keys(FC.tables);
+  return `<tr id="btr-${bi}">
+    <td><input class="em-ci" value="${b.emoji}" onchange="FC.bait[${bi}].emoji=this.value"></td>
+    <td><input class="ci" value="${b.name}" onchange="FC.bait[${bi}].name=this.value"></td>
+    <td><select class="ci w100" onchange="FC.bait[${bi}].poolKey=this.value">
+      ${poolKeys.map(k=>`<option value="${k}" ${b.poolKey===k?'selected':''}>${k}</option>`).join('')}
+    </select></td>
+    <td><input class="ci w60" type="number" min="0" value="${b.barBonus}" onchange="FC.bait[${bi}].barBonus=+this.value"></td>
+    <td><input class="ci w60" type="number" min="0" value="${b.cost}" onchange="FC.bait[${bi}].cost=+this.value"></td>
+    <td><input class="ci w60" type="number" min="1" value="${b.qty}" onchange="FC.bait[${bi}].qty=+this.value"></td>
+    <td><select class="ci w100" onchange="FC.bait[${bi}].consumable=this.value==='true'">
+      <option value="true" ${b.consumable?'selected':''}>Yes</option>
+      <option value="false" ${!b.consumable?'selected':''}>No</option>
+    </select></td>
+    <td><input class="ci" value="${b.desc||''}" onchange="FC.bait[${bi}].desc=this.value"></td>
+    <td><button class="btn xs danger" onclick="removeBait(${bi})">✕</button></td>
+  </tr>`;
+}
+
+const RARITY_COL={common:'#aaa',uncommon:'#bbb',rare:'#ddd',epic:'#fff',legendary:'#ff0'};
+const BEH_LIST=['smooth','sinker','floater','mixed','dart'];
+const RARITY_LIST=['common','uncommon','rare','epic','legendary'];
+
+function buildPools() {
+  return Object.entries(FC.tables).map(([key, pool])=>`
+    <div class="editor">
+      <div class="ed-title">FISH POOL — fc.tables.${key}</div>
+      <div class="sec-hint">Used when bait poolKey="${key}". Fields match game code exactly: em, rar, diff, beh, dartCh, xp, sell, w (weight). minLvl = min fishing level to roll this fish.</div>
+      <table class="tbl">
+        <thead><tr>
+          <th>EM</th><th style="min-width:130px;">NAME</th><th>RAR</th><th>DIFF</th>
+          <th>BEH</th><th>DART%</th><th>XP</th><th>SELL</th><th>WEIGHT</th>
+          <th>MIN LVL</th><th>DESCRIPTION</th><th>CATCH</th><th>PAT.</th><th></th>
+        </tr></thead>
+        <tbody id="pool-${key}">
+          ${pool.map((f,fi)=>buildFishRow(key,f,fi)).join('')}
+        </tbody>
+      </table>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button class="btn xs" onclick="addFish('${key}')">+ ADD FISH</button>
+        <button class="btn xs" onclick="savePool('${key}')">HOT APPLY POOL</button>
+      </div>
+      <div style="border-top:1px solid #1a1a1a;padding-top:12px;margin-top:14px;">
+        <div style="font-family:'Press Start 2P',monospace;font-size:12px;color:#444;margin-bottom:8px;">WEIGHT DISTRIBUTION</div>
+        <div id="ws-${key}">${buildWS(pool)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function buildFishRow(key, f, fi) {
+  const rc = RARITY_COL[f.rar]||'#fff';
+  const cr = Math.max(FC.catchRate.min,Math.min(FC.catchRate.max,FC.catchRate.max-(f.diff-15)*FC.catchRate.slope));
+  const pd = Math.max(FC.patienceDrain.min,Math.min(FC.patienceDrain.max,FC.patienceDrain.min+(f.diff-15)*FC.patienceDrain.slope));
+  const ct = (100/cr/60).toFixed(1), pt = (100/pd/60).toFixed(1);
+  return `<tr>
+    <td><input class="em-ci" value="${f.em}" onchange="FC.tables['${key}'][${fi}].em=this.value"></td>
+    <td><input class="ci" value="${f.name}" onchange="FC.tables['${key}'][${fi}].name=this.value"></td>
+    <td><select class="ci w100" style="color:${rc};" onchange="FC.tables['${key}'][${fi}].rar=this.value">
+      ${RARITY_LIST.map(r=>`<option value="${r}" ${f.rar===r?'selected':''} style="color:${RARITY_COL[r]||'#fff'}">${r}</option>`).join('')}
+    </select></td>
+    <td><input class="ci w60" type="number" min="15" max="110" value="${f.diff}" onchange="FC.tables['${key}'][${fi}].diff=+this.value;refreshWS('${key}')"></td>
+    <td><select class="ci" onchange="FC.tables['${key}'][${fi}].beh=this.value">
+      ${BEH_LIST.map(b=>`<option value="${b}" ${f.beh===b?'selected':''}>${b}</option>`).join('')}
+    </select></td>
+    <td><input class="ci w60" type="number" min="0" max="1" step="0.01" value="${f.dartCh}" onchange="FC.tables['${key}'][${fi}].dartCh=+this.value"></td>
+    <td><input class="ci w60" type="number" min="0" value="${f.xp}" onchange="FC.tables['${key}'][${fi}].xp=+this.value"></td>
+    <td><input class="ci w60" type="number" min="0" value="${f.sell}" onchange="FC.tables['${key}'][${fi}].sell=+this.value"></td>
+    <td><input class="ci w60" type="number" min="1" value="${f.w}" onchange="FC.tables['${key}'][${fi}].w=+this.value;refreshWS('${key}')"></td>
+    <td><input class="ci w60" type="number" min="0" value="${f.minLvl||0}" onchange="FC.tables['${key}'][${fi}].minLvl=+this.value||undefined"></td>
+    <td><input class="ci" value="${f.desc||''}" onchange="FC.tables['${key}'][${fi}].desc=this.value"></td>
+    <td style="font-family:'Press Start 2P',monospace;font-size:12px;color:#aaa;white-space:nowrap;">${ct}s</td>
+    <td style="font-family:'Press Start 2P',monospace;font-size:12px;color:#aaa;white-space:nowrap;">${pt}s</td>
+    <td><button class="btn xs danger" onclick="removeFish('${key}',${fi})">✕</button></td>
+  </tr>`;
+}
+
+function buildWS(pool) {
+  const total = pool.reduce((s,f)=>s+f.w,0);
+  if(!total) return '<div style="font-size:16px;color:#333;">No fish yet</div>';
+  return pool.map(f=>{
+    const pct = ((f.w/total)*100).toFixed(1);
+    return `<div class="ws-row">
+      <div class="ws-em">${f.em}</div>
+      <div class="ws-name">${f.name}</div>
+      <div class="ws-pct">${pct}%</div>
+      <div class="ws-bar"><div class="ws-fill" style="width:${Math.min(100,pct*1.5)}%;background:${RARITY_COL[f.rar]||'#fff'};"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function refreshWS(key) {
+  const el = document.getElementById('ws-'+key);
+  if(el) el.innerHTML = buildWS(FC.tables[key]);
+}
+
+// ── MUTATIONS ────────────────────────────────────────────────────────────
+function addFish(key) {
+  FC.tables[key].push({id:'new_'+Date.now(),name:'New Fish',em:'❓',rar:'common',diff:25,beh:'smooth',dartCh:0.04,xp:10,sell:10,desc:'',w:10});
+  buildFishingEditor(); toast('Fish added to '+key+' pool');
+}
+function removeFish(key,fi) {
+  FC.tables[key].splice(fi,1); buildFishingEditor();
+}
+function addBait() {
+  const firstKey = Object.keys(FC.tables)[0]||'none';
+  FC.bait.push({id:'bait_'+Date.now(),name:'New Bait',emoji:'❓',cost:10,qty:10,consumable:true,poolKey:firstKey,barBonus:0,desc:''});
+  buildFishingEditor(); toast('Bait type added');
+}
+function removeBait(bi) { FC.bait.splice(bi,1); buildFishingEditor(); }
+function addRod() {
+  const n=FC.rods.length+1;
+  FC.rods.push({id:'rod_'+Date.now(),name:'NEW ROD',emoji:'🔧',tier:n,min:(n-1)*4+1,max:n*4,cost:n*800,reqLvl:(n-1)*4,barBonus:0,driftDamp:0,desc:'',stats:[]});
+  buildFishingEditor(); toast('Rod tier added');
+}
+function removeRod(ri) { if(FC.rods.length<=1){toast('Cannot remove last rod.');return;} FC.rods.splice(ri,1); buildFishingEditor(); }
+
+// ── SAVE / HOT APPLY ──────────────────────────────────────────────────────
+function saveGlobalConfig() {
+  FC.catchRate.max   = +document.getElementById('cr-max').value;
+  FC.catchRate.min   = +document.getElementById('cr-min').value;
+  FC.catchRate.slope = +document.getElementById('cr-slope').value;
+  FC.patienceDrain.min   = +document.getElementById('pd-min').value;
+  FC.patienceDrain.max   = +document.getElementById('pd-max').value;
+  FC.patienceDrain.slope = +document.getElementById('pd-slope').value;
+  FC.patienceDrain.regenOnFish = +document.getElementById('pd-regen').value;
+  hotApply({catchRate:FC.catchRate, patienceDrain:FC.patienceDrain}, 'formula config');
+  buildFishingEditor();
+}
+function saveTimingConfig() {
+  FC.timing.biteWaitMinMs  = +document.getElementById('tw-min').value;
+  FC.timing.biteWaitRandMs = +document.getElementById('tw-rand').value;
+  FC.timing.biteWindowMs   = +document.getElementById('tw-escape').value;
+  FC.energyCostPerCatch    = +document.getElementById('tw-energy').value;
+  hotApply({timing:FC.timing, energyCostPerCatch:FC.energyCostPerCatch}, 'timing windows');
+}
+function saveBehaviorConfig() {
+  FC.fish.speedMult  = +document.getElementById('bh-spd').value;
+  FC.fish.velCapMult = +document.getElementById('bh-vc').value;
+  FC.fish.wallBounce = -(+document.getElementById('bh-wb').value);
+  FC.fish.behaviors.smooth.damp       = +document.getElementById('bs-smooth-d').value;
+  FC.fish.behaviors.smooth.forceMult  = +document.getElementById('bs-smooth-f').value;
+  FC.fish.behaviors.sinker.damp       = +document.getElementById('bs-sink-d').value;
+  FC.fish.behaviors.sinker.gravity    = +document.getElementById('bs-sink-g').value;
+  FC.fish.behaviors.floater.damp      = +document.getElementById('bs-float-d').value;
+  FC.fish.behaviors.floater.gravity   = +document.getElementById('bs-float-g').value;
+  FC.fish.behaviors.mixed.damp        = +document.getElementById('bs-mix-d').value;
+  FC.fish.behaviors.mixed.forceMult   = +document.getElementById('bs-mix-f').value;
+  FC.fish.behaviors.dart.damp         = +document.getElementById('bs-dart-d').value;
+  FC.fish.behaviors.dart.forceMult    = +document.getElementById('bs-dart-f').value;
+  FC.fish.dartIntervals.dart.min      = +document.getElementById('di-dart-min').value;
+  FC.fish.dartIntervals.dart.spread   = +document.getElementById('di-dart-sp').value;
+  FC.fish.dartAmpFraction             = +document.getElementById('di-amp').value;
+  FC.fish.dartIntervals.mixed.min     = +document.getElementById('di-mix-min').value;
+  FC.fish.dartIntervals.mixed.spread  = +document.getElementById('di-mix-sp').value;
+  FC.fish.dartIntervals.other.min     = +document.getElementById('di-oth-min').value;
+  hotApply({fish:FC.fish}, 'fish physics');
+}
+function saveRods() { hotApply({rods:FC.rods}, 'rod config'); }
+function saveErratic() {
+  FC.erratic.perLevelOver = +document.getElementById('er-plo').value;
+  FC.erratic.cap          = +document.getElementById('er-cap').value;
+  FC.erratic.underBonus   = +document.getElementById('er-ub').value;
+  hotApply({erratic:FC.erratic}, 'erratic config');
+}
+function saveBait() { hotApply({bait:FC.bait}, 'bait config'); }
+function savePool(key) { hotApply({tables:{[key]:FC.tables[key]}}, `pool: ${key}`); }
+
+// ── SCHEMA VIEW ────────────────────────────────────────────────────────────
+function buildSchema() {
+  const docs = `FC (FishingConfig) — EXACT FIELD REFERENCE
+All values below are read directly by the game engine.
+Changing these fields in the panel and applying them patches the
+live game immediately via BroadcastChannel (same browser) or
+Supabase Realtime (production). No code change required.
+
+FC.bar.base              = base reel bar height in px
+FC.bar.pxPerLevel        = +px added per fishing level within rod tier
+FC.bar.lureBonus         = +px when lure bait equipped
+
+FC.catchRate.max         = fill rate at D=15 (per frame at 60fps)
+FC.catchRate.min         = fill rate at D=110 (never lower than this)
+FC.catchRate.slope       = rate decrease per difficulty point
+  Formula: clamp(min,max, max - (D-15) × slope)
+  D=25 Perch: ${(FC.catchRate.max-(25-15)*FC.catchRate.slope).toFixed(4)}/frame = ${(100/(FC.catchRate.max-(25-15)*FC.catchRate.slope)/60).toFixed(1)}s catch time
+
+FC.patienceDrain.min     = drain rate at D=15 (per frame)
+FC.patienceDrain.max     = drain rate at D=110
+FC.patienceDrain.slope   = drain increase per difficulty
+FC.patienceDrain.regenOnFish = patience regen per frame when fish is in bar
+FC.patienceDrain.catchBleedOff = catch% bleed per frame when off fish
+
+FC.fish.speedMult        = base speed: spd = D × speedMult px/frame
+FC.fish.velCapMult       = fish vel cap = spd × velCapMult
+FC.fish.wallBounce       = negative: bounce fraction on wall hit
+FC.fish.dartAmpFraction  = dart jump size = (D/110) × TH × dartAmpFraction
+FC.fish.behaviors.*      = per-behavior damping and force values
+FC.fish.dartIntervals.*  = window sizes between dart checks (frame-units)
+
+FC.playerBar.accel       = Stardew-faithful: 0.25 × (300/568) = 0.132
+FC.playerBar.velCap      = effectively uncapped (wall bounces dominate)
+FC.playerBar.wallBounce  = velocity × this on wall hit
+
+FC.timing.biteWaitMinMs  = minimum ms before bite fires after cast
+FC.timing.biteWaitRandMs = additional random ms added to wait
+FC.timing.biteWindowMs   = ms player has to press Space after bite
+
+FC.erratic.perLevelOver  = erratic mult per level over rod max
+FC.erratic.cap           = max erratic multiplier
+FC.erratic.underBonus    = mult when over-equipped (< 1.0 = easier)
+
+FC.rods[]                = rod definitions (id, name, tier, min, max, cost, reqLvl, barBonus, driftDamp)
+FC.bait[]                = bait definitions (id, name, cost, qty, consumable, poolKey, barBonus)
+FC.tables[key][]         = fish entries (id, name, em, rar, diff, beh, dartCh, xp, sell, w, minLvl, desc)
+
+LIVE UPDATE PATHS:
+  Same browser tab: BroadcastChannel('mythbound_config')
+  Production: supabase.channel('game-config').on('postgres_changes', ...)
+  Patch format: { type: 'FC_PATCH', payload: { ...changed_fields } }
+  Restart:     { type: 'RESTART_WARNING', secsRemaining: 300 }`;
+  document.getElementById('schema-content').textContent = docs;
+}
+
+let tTmr=null;
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');
+  if(tTmr)clearTimeout(tTmr);tTmr=setTimeout(()=>t.classList.remove('on'),2600);
+}
+
+initLive();
+nav('fishing');
+
+if (!MB.requireAuth()) throw new Error("not signed in");
+MB.injectUltimateCSS();
+MB.renderNav('main-nav','admin');
+</script>
+</body>
+</html>

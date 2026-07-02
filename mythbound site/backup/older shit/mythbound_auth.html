@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MYTHBOUND — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<script src="mythbound_shared.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{min-height:100%;background:#000;color:#fff;font-family:'VT323',monospace;font-size:18px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;}
+
+.card{width:100%;max-width:420px;padding:0 20px;}
+
+/* logo */
+.auth-logo{font-family:'Press Start 2P',monospace;font-size:18px;color:#fff;text-align:center;
+  letter-spacing:2px;margin-bottom:6px;}
+.auth-sub{font-family:'Press Start 2P',monospace;font-size:7px;color:#333;text-align:center;
+  letter-spacing:1px;margin-bottom:36px;}
+
+/* panel */
+.auth-panel{border:2px solid #fff;padding:28px 26px;background:#000;margin-bottom:16px;}
+.auth-panel-title{font-family:'Press Start 2P',monospace;font-size:8px;color:#fff;
+  margin-bottom:22px;letter-spacing:1px;}
+
+.af{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.af-label{font-family:'Press Start 2P',monospace;font-size:6px;color:#555;}
+.af-input{background:#000;border:2px solid #333;color:#fff;font-family:'VT323',monospace;
+  font-size:22px;padding:9px 12px;outline:none;width:100%;}
+.af-input:focus{border-color:#fff;}
+.af-input::placeholder{color:#2a2a2a;}
+
+.auth-btn{width:100%;font-family:'Press Start 2P',monospace;font-size:8px;background:#000;
+  border:2px solid #fff;color:#fff;padding:14px;cursor:pointer;margin-top:6px;letter-spacing:1px;}
+.auth-btn:hover{background:#fff;color:#000;}
+
+.auth-err{font-family:'Press Start 2P',monospace;font-size:6px;color:#ff4444;
+  margin-top:10px;line-height:2;min-height:14px;text-align:center;}
+.auth-ok{font-family:'Press Start 2P',monospace;font-size:6px;color:#6bff9b;
+  margin-top:10px;line-height:2;min-height:14px;text-align:center;}
+
+/* toggle link */
+.auth-toggle{text-align:center;margin-top:8px;}
+.auth-toggle-lbl{font-size:16px;color:#444;}
+.auth-toggle-link{font-family:'Press Start 2P',monospace;font-size:6px;color:#888;
+  cursor:pointer;border-bottom:1px solid #444;padding-bottom:1px;}
+.auth-toggle-link:hover{color:#fff;border-color:#fff;}
+
+/* dummy accounts panel */
+.dummy-panel{border:1px solid #222;padding:16px;margin-top:12px;}
+.dummy-hdr{font-family:'Press Start 2P',monospace;font-size:6px;color:#333;margin-bottom:12px;letter-spacing:1px;}
+.dummy-list{display:flex;flex-direction:column;gap:7px;}
+.dummy-row{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:8px 10px;border:1px solid #1a1a1a;cursor:pointer;transition:border-color .1s;}
+.dummy-row:hover{border-color:#555;}
+.dummy-av{font-size:18px;width:24px;text-align:center;flex-shrink:0;}
+.dummy-info{flex:1;}
+.dummy-name{font-family:'Press Start 2P',monospace;font-size:7px;color:#888;}
+.dummy-role{font-size:14px;color:#333;margin-top:2px;}
+.dummy-myth{font-family:'Press Start 2P',monospace;font-size:5px;padding:2px 6px;border:1px solid #333;color:#555;}
+.dummy-myth.has-myth{border-color:#555;color:#888;}
+.dummy-login{font-family:'Press Start 2P',monospace;font-size:6px;color:#444;flex-shrink:0;}
+.dummy-row:hover .dummy-login{color:#fff;}
+.dummy-row:hover .dummy-name{color:#fff;}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <div class="auth-logo">MYTHBOUND</div>
+  <div class="auth-sub">▸ YOUR ADVENTURE AWAITS ◂</div>
+
+  <!-- SIGN IN PANEL -->
+  <div class="auth-panel" id="signin-panel">
+    <div class="auth-panel-title" id="panel-title">SIGN IN</div>
+
+    <div class="af" id="field-username">
+      <div class="af-label">USERNAME</div>
+      <input class="af-input" id="f-username" placeholder="Enter username..." maxlength="24" autocomplete="username">
+    </div>
+
+    <div class="af" id="field-email" style="display:none;">
+      <div class="af-label">EMAIL</div>
+      <input class="af-input" id="f-email" placeholder="your@email.com..." type="email" autocomplete="email">
+    </div>
+
+    <div class="af" id="field-em" style="display:none;">
+      <div class="af-label">AVATAR EMOJI</div>
+      <input class="af-input" id="f-em" placeholder="🐦‍⬛" maxlength="4">
+    </div>
+
+    <div class="af">
+      <div class="af-label">PASSWORD</div>
+      <input class="af-input" id="f-password" type="password" placeholder="Password..." autocomplete="current-password">
+    </div>
+
+    <div class="af" id="field-confirm" style="display:none;">
+      <div class="af-label">CONFIRM PASSWORD</div>
+      <input class="af-input" id="f-confirm" type="password" placeholder="Repeat password..." autocomplete="new-password">
+    </div>
+
+    <button class="auth-btn" id="auth-btn" onclick="submitAuth()">▸ SIGN IN</button>
+    <div class="auth-err" id="auth-err"></div>
+    <div class="auth-ok"  id="auth-ok"></div>
+
+    <div class="auth-toggle">
+      <span class="auth-toggle-lbl" id="toggle-lbl">Don't have an account? </span>
+      <span class="auth-toggle-link" id="toggle-link" onclick="toggleMode()">Create one</span>
+    </div>
+  </div>
+
+  <!-- DUMMY ACCOUNTS (dev only) -->
+  <div class="dummy-panel">
+    <div class="dummy-hdr">▸ DEV — QUICK LOGIN</div>
+    <div class="dummy-list" id="dummy-list"></div>
+  </div>
+
+</div>
+
+<script>
+// ── MODE ──────────────────────────────────────────────────────
+let mode = 'signin'; // 'signin' | 'register'
+
+function toggleMode() {
+  mode = mode === 'signin' ? 'register' : 'signin';
+  const isReg = mode === 'register';
+  document.getElementById('panel-title').textContent  = isReg ? 'CREATE ACCOUNT' : 'SIGN IN';
+  document.getElementById('auth-btn').textContent     = isReg ? '▸ CREATE ACCOUNT' : '▸ SIGN IN';
+  document.getElementById('toggle-lbl').textContent   = isReg ? 'Already have an account? ' : "Don't have an account? ";
+  document.getElementById('toggle-link').textContent  = isReg ? 'Sign in instead' : 'Create one';
+  document.getElementById('field-email').style.display   = isReg ? '' : 'none';
+  document.getElementById('field-em').style.display      = isReg ? '' : 'none';
+  document.getElementById('field-confirm').style.display = isReg ? '' : 'none';
+  clearMessages();
+}
+
+function clearMessages() {
+  document.getElementById('auth-err').textContent = '';
+  document.getElementById('auth-ok').textContent  = '';
+}
+function showErr(msg) {
+  document.getElementById('auth-err').textContent = msg;
+  document.getElementById('auth-ok').textContent  = '';
+}
+function showOk(msg) {
+  document.getElementById('auth-ok').textContent  = msg;
+  document.getElementById('auth-err').textContent = '';
+}
+
+// ── ACCOUNTS STORE ────────────────────────────────────────────
+// localStorage stand-in for Supabase auth.
+// In production: replace signInLocal/registerLocal with
+//   supabase.auth.signInWithPassword() / supabase.auth.signUp()
+// The MB.setSession() call remains identical.
+
+const ACCOUNTS_KEY = 'mythbound_accounts_v1';
+
+function loadAccounts() {
+  try { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY)) || {}; }
+  catch(e) { return {}; }
+}
+function saveAccounts(a) {
+  try { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(a)); } catch(e) {}
+}
+
+function signInLocal(username, password) {
+  const accounts = loadAccounts();
+  const key = username.toUpperCase();
+  const acc = accounts[key];
+  if (!acc)              return { error: 'ACCOUNT NOT FOUND' };
+  if (acc.password !== password) return { error: 'INCORRECT PASSWORD' };
+  return { user: acc };
+}
+
+function registerLocal(username, email, password, em) {
+  const accounts = loadAccounts();
+  const key = username.toUpperCase();
+  if (accounts[key]) return { error: 'USERNAME ALREADY TAKEN' };
+  if (username.length < 3) return { error: 'USERNAME TOO SHORT (MIN 3)' };
+  if (password.length < 6) return { error: 'PASSWORD TOO SHORT (MIN 6)' };
+  const user = {
+    id:       'local_' + Date.now(),
+    name:     username.toUpperCase(),
+    em:       em || '🧙',
+    email,
+    password, // plaintext for local dev only — Supabase handles hashing in prod
+    role:     'Adventurer',
+    myth:     null,
+    level:    1,
+    coins:    500,  // starter coins
+    energy:   1000,
+    energyMax:1000,
+    professions: {
+      fishing:   { level:1, xp:0, xpMax:100 },
+      mining:    { level:1, xp:0, xpMax:100 },
+      herbalism: { level:1, xp:0, xpMax:100 },
+      hunting:   { level:1, xp:0, xpMax:100 },
+      combat:    { level:1, xp:0, xpMax:100 },
+    },
+    bag:      [],
+    equipped: {},
+    bagSlots: 20,
+    tools:    { fishing:'1', mining:'1', herbalism:'1', hunting:'1' },
+    craft:    null,
+    craftLevel:1,
+    craftXp:  0,
+  };
+  accounts[key] = user;
+  saveAccounts(accounts);
+  return { user };
+}
+
+// ── SUBMIT ────────────────────────────────────────────────────
+function submitAuth() {
+  clearMessages();
+  const username = document.getElementById('f-username').value.trim();
+  const password = document.getElementById('f-password').value;
+
+  if (!username) { showErr('ENTER A USERNAME'); return; }
+  if (!password) { showErr('ENTER A PASSWORD'); return; }
+
+  if (mode === 'signin') {
+    const result = signInLocal(username, password);
+    if (result.error) { showErr(result.error); return; }
+    MB.setSession(result.user);
+    showOk('WELCOME BACK, ' + result.user.name + '!');
+    setTimeout(() => window.location.href = 'mythbound_hub.html', 800);
+
+  } else {
+    const email   = document.getElementById('f-email').value.trim();
+    const em      = document.getElementById('f-em').value.trim();
+    const confirm = document.getElementById('f-confirm').value;
+    if (!email)            { showErr('ENTER AN EMAIL'); return; }
+    if (password !== confirm) { showErr('PASSWORDS DO NOT MATCH'); return; }
+    const result = registerLocal(username, email, password, em);
+    if (result.error) { showErr(result.error); return; }
+    // Auto sign-in after register
+    MB.setSession(result.user);
+    showOk('ACCOUNT CREATED! WELCOME, ' + result.user.name + '!');
+    setTimeout(() => window.location.href = 'mythbound_hub.html', 800);
+  }
+}
+
+// Enter key submits
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitAuth();
+});
+
+// ── DUMMY ACCOUNTS ────────────────────────────────────────────
+// Pre-seeded dev accounts. Always available regardless of localStorage.
+const DUMMY_ACCOUNTS = [
+  { name:'RAVEN',   em:'🐦‍⬛', password:'raven123',   role:'Striker',    myth:'Phoenix'  },
+  { name:'FOXPAW',  em:'🦊',  password:'foxpaw123',  role:'Ranger',     myth:null       },
+  { name:'CINDRA',  em:'🔥',  password:'cindra123',  role:'Pyromancer', myth:'Ember'    },
+  { name:'GREYVEIL',em:'🌫️', password:'grey123',    role:'Warden',     myth:null       },
+  { name:'SOLENNE', em:'✨',  password:'sol123',     role:'Cleric',     myth:'Starborn' },
+];
+
+function seedDummyAccounts() {
+  const accounts = loadAccounts();
+  let changed = false;
+  DUMMY_ACCOUNTS.forEach(d => {
+    const key = d.name.toUpperCase();
+    if (!accounts[key]) {
+      accounts[key] = {
+        id: 'dummy_' + d.name.toLowerCase(),
+        name: d.name,
+        em: d.em,
+        email: d.name.toLowerCase() + '@mythbound.dev',
+        password: d.password,
+        role: d.role,
+        myth: d.myth,
+        level: d.name === 'RAVEN' ? 12 : Math.floor(Math.random()*8)+1,
+        coins: 500,  // starter coins — will be updated from saved data
+        energy: 1000, energyMax: 1000,
+        professions: {
+          fishing:   { level: d.name==='RAVEN'?4:1,  xp:0, xpMax:100 },
+          mining:    { level: d.name==='RAVEN'?2:1,  xp:0, xpMax:100 },
+          herbalism: { level:1, xp:0, xpMax:100 },
+          hunting:   { level:1, xp:0, xpMax:100 },
+          combat:    { level: d.name==='RAVEN'?8:1,  xp:0, xpMax:100 },
+        },
+        bag: [], equipped: {}, bagSlots: 20,
+        tools: { fishing:'1', mining:'1', herbalism:'1', hunting:'1' },
+        craft: null, craftLevel:1, craftXp:0,
+      };
+      changed = true;
+    }
+  });
+  if (changed) saveAccounts(accounts);
+}
+
+function quickLogin(name) {
+  const d = DUMMY_ACCOUNTS.find(a => a.name === name);
+  if (!d) return;
+  const accounts = loadAccounts();
+  const user = accounts[name.toUpperCase()];
+  if (!user) return;
+  MB.setSession(user);
+  window.location.href = 'mythbound_hub.html';
+}
+
+function renderDummyList() {
+  const list = document.getElementById('dummy-list');
+  list.innerHTML = DUMMY_ACCOUNTS.map(d =>
+    `<div class="dummy-row" onclick="quickLogin('${d.name}')">
+      <div class="dummy-av">${d.em}</div>
+      <div class="dummy-info">
+        <div class="dummy-name">${d.name}</div>
+        <div class="dummy-role">${d.role}</div>
+      </div>
+      <div class="dummy-myth ${d.myth?'has-myth':''}">${d.myth ? '✦ '+d.myth : 'NO MYTH'}</div>
+      <div class="dummy-login">▸ LOGIN</div>
+    </div>`
+  ).join('');
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+// If already signed in, redirect to hub
+if (MB.isSignedIn()) {
+  window.location.href = 'mythbound_hub.html';
+}
+
+seedDummyAccounts();
+renderDummyList();
+</script>
+</body>
+</html>

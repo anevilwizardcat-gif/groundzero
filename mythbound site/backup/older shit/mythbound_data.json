@@ -1,0 +1,1120 @@
+{
+  "_version": 1,
+  "_note": "This file is the single source of truth for all editable game data. Edit via the admin panel at /mythbound_admin_data.html or directly. Share this file with Claude when starting a new dev session so changes are not overwritten.",
+  "economy": {
+    "auctionListingFee": 0.05,
+    "craftSwitchCost": 500,
+    "shopSellRate": 0.4,
+    "mailDelay": 3600,
+    "mailMaxAttachments": 10,
+    "mailMaxCoins": 999999,
+    "energyRegenInterval": 2000,
+    "energyRegenAmount": 1,
+    "bagSlotBaseCost": 500,
+    "bagSlotCostMultiplier": 2
+  },
+  "professions": {
+    "gathering": [
+      "fishing",
+      "mining",
+      "herbalism",
+      "hunting"
+    ],
+    "crafting": [
+      "blacksmithing",
+      "cooking",
+      "alchemy",
+      "leatherworking"
+    ],
+    "maxLevel": 100,
+    "xpPerLevelBracket": {
+      "100": 3000,
+      "1-20": 100,
+      "21-50": 300,
+      "51-80": 700,
+      "81-99": 1500
+    }
+  },
+  "toolTiers": [
+    {
+      "tier": 1,
+      "name": "Starter",
+      "craftReq": 0,
+      "craftSkill": null,
+      "free": true,
+      "gatheringUnlock": {
+        "mining": 1,
+        "fishing": 1,
+        "herbalism": 1,
+        "hunting": 1
+      }
+    },
+    {
+      "tier": 2,
+      "name": "Iron",
+      "craftReq": 10,
+      "craftSkill": "blacksmithing",
+      "free": false,
+      "gatheringUnlock": {
+        "mining": 20,
+        "fishing": 15,
+        "herbalism": 15,
+        "hunting": 15
+      }
+    },
+    {
+      "tier": 3,
+      "name": "Silver",
+      "craftReq": 30,
+      "craftSkill": "blacksmithing",
+      "free": false,
+      "gatheringUnlock": {
+        "mining": 40,
+        "fishing": 35,
+        "herbalism": 35,
+        "hunting": 35
+      }
+    },
+    {
+      "tier": 4,
+      "name": "Mithril",
+      "craftReq": 60,
+      "craftSkill": "blacksmithing",
+      "free": false,
+      "gatheringUnlock": {
+        "mining": 60,
+        "fishing": 55,
+        "herbalism": 55,
+        "hunting": 55
+      }
+    },
+    {
+      "tier": 5,
+      "name": "Adamantine",
+      "craftReq": 90,
+      "craftSkill": "blacksmithing",
+      "free": false,
+      "gatheringUnlock": {
+        "mining": 80,
+        "fishing": 75,
+        "herbalism": 75,
+        "hunting": 75
+      }
+    }
+  ],
+  "rarities": [
+    "common",
+    "uncommon",
+    "rare",
+    "epic",
+    "legendary",
+    "ultimate"
+  ],
+  "rarityColors": {
+    "common": "#999999",
+    "uncommon": "#6bff9b",
+    "rare": "#6bb5ff",
+    "epic": "#c455e8",
+    "legendary": "#ffdd6b",
+    "ultimate": "rainbow"
+  },
+  "items": {
+    "iron_crown": {
+      "name": "Iron Crown",
+      "emoji": "⛑️",
+      "rarity": "rare",
+      "type": "equipment",
+      "slot": "helm",
+      "source": "drop",
+      "sell": 180,
+      "desc": "A battered crown taken from a dungeon guardian.",
+      "stats": {
+        "def": 8,
+        "stm": 20
+      },
+      "element": "physical"
+    },
+    "ashen_vest": {
+      "name": "Ashen Vest",
+      "emoji": "🦺",
+      "rarity": "uncommon",
+      "type": "equipment",
+      "slot": "chest",
+      "source": "drop",
+      "sell": 90,
+      "desc": "Leather hardened in volcanic ash.",
+      "stats": {
+        "def": 5,
+        "stm": 15
+      },
+      "element": "physical"
+    },
+    "void_blade": {
+      "name": "Void Blade",
+      "emoji": "⚔️",
+      "rarity": "epic",
+      "type": "equipment",
+      "slot": "main",
+      "source": "drop",
+      "sell": 400,
+      "desc": "Forged from compressed darkness. Whispers when drawn.",
+      "stats": {
+        "atk": 18,
+        "agi": 2
+      },
+      "element": "void"
+    },
+    "iron_shield": {
+      "name": "Iron Shield",
+      "emoji": "🛡️",
+      "rarity": "common",
+      "type": "equipment",
+      "slot": "off",
+      "source": "drop",
+      "sell": 80,
+      "desc": "Heavy and dependable.",
+      "stats": {
+        "def": 6,
+        "stm": 10
+      },
+      "element": "physical"
+    },
+    "silver_ring": {
+      "name": "Silver Ring",
+      "emoji": "💍",
+      "rarity": "uncommon",
+      "type": "equipment",
+      "slot": "ring",
+      "source": "drop",
+      "sell": 110,
+      "desc": "Faintly magical. Hums when held.",
+      "stats": {
+        "wil": 12,
+        "agi": 1
+      },
+      "element": "arcana"
+    },
+    "ember_boots": {
+      "name": "Ember Boots",
+      "emoji": "🥾",
+      "rarity": "rare",
+      "type": "equipment",
+      "slot": "boots",
+      "source": "drop",
+      "sell": 160,
+      "desc": "Warm to the touch. Forged in volcanic stone.",
+      "stats": {
+        "agi": 4,
+        "atk": 3
+      },
+      "element": "fire"
+    },
+    "sage_legs": {
+      "name": "Sage Legguards",
+      "emoji": "👖",
+      "rarity": "uncommon",
+      "type": "equipment",
+      "slot": "legs",
+      "source": "drop",
+      "sell": 95,
+      "desc": "Woven from enchanted bark-fiber.",
+      "stats": {
+        "wil": 8,
+        "stm": 12
+      },
+      "element": "nature"
+    },
+    "crystal_trinket": {
+      "name": "Crystal Shard",
+      "emoji": "💠",
+      "rarity": "epic",
+      "type": "equipment",
+      "slot": "trinket",
+      "source": "drop",
+      "sell": 350,
+      "desc": "A fragment of a shattered mana crystal.",
+      "stats": {
+        "arc": 14,
+        "wil": 6
+      },
+      "element": "arcana"
+    },
+    "potion": {
+      "name": "Potion",
+      "emoji": "🧪",
+      "rarity": "common",
+      "type": "consumable",
+      "effect": "Heal 40 Stamina",
+      "sell": 20,
+      "desc": "A basic healing potion."
+    },
+    "ether": {
+      "name": "Ether",
+      "emoji": "💧",
+      "rarity": "common",
+      "type": "consumable",
+      "effect": "Restore 30 MP",
+      "sell": 20,
+      "desc": "Restores magical energy."
+    },
+    "elixir": {
+      "name": "Elixir",
+      "emoji": "⚗️",
+      "rarity": "rare",
+      "type": "consumable",
+      "effect": "Full Stamina + MP",
+      "sell": 200,
+      "desc": "Save it for when it counts."
+    },
+    "antidote": {
+      "name": "Antidote",
+      "emoji": "💊",
+      "rarity": "common",
+      "type": "consumable",
+      "effect": "Cure Venom",
+      "sell": 15,
+      "desc": "Purges toxins."
+    },
+    "bomb": {
+      "name": "Bomb",
+      "emoji": "💣",
+      "rarity": "uncommon",
+      "type": "consumable",
+      "effect": "60 Physical dmg",
+      "sell": 60,
+      "desc": "Light fuse. Step back."
+    },
+    "stone": {
+      "name": "Stone",
+      "emoji": "🪨",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 2,
+      "desc": "Basic stone."
+    },
+    "copper_ore": {
+      "name": "Copper Ore",
+      "emoji": "🟤",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 10,
+      "desc": "Smelts into copper ingots."
+    },
+    "tin_ore": {
+      "name": "Tin Ore",
+      "emoji": "⬜",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 18,
+      "desc": "Used in bronze alloys."
+    },
+    "iron_ore": {
+      "name": "Iron Ore",
+      "emoji": "🔩",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 15,
+      "desc": "Common and useful."
+    },
+    "coal": {
+      "name": "Coal",
+      "emoji": "⬛",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 22,
+      "desc": "Fuel and smithing input."
+    },
+    "silver_ore": {
+      "name": "Silver Ore",
+      "emoji": "🔘",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 28,
+      "desc": "Bright and conductive."
+    },
+    "quartz": {
+      "name": "Quartz",
+      "emoji": "💎",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 35,
+      "desc": "Alchemical reagent."
+    },
+    "mithril_ore": {
+      "name": "Mithril Ore",
+      "emoji": "🔵",
+      "rarity": "rare",
+      "type": "material",
+      "source": "mining",
+      "sell": 300,
+      "desc": "Found only in deep veins."
+    },
+    "geode": {
+      "name": "Geode",
+      "emoji": "🔮",
+      "rarity": "legendary",
+      "type": "material",
+      "source": "mining",
+      "sell": 800,
+      "desc": "Crystalline wonder."
+    },
+    "root_fiber": {
+      "name": "Root Fiber",
+      "emoji": "🪢",
+      "rarity": "common",
+      "type": "material",
+      "source": "fishing",
+      "sell": 8,
+      "desc": "Used in leatherwork."
+    },
+    "ancient_sap": {
+      "name": "Ancient Sap",
+      "emoji": "🫙",
+      "rarity": "rare",
+      "type": "material",
+      "source": "fishing",
+      "sell": 120,
+      "desc": "Alchemical reagent."
+    },
+    "shadow_gem": {
+      "name": "Shadow Gem",
+      "emoji": "💎",
+      "rarity": "epic",
+      "type": "material",
+      "source": "fishing",
+      "sell": 500,
+      "desc": "Sought by enchanters."
+    },
+    "deeproot_key": {
+      "name": "Deeproot Key",
+      "emoji": "🗝️",
+      "rarity": "uncommon",
+      "type": "key",
+      "sell": 0,
+      "desc": "Unlocks the Sealed Chamber."
+    },
+    "myth_heart": {
+      "name": "Myth Heart",
+      "emoji": "💜",
+      "rarity": "ultimate",
+      "type": "key",
+      "sell": 0,
+      "desc": "Used for myth binding. Soulbound — cannot trade or sell.",
+      "soulbound": true,
+      "usable": true
+    },
+    "iron_ingot": {
+      "name": "Iron Ingot",
+      "emoji": "🔩",
+      "rarity": "common",
+      "type": "material",
+      "source": "craft",
+      "sell": 320,
+      "desc": "Smelted iron. Required for blacksmithing tier 2."
+    },
+    "silver_ingot": {
+      "name": "Silver Ingot",
+      "emoji": "🥈",
+      "rarity": "legendary",
+      "type": "material",
+      "source": "mining",
+      "sell": 480,
+      "desc": "Refined silver bar. Prized by jewelers."
+    },
+    "mithril_bar": {
+      "name": "Mithril Bar",
+      "emoji": "🔵",
+      "rarity": "legendary",
+      "type": "material",
+      "source": "mining",
+      "sell": 900,
+      "desc": "Smelted mithril. The backbone of endgame gear."
+    },
+    "adamant_frag": {
+      "name": "Adamant Frag",
+      "emoji": "💠",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 55,
+      "desc": "A shard of adamantine ore. Brittle but dense."
+    },
+    "slime_glob": {
+      "name": "Slime Glob",
+      "emoji": "🟢",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 8,
+      "desc": "Viscous slime. Used in alchemy and leatherwork."
+    },
+    "slime_resin": {
+      "name": "Slime Resin",
+      "emoji": "🟡",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 65,
+      "desc": "Hardened slime extract. Alchemical reagent."
+    },
+    "slime_crown": {
+      "name": "Slime Crown",
+      "emoji": "👑",
+      "rarity": "ultimate",
+      "type": "material",
+      "source": "mining",
+      "sell": 750,
+      "desc": "Worn by the largest Shade Slimes. Proof of a worthy kill."
+    },
+    "rubble": {
+      "name": "Rubble",
+      "emoji": "🪨",
+      "rarity": "common",
+      "type": "material",
+      "source": "mining",
+      "sell": 4,
+      "desc": "Broken stone fragments."
+    },
+    "golem_core": {
+      "name": "Golem Core",
+      "emoji": "🔷",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "mining",
+      "sell": 180,
+      "desc": "The animating crystal from a stone golem. Faintly warm."
+    },
+    "runed_heart": {
+      "name": "Runed Heart",
+      "emoji": "❤",
+      "rarity": "legendary",
+      "type": "material",
+      "source": "mining",
+      "sell": 620,
+      "desc": "Carved from a golem\\u2019s chest. The runes still pulse."
+    },
+    "gold_pile": {
+      "name": "Gold Pile",
+      "emoji": "💰",
+      "rarity": "uncommon",
+      "type": "material",
+      "source": "chest",
+      "sell": 200,
+      "desc": "A handful of raw gold fragments."
+    },
+    "gem_cache": {
+      "name": "Gem Cache",
+      "emoji": "💎",
+      "rarity": "rare",
+      "type": "material",
+      "source": "chest",
+      "sell": 450,
+      "desc": "A pouch of mixed gemstones."
+    },
+    "ancient_relic": {
+      "name": "Ancient Relic",
+      "emoji": "🏺",
+      "rarity": "legendary",
+      "type": "material",
+      "source": "chest",
+      "sell": 900,
+      "desc": "Predates the current age. Scholars will pay well."
+    },
+    "perch": {
+      "name": "Common Perch",
+      "emoji": "🐟",
+      "rarity": "common",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 12,
+      "desc": "A plain river perch."
+    },
+    "roach": {
+      "name": "River Roach",
+      "emoji": "🐠",
+      "rarity": "common",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 15,
+      "desc": "Slippery little thing."
+    },
+    "carp": {
+      "name": "Muddy Carp",
+      "emoji": "🐡",
+      "rarity": "common",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 22,
+      "desc": "Bottom feeder."
+    },
+    "duck": {
+      "name": "Angry Duck",
+      "emoji": "🦆",
+      "rarity": "uncommon",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 0,
+      "desc": "It bit your line."
+    },
+    "eel": {
+      "name": "River Eel",
+      "emoji": "🐍",
+      "rarity": "uncommon",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 60,
+      "desc": "Long and pale."
+    },
+    "trout": {
+      "name": "Speckled Trout",
+      "emoji": "🐟",
+      "rarity": "uncommon",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 80,
+      "desc": "Good eating."
+    },
+    "bottle": {
+      "name": "Sealed Bottle",
+      "emoji": "🍶",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 140,
+      "desc": "Something inside."
+    },
+    "pike": {
+      "name": "Ghost Pike",
+      "emoji": "🐊",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 200,
+      "desc": "Massive. Translucent."
+    },
+    "afanc": {
+      "name": "Afanc",
+      "emoji": "🦎",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 90,
+      "desc": "Welsh lake beast."
+    },
+    "ahuizotl": {
+      "name": "Ahuizotl",
+      "emoji": "🦦",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 160,
+      "desc": "Aztec river spirit."
+    },
+    "kelpie": {
+      "name": "Kelpie",
+      "emoji": "🐎",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 150,
+      "desc": "Scottish water horse."
+    },
+    "aspido": {
+      "name": "Aspidochelone",
+      "emoji": "🐢",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 250,
+      "desc": "Medieval island-turtle."
+    },
+    "tiddalik": {
+      "name": "Tiddalik",
+      "emoji": "🐸",
+      "rarity": "rare",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 280,
+      "desc": "Frog that swallowed all water."
+    },
+    "koi_ryu": {
+      "name": "Koi-Ryū",
+      "emoji": "🐉",
+      "rarity": "epic",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 620,
+      "desc": "Koi mid-ascension."
+    },
+    "mythcarp": {
+      "name": "Mythbound Carp",
+      "emoji": "🐲",
+      "rarity": "epic",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 800,
+      "desc": "Mythic energy."
+    },
+    "leviathan": {
+      "name": "Leviathan Spawn",
+      "emoji": "🐍",
+      "rarity": "epic",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 700,
+      "desc": "Coil of the Primordial Sea Beast."
+    },
+    "qallu": {
+      "name": "Qallupilluit",
+      "emoji": "🫧",
+      "rarity": "epic",
+      "type": "fish",
+      "source": "fishing",
+      "sell": 900,
+      "desc": "Inuit ice spirits."
+    },
+    "boot": {
+      "name": "Old Boot",
+      "emoji": "👟",
+      "rarity": "common",
+      "type": "junk",
+      "source": "fishing",
+      "sell": 0,
+      "desc": "Someone lost a boot."
+    },
+    "myth_heart_phoenix": {
+      "name": "Phoenix Heart",
+      "emoji": "❤️",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "fire",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "phoenix",
+      "color": "#ff6600",
+      "desc": "The bound heart of the Phoenix. Burns eternally."
+    },
+    "myth_heart_leviathan": {
+      "name": "Leviathan Heart",
+      "emoji": "💙",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "frost",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "leviathan",
+      "color": "#0066ff",
+      "desc": "Thrums with the deep ocean."
+    },
+    "myth_heart_thunderoc": {
+      "name": "Thunderoc Heart",
+      "emoji": "💛",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "arcana",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "thunderoc",
+      "color": "#ffdd00",
+      "desc": "Crackles with storm-born energy."
+    },
+    "myth_heart_voidwyrm": {
+      "name": "Voidwyrm Heart",
+      "emoji": "💜",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "void",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "voidwyrm",
+      "color": "#aa00ff",
+      "desc": "Pulses with the void between worlds."
+    },
+    "myth_heart_solarveil": {
+      "name": "Solarveil Heart",
+      "emoji": "🤍",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "light",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "solarveil",
+      "color": "#ffffff",
+      "desc": "Radiates pure unfiltered light."
+    },
+    "myth_heart_emberbear": {
+      "name": "Emberbear Heart",
+      "emoji": "🧡",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "fire",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "emberbear",
+      "color": "#ff4400",
+      "desc": "Warm as a hearthstone, fierce as a wildfire."
+    },
+    "myth_heart_moonshade": {
+      "name": "Moonshade Heart",
+      "emoji": "🩵",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "arcana",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "moonshade",
+      "color": "#aaaaff",
+      "desc": "Shifts like moonlight on still water."
+    },
+    "myth_heart_stoneheart": {
+      "name": "Stoneheart Heart",
+      "emoji": "🩶",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "physical",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "stoneheart",
+      "color": "#888888",
+      "desc": "Dense and unyielding as bedrock."
+    },
+    "myth_heart_tidecaller": {
+      "name": "Tidecaller Heart",
+      "emoji": "💙",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "frost",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "tidecaller",
+      "color": "#44ccff",
+      "desc": "Ebbs and flows like the tidal pulse."
+    },
+    "myth_heart_wraithwing": {
+      "name": "Wraithwing Heart",
+      "emoji": "🖤",
+      "rarity": "ultimate",
+      "type": "key",
+      "slot": "myth",
+      "element": "void",
+      "sell": 0,
+      "soulbound": true,
+      "mythBound": true,
+      "mythId": "wraithwing",
+      "color": "#666688",
+      "desc": "Cold to the touch. Barely there."
+    },
+    "phoenix_binding": {
+      "name": "Phoenix Binding",
+      "emoji": "🔥",
+      "rarity": "ultimate",
+      "type": "key",
+      "sell": 0,
+      "desc": "Your mythbound connection to the Phoenix. Cannot be removed or traded.",
+      "soulbound": true,
+      "mythBound": true
+    }
+  },
+  "miningRocks": {
+    "copper_rock": {
+      "name": "COPPER ROCK",
+      "tier": 1,
+      "hp": 40,
+      "minLevel": 1,
+      "xp": 12,
+      "drops": []
+    },
+    "iron_rock": {
+      "name": "IRON ROCK",
+      "tier": 2,
+      "hp": 90,
+      "minLevel": 10,
+      "xp": 30,
+      "drops": []
+    },
+    "silver_rock": {
+      "name": "SILVER ROCK",
+      "tier": 3,
+      "hp": 150,
+      "minLevel": 25,
+      "xp": 55,
+      "drops": []
+    },
+    "mithril_rock": {
+      "name": "MITHRIL ROCK",
+      "tier": 4,
+      "hp": 200,
+      "minLevel": 50,
+      "xp": 120,
+      "drops": [
+        {
+          "item": "mithril_ore",
+          "rarity": "legendary",
+          "pixel": "#cfeaf5",
+          "weight": 0.5
+        }
+      ]
+    }
+  },
+  "myths": [
+    {
+      "id": "phoenix",
+      "name": "Phoenix",
+      "em": "🔥",
+      "color": "#ff6600",
+      "desc": "A creature of rebirth. Its flame never dies."
+    },
+    {
+      "id": "leviathan",
+      "name": "Leviathan",
+      "em": "🌊",
+      "color": "#0066ff",
+      "desc": "The Primordial Sea Beast. Ancient beyond measure."
+    },
+    {
+      "id": "thunderoc",
+      "name": "Thunderoc",
+      "em": "⚡",
+      "color": "#ffdd00",
+      "desc": "A storm-eagle that splits the sky."
+    },
+    {
+      "id": "voidwyrm",
+      "name": "Voidwyrm",
+      "em": "🌀",
+      "color": "#aa00ff",
+      "desc": "Born in the space between worlds."
+    },
+    {
+      "id": "solarveil",
+      "name": "Solarveil",
+      "em": "✨",
+      "color": "#ffffff",
+      "desc": "A creature of pure light. Rarely seen."
+    },
+    {
+      "id": "emberbear",
+      "name": "Emberbear",
+      "em": "🐻",
+      "color": "#ff4400",
+      "desc": "A great bear wreathed in living fire."
+    },
+    {
+      "id": "moonshade",
+      "name": "Moonshade",
+      "em": "🌙",
+      "color": "#aaaaff",
+      "desc": "A silver fox that walks between dreams."
+    },
+    {
+      "id": "stoneheart",
+      "name": "Stoneheart",
+      "em": "🪨",
+      "color": "#888888",
+      "desc": "An ancient construct of living rock."
+    },
+    {
+      "id": "tidecaller",
+      "name": "Tidecaller",
+      "em": "🐋",
+      "color": "#44ccff",
+      "desc": "A whale that sings the tides into being."
+    },
+    {
+      "id": "wraithwing",
+      "name": "Wraithwing",
+      "em": "🦅",
+      "color": "#666688",
+      "desc": "A ghost-hawk that hunts in the shadow realm."
+    }
+  ],
+  "roles": {
+    "owner": {
+      "label": "OWNER",
+      "color": "#ff6600",
+      "permissions": [
+        "all"
+      ]
+    },
+    "admin": {
+      "label": "ADMIN",
+      "color": "#ffdd6b",
+      "permissions": [
+        "send_items",
+        "unmyth",
+        "ban",
+        "kick",
+        "mute",
+        "manage_roles"
+      ]
+    },
+    "mod": {
+      "label": "MOD",
+      "color": "#6bff9b",
+      "permissions": [
+        "kick",
+        "mute",
+        "delete_messages",
+        "view_reports"
+      ]
+    },
+    "user": {
+      "label": "USER",
+      "color": "#aaaaaa",
+      "permissions": [
+        "chat",
+        "trade",
+        "mail"
+      ]
+    },
+    "muted": {
+      "label": "MUTED",
+      "color": "#555555",
+      "permissions": [
+        "read_chat"
+      ]
+    },
+    "banned": {
+      "label": "BANNED",
+      "color": "#ff4444",
+      "permissions": []
+    }
+  },
+  "chat": {
+    "maxMessageLength": 500,
+    "maxMessagesStored": 200,
+    "channels": [
+      {
+        "id": "global",
+        "label": "GLOBAL",
+        "description": "Open to all players"
+      },
+      {
+        "id": "trade",
+        "label": "TRADE",
+        "description": "Buy/sell/auction discussion"
+      },
+      {
+        "id": "lore",
+        "label": "LORE",
+        "description": "Lore and roleplay"
+      }
+    ]
+  },
+  "ownerAccounts": [
+    "RAVEN"
+  ],
+  "miningEnemies": [
+    {
+      "key": "slime",
+      "name": "SHADE SLIME",
+      "tier": 1,
+      "hp": 50,
+      "xp": 18,
+      "minLevel": 1,
+      "maxLevel": 999,
+      "shape": "SLIME",
+      "drops": [
+        {
+          "item": "stone",
+          "rarity": "common",
+          "pixel": "#aaa",
+          "weight": 65
+        },
+        {
+          "item": "quartz",
+          "rarity": "uncommon",
+          "pixel": "#888",
+          "weight": 30
+        },
+        {
+          "item": "geode",
+          "rarity": "legendary",
+          "pixel": "#fff",
+          "weight": 5
+        }
+      ]
+    },
+    {
+      "key": "golem",
+      "name": "STONE GOLEM",
+      "tier": 2,
+      "hp": 95,
+      "xp": 45,
+      "minLevel": 10,
+      "maxLevel": 999,
+      "shape": "GOLEM",
+      "drops": [
+        {
+          "item": "stone",
+          "rarity": "common",
+          "pixel": "#777",
+          "weight": 55
+        },
+        {
+          "item": "copper_ore",
+          "rarity": "uncommon",
+          "pixel": "#6bb5ff",
+          "weight": 38
+        },
+        {
+          "item": "mithril_ore",
+          "rarity": "legendary",
+          "pixel": "#cfeaf5",
+          "weight": 7
+        }
+      ]
+    }
+  ],
+  "pickaxes": {
+    "copper": {
+      "name": "COPPER",
+      "tier": 1,
+      "damage": 8,
+      "energyCost": 10
+    },
+    "iron": {
+      "name": "IRON",
+      "tier": 2,
+      "damage": 14,
+      "energyCost": 18
+    },
+    "silver": {
+      "name": "SILVER",
+      "tier": 3,
+      "damage": 22,
+      "energyCost": 30
+    },
+    "mithril": {
+      "name": "MITHRIL",
+      "tier": 4,
+      "damage": 40,
+      "energyCost": 60
+    }
+  }
+}
